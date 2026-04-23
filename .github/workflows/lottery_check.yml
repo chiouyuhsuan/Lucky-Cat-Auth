@@ -19,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 firebase-admin TaiwanLotteryCrawler
+        run: pip install requests beautifulsoup4 firebase-admin lxml
 
       - name: Run lottery checker
         env:
