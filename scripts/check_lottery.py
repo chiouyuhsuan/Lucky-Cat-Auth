@@ -1,19 +1,20 @@
 """
-台灣大樂透開獎核對腳本
-- 爬取台灣彩券官網最新大樂透開獎號碼
+台灣大樂透開獎核對腳本 v2
+- 使用 TaiwanLotteryCrawler 套件直接抓官方開獎號碼（最穩定）
+- 備用方案：爬 taiwanlottery.com/lotto/result/lotto649
 - 寫入 Firestore draws_results 集合
 - 核對本期有效用戶選號，更新中獎狀態
 """
 
 import os
 import json
+import re
 import requests
 from bs4 import BeautifulSoup
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime, timedelta, timezone
 
-# ── 台灣時區 ──────────────────────────────────────────────
 TZ_TW = timezone(timedelta(hours=8))
 
 def now_tw():
@@ -23,147 +24,227 @@ def now_tw():
 def init_firebase():
     sa_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
     if not sa_json:
-        raise RuntimeError('FIREBASE_SERVICE_ACCOUNT 環境變數未設定')
-    sa_dict = json.loads(sa_json)
-    cred = credentials.Certificate(sa_dict)
+        raise RuntimeError('FIREBASE_SERVICE_ACCOUNT 未設定')
+    cred = credentials.Certificate(json.loads(sa_json))
     firebase_admin.initialize_app(cred)
     return firestore.client()
 
-# ── 爬取台灣彩券最新大樂透號碼 ────────────────────────────
-def fetch_latest_lotto649():
+# ── 方法一：TaiwanLotteryCrawler 套件 ─────────────────────
+def fetch_via_crawler():
     """
-    爬取 taiwanlottery.com 最新大樂透開獎號碼
-    回傳: {
-      'period': '115000045',  # 期別
-      'date': '2026/04/25',   # 開獎日期
-      'numbers': [7, 10, 22, 40, 45, 11],  # 正選號碼（排序後）
-      'special': 18            # 特別號
-    }
+    用 TaiwanLotteryCrawler 套件抓最新大樂透號碼
+    回傳格式範例:
+    [{'period': '115000046', 'date': '2026/04/21',
+      'numbers': [1,6,17,19,20,40], 'special': 22}]
     """
-    url = 'https://www.taiwanlottery.com/lotto/lotto_lastest_result/'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept-Language': 'zh-TW,zh;q=0.9',
-    }
-    resp = requests.get(url, headers=headers, timeout=15)
-    resp.encoding = 'utf-8'
-    soup = BeautifulSoup(resp.text, 'html.parser')
-
-    result = {}
-
-    # 找期別與日期（頁面結構會有這些資訊）
     try:
-        # 嘗試找大樂透的區塊
-        # 台彩頁面通常用 class 或 id 標示各遊戲
-        # 這裡用多個 selector 嘗試，提高穩定性
-        
-        # 方法1: 找含「大樂透」文字的區塊
-        lotto_section = None
-        for section in soup.find_all(['div', 'section', 'article']):
-            if '大樂透' in section.get_text() and '特別號' in section.get_text():
-                lotto_section = section
-                break
-        
-        if not lotto_section:
-            raise ValueError('找不到大樂透開獎區塊')
-
-        text = lotto_section.get_text(separator=' ')
-        print(f"[DEBUG] 找到區塊文字片段: {text[:200]}")
-
-        # 找期別（格式：第 XXXXXXXXX 期 或 115XXXXXX）
-        import re
-        period_match = re.search(r'第\s*(\d{9})\s*期', text)
-        if period_match:
-            result['period'] = period_match.group(1)
-
-        # 找日期（格式：YYYY/MM/DD 或 民國YYY年MM月DD日）
-        date_match = re.search(r'(\d{4}/\d{2}/\d{2})', text)
-        if date_match:
-            result['date'] = date_match.group(1)
-        else:
-            # 民國年轉換
-            roc_match = re.search(r'(\d{3})年(\d{1,2})月(\d{1,2})日', text)
-            if roc_match:
-                y = int(roc_match.group(1)) + 1911
-                m = roc_match.group(2).zfill(2)
-                d = roc_match.group(3).zfill(2)
-                result['date'] = f'{y}/{m}/{d}'
-
-        # 找號碼球（通常是 span 或 div 帶有特定 class，數字 01-49）
-        balls = []
-        special = None
-        
-        # 找所有數字球元素
-        all_nums = re.findall(r'\b(0?[1-9]|[1-3][0-9]|4[0-9])\b', text)
-        # 過濾出合理的樂透號碼（1-49），取前7個
-        valid = []
-        seen = set()
-        for n in all_nums:
-            num = int(n)
-            if 1 <= num <= 49 and num not in seen:
-                valid.append(num)
-                seen.add(num)
-                if len(valid) == 7:
-                    break
-        
-        if len(valid) >= 7:
-            balls = sorted(valid[:6])
-            special = valid[6]
-            result['numbers'] = balls
-            result['special'] = special
-        
+        from TaiwanLottery import TaiwanLotteryCrawler
+        crawler = TaiwanLotteryCrawler()
+        # 取今年今月資料
+        today = now_tw()
+        data = crawler.lotto649([str(today.year), str(today.month).zfill(2)])
+        if not data:
+            return None
+        # 取最後一筆（最新一期）
+        latest = data[-1]
+        print(f'[DEBUG] crawler raw: {latest}')
+        # 欄位名稱依套件版本可能不同，嘗試多種
+        period  = latest.get('period') or latest.get('no') or latest.get('期別') or ''
+        date    = latest.get('date')   or latest.get('開獎日期') or today.strftime('%Y/%m/%d')
+        nums_raw = (latest.get('number') or latest.get('numbers') or
+                    latest.get('獎號') or [])
+        sp_raw   = (latest.get('special_number') or latest.get('special') or
+                    latest.get('特別號') or 0)
+        # 統一格式
+        if isinstance(nums_raw, str):
+            nums_raw = [int(x) for x in re.findall(r'\d+', nums_raw)]
+        if isinstance(sp_raw, (list, tuple)):
+            sp_raw = sp_raw[0] if sp_raw else 0
+        numbers = sorted([int(n) for n in nums_raw if 1 <= int(n) <= 49])[:6]
+        special = int(sp_raw) if sp_raw else 0
+        if len(numbers) == 6 and special:
+            # 民國年轉西元年
+            if isinstance(date, str) and re.match(r'^\d{3}/', date):
+                y, rest = date.split('/', 1)
+                date = str(int(y) + 1911) + '/' + rest
+            return {
+                'period': str(period).strip(),
+                'date': date,
+                'numbers': numbers,
+                'special': special,
+            }
     except Exception as e:
-        print(f'[WARN] 主要解析失敗: {e}，嘗試備用方法...')
-        result = fetch_lotto_fallback()
+        print(f'[WARN] TaiwanLotteryCrawler 失敗: {e}')
+    return None
 
-    print(f'[INFO] 爬取結果: {result}')
-    return result
-
-
-def fetch_lotto_fallback():
+# ── 方法二：直接爬台彩官網 lotto649 結果頁 ────────────────
+def fetch_via_official_page():
     """
-    備用方案：爬取 atsunny.tw（整合台彩資料的第三方）
+    爬 https://www.taiwanlottery.com/lotto/result/lotto649
+    官網頁面結構：期別在 <div class="period_no"> 或 h2
+    號碼球在 <div class="ball_tx"> 或 <span class="number">
+    """
+    url = 'https://www.taiwanlottery.com/lotto/result/lotto649'
+    headers = {
+        'User-Agent': ('Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+                       'AppleWebKit/537.36 Chrome/124.0 Safari/537.36'),
+        'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
+        'Referer': 'https://www.taiwanlottery.com/',
+    }
+    try:
+        resp = requests.get(url, headers=headers, timeout=20)
+        resp.encoding = 'utf-8'
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        print(f'[DEBUG] 官網頁面長度: {len(resp.text)} bytes')
+
+        result = {}
+
+        # ── 找期別 ──────────────────────────────────────
+        # 新版台彩頁面常見 selector
+        period_el = (soup.select_one('.period') or
+                     soup.select_one('.ball_period') or
+                     soup.select_one('[class*="period"]'))
+        if period_el:
+            pm = re.search(r'(\d{9})', period_el.get_text())
+            if pm:
+                result['period'] = pm.group(1)
+
+        if 'period' not in result:
+            pm = re.search(r'第\s*(\d{9})\s*期', resp.text)
+            if pm:
+                result['period'] = pm.group(1)
+
+        # ── 找開獎日期 ──────────────────────────────────
+        date_el = (soup.select_one('.date') or
+                   soup.select_one('[class*="date"]'))
+        if date_el:
+            dm = re.search(r'(\d{3})/(\d{2})/(\d{2})', date_el.get_text())
+            if dm:
+                y = int(dm.group(1)) + 1911
+                result['date'] = f'{y}/{dm.group(2)}/{dm.group(3)}'
+        if 'date' not in result:
+            dm = re.search(r'(\d{3})/(\d{2})/(\d{2})', resp.text)
+            if dm:
+                y = int(dm.group(1)) + 1911
+                result['date'] = f'{y}/{dm.group(2)}/{dm.group(3)}'
+
+        # ── 找號碼球 ────────────────────────────────────
+        # 嘗試多種 selector
+        ball_els = (soup.select('.ball_tx') or
+                    soup.select('.number_ball') or
+                    soup.select('[class*="ball"]') or
+                    soup.select('[class*="num"]'))
+
+        ball_numbers = []
+        for el in ball_els:
+            txt = el.get_text(strip=True)
+            if re.match(r'^\d{1,2}$', txt):
+                n = int(txt)
+                if 1 <= n <= 49:
+                    ball_numbers.append(n)
+
+        print(f'[DEBUG] 找到號碼球元素數量: {len(ball_numbers)}, 內容: {ball_numbers[:10]}')
+
+        if len(ball_numbers) >= 7:
+            result['numbers'] = sorted(ball_numbers[:6])
+            result['special'] = ball_numbers[6]
+        elif len(ball_numbers) >= 6:
+            result['numbers'] = sorted(ball_numbers[:6])
+            # 特別號另外找
+            sp_el = (soup.select_one('.ball_special') or
+                     soup.select_one('[class*="special"]'))
+            if sp_el:
+                sp_txt = sp_el.get_text(strip=True)
+                if re.match(r'^\d{1,2}$', sp_txt):
+                    result['special'] = int(sp_txt)
+
+        if result.get('numbers') and result.get('special') and result.get('period'):
+            return result
+
+    except Exception as e:
+        print(f'[WARN] 官網爬蟲失敗: {e}')
+    return None
+
+# ── 方法三：爬 atsunny.tw（備用，準確度較高的第三方）───────
+def fetch_via_atsunny():
+    """
+    atsunny.tw 整合台彩資料，頁面結構較穩定
     """
     url = 'https://atsunny.tw/lotto-649/'
     headers = {'User-Agent': 'Mozilla/5.0'}
-    resp = requests.get(url, headers=headers, timeout=15)
-    resp.encoding = 'utf-8'
-    soup = BeautifulSoup(resp.text, 'html.parser')
-    
-    import re
-    text = soup.get_text(separator=' ')
-    
-    # 找最新期別和號碼
-    result = {}
-    period_match = re.search(r'第\s*(\d{9})\s*期', text)
-    if period_match:
-        result['period'] = period_match.group(1)
-    
-    # 找號碼（取頁面第一組 6+1）
-    nums_match = re.findall(r'\b([0-4]?[0-9])\b', text[:2000])
-    valid = []
-    seen = set()
-    for n in nums_match:
-        num = int(n)
-        if 1 <= num <= 49 and num not in seen:
-            valid.append(num)
-            seen.add(num)
-            if len(valid) == 7:
-                break
-    
-    if len(valid) >= 7:
-        result['numbers'] = sorted(valid[:6])
-        result['special'] = valid[6]
-    
-    result['date'] = now_tw().strftime('%Y/%m/%d')
-    return result
+    try:
+        resp = requests.get(url, headers=headers, timeout=15)
+        resp.encoding = 'utf-8'
+        text = resp.text
 
+        # 找期別
+        pm = re.search(r'第\s*(\d{9})\s*期', text)
+        period = pm.group(1) if pm else ''
 
-# ── 中獎判斷邏輯（台灣大樂透）────────────────────────────
+        # 找日期（頁面通常有 YYYY/MM/DD 或 民國年）
+        dm = re.search(r'(\d{3})/(\d{2})/(\d{2})', text)
+        if dm:
+            y = int(dm.group(1)) + 1911
+            date = f'{y}/{dm.group(2)}/{dm.group(3)}'
+        else:
+            dm2 = re.search(r'(\d{4})/(\d{2})/(\d{2})', text)
+            date = dm2.group(0) if dm2 else now_tw().strftime('%Y/%m/%d')
+
+        # 找最新期號碼 — atsunny 頁面頂部有結構化的號碼
+        soup = BeautifulSoup(text, 'html.parser')
+
+        # 找所有數字，取最新一組 6+1
+        all_divs = soup.find_all(['span', 'div', 'td'],
+                                 class_=re.compile(r'num|ball|number|lotto', re.I))
+        nums = []
+        seen = set()
+        for el in all_divs:
+            t = el.get_text(strip=True)
+            if re.match(r'^\d{1,2}$', t):
+                n = int(t)
+                if 1 <= n <= 49 and n not in seen:
+                    nums.append(n)
+                    seen.add(n)
+                    if len(nums) == 7:
+                        break
+
+        if len(nums) >= 7 and period:
+            return {
+                'period': period,
+                'date': date,
+                'numbers': sorted(nums[:6]),
+                'special': nums[6],
+            }
+    except Exception as e:
+        print(f'[WARN] atsunny 失敗: {e}')
+    return None
+
+# ── 主要爬取函式（依序嘗試三種方法）─────────────────────
+def fetch_latest_lotto649():
+    print('[INFO] 嘗試方法1: TaiwanLotteryCrawler 套件')
+    r = fetch_via_crawler()
+    if r and r.get('numbers') and r.get('period'):
+        print(f'[INFO] 方法1 成功')
+        return r
+
+    print('[INFO] 嘗試方法2: 官網 lotto649 結果頁')
+    r = fetch_via_official_page()
+    if r and r.get('numbers') and r.get('period'):
+        print(f'[INFO] 方法2 成功')
+        return r
+
+    print('[INFO] 嘗試方法3: atsunny.tw 備用')
+    r = fetch_via_atsunny()
+    if r and r.get('numbers') and r.get('period'):
+        print(f'[INFO] 方法3 成功')
+        return r
+
+    return {}
+
+# ── 中獎判斷（台灣大樂透）────────────────────────────────
 PRIZE_TABLE = {
-    # (正選中幾個, 有無特別號) -> (等級, 描述)
     (6, False): (1, '頭獎'),
-    (6, True):  (1, '頭獎'),   # 含特別號也是頭獎
+    (6, True):  (1, '頭獎'),
     (5, True):  (2, '貳獎'),
     (5, False): (3, '參獎'),
     (4, True):  (4, '肆獎'),
@@ -171,162 +252,112 @@ PRIZE_TABLE = {
     (3, True):  (6, '陸獎'),
     (2, True):  (7, '柒獎'),
 }
+PRIZE_AMOUNTS = {1:100000000, 2:5000000, 3:200000,
+                 4:10000, 5:1000, 6:400, 7:100}
 
-def check_prize(user_numbers, user_special, winning_numbers, winning_special):
-    """
-    user_numbers: list of int (用戶選的6個號碼)
-    user_special: int (用戶選的特別號)
-    winning_numbers: list of int (開獎6個號碼)
-    winning_special: int (開獎特別號)
-    回傳: (prize_level, prize_desc) 或 (0, '未中獎')
-    """
-    if not user_numbers or not winning_numbers:
+def check_prize(user_numbers, user_special, win_numbers, win_special):
+    if not user_numbers or not win_numbers:
         return 0, '未中獎'
-    
-    user_set    = set(user_numbers)
-    winning_set = set(winning_numbers)
-    
-    matched_main    = len(user_set & winning_set)
-    matched_special = (user_special == winning_special) if user_special else False
-    
+    matched_main    = len(set(user_numbers) & set(win_numbers))
+    matched_special = (int(user_special) == int(win_special)) if user_special else False
     key = (matched_main, matched_special)
     if key in PRIZE_TABLE:
-        level, desc = PRIZE_TABLE[key]
-        return level, desc
-    
+        lv, desc = PRIZE_TABLE[key]
+        return lv, desc
     return 0, '未中獎'
 
-
-# ── 決定當期有效選號的時間範圍 ───────────────────────────
-def get_valid_draw_window(draw_date_str):
-    """
-    draw_date_str: '2026/04/25'
-    回傳: (start_dt, end_dt)
-    有效選號範圍：前一期開獎後 到 本期開獎前30分鐘（20:00）
-    """
-    draw_date = datetime.strptime(draw_date_str, '%Y/%m/%d').replace(tzinfo=TZ_TW)
-    
-    # 本期截止：開獎日 20:00
-    end_dt = draw_date.replace(hour=20, minute=0, second=0)
-    
-    # 前一期開獎日（週二->前週五，週五->本週二）
-    weekday = draw_date.weekday()  # 0=Mon, 1=Tue, 4=Fri
-    if weekday == 1:  # 週二 -> 上個週五
-        prev_draw = draw_date - timedelta(days=4)
-    elif weekday == 4:  # 週五 -> 本週二
-        prev_draw = draw_date - timedelta(days=3)
-    else:
-        prev_draw = draw_date - timedelta(days=3)
-    
-    # 前一期開獎後（20:31 之後算下一期開始）
-    start_dt = prev_draw.replace(hour=20, minute=31, second=0)
-    
+# ── 有效選號時間窗口 ──────────────────────────────────────
+def get_valid_window(draw_date_str):
+    draw = datetime.strptime(draw_date_str, '%Y/%m/%d').replace(tzinfo=TZ_TW)
+    end_dt = draw.replace(hour=20, minute=0, second=0)
+    weekday = draw.weekday()  # 1=Tue, 4=Fri
+    days_back = 4 if weekday == 1 else 3  # 週二往前4天=上週五; 週五往前3天=週二
+    prev = draw - timedelta(days=days_back)
+    start_dt = prev.replace(hour=20, minute=31, second=0)
     return start_dt, end_dt
-
 
 # ── 主程式 ────────────────────────────────────────────────
 def main():
     print(f'[INFO] 開始執行 — 台灣時間 {now_tw().strftime("%Y/%m/%d %H:%M:%S")}')
-    
-    # 1. 初始化 Firebase
+
     db = init_firebase()
     print('[INFO] Firebase 連線成功')
-    
-    # 2. 爬取最新開獎號碼
+
     result = fetch_latest_lotto649()
-    
+    print(f'[INFO] 爬取結果: {result}')
+
     if not result.get('numbers') or not result.get('period'):
         print('[ERROR] 無法取得有效開獎號碼，終止')
         return
-    
+
     period      = result['period']
     draw_date   = result.get('date', now_tw().strftime('%Y/%m/%d'))
     win_numbers = result['numbers']
     win_special = result['special']
-    
+
     print(f'[INFO] 期別：{period}，日期：{draw_date}')
     print(f'[INFO] 開獎號碼：{win_numbers}，特別號：{win_special}')
-    
-    # 3. 把開獎結果存到 Firestore（draws_results 集合）
+
+    # ── 確認是否已處理過這期 ──────────────────────────────
     result_ref = db.collection('draws_results').document(f'tw_{period}')
+    existing = result_ref.get()
+    if existing.exists:
+        print(f'[INFO] tw_{period} 已存在，更新資料')
+    
     result_ref.set({
-        'lotType':    'tw',
-        'lotName':    '台灣大樂透',
-        'period':     period,
-        'drawDate':   draw_date,
-        'numbers':    win_numbers,
-        'special':    win_special,
-        'updatedAt':  firestore.SERVER_TIMESTAMP,
+        'lotType': 'tw', 'lotName': '台灣大樂透',
+        'period': period, 'drawDate': draw_date,
+        'numbers': win_numbers, 'special': win_special,
+        'updatedAt': firestore.SERVER_TIMESTAMP,
     })
     print(f'[INFO] 開獎結果已寫入 Firestore: tw_{period}')
-    
-    # 4. 決定有效選號時間窗口
-    start_dt, end_dt = get_valid_draw_window(draw_date)
+
+    # ── 有效時間窗口 ──────────────────────────────────────
+    start_dt, end_dt = get_valid_window(draw_date)
     print(f'[INFO] 有效選號時間：{start_dt} ~ {end_dt}')
-    
-    # 5. 查詢所有在時間窗口內且屬於大樂透的 draws
-    draws_ref = db.collection('draws')
-    query = (draws_ref
-             .where('lotType', '==', 'tw')
-             .where('prizeLevel', '==', 0))  # 只核對還沒結果的
-    
-    docs = query.stream()
-    checked = 0
-    won = 0
-    
+
+    # ── 核對用戶選號 ──────────────────────────────────────
+    docs = (db.collection('draws')
+              .where(filter=firestore.FieldFilter('lotType', '==', 'tw'))
+              .where(filter=firestore.FieldFilter('prizeLevel', '==', 0))
+              .stream())
+
+    checked = won = 0
     for doc in docs:
         data = doc.to_dict()
-        
-        # 檢查 createdAt 是否在有效時間窗口內
         created_at = data.get('createdAt')
-        if created_at is None:
+        if not created_at or not hasattr(created_at, 'seconds'):
             continue
-        
-        # Firestore timestamp -> datetime
-        if hasattr(created_at, 'seconds'):
-            created_dt = datetime.fromtimestamp(created_at.seconds, tz=TZ_TW)
-        else:
-            continue
-        
+        created_dt = datetime.fromtimestamp(created_at.seconds, tz=TZ_TW)
         if not (start_dt <= created_dt <= end_dt):
-            continue  # 不在本期有效範圍內
-        
-        # 核對號碼
+            continue
+
         user_numbers = data.get('numbers', [])
         user_special = data.get('special', [])
         if isinstance(user_special, list):
             user_special = user_special[0] if user_special else None
-        
+
         prize_level, prize_desc = check_prize(
-            user_numbers, user_special,
-            win_numbers, win_special
-        )
-        
-        # 更新紀錄（不管有沒有中獎都更新，標記已核對）
-        update_data = {
-            'prizeLevel':  prize_level,
-            'prizeDesc':   prize_desc,
-            'checkedAt':   firestore.SERVER_TIMESTAMP,
-            'drawPeriod':  period,
-            'winNumbers':  win_numbers,
-            'winSpecial':  win_special,
+            user_numbers, user_special, win_numbers, win_special)
+
+        update = {
+            'prizeLevel': prize_level,
+            'prizeDesc': prize_desc,
+            'checkedAt': firestore.SERVER_TIMESTAMP,
+            'drawPeriod': period,
+            'winNumbers': win_numbers,
+            'winSpecial': win_special,
         }
-        
         if prize_level > 0:
-            # 中獎了！設定一個示意金額（實際金額需手動更新或接官方公告）
-            prize_amounts = {1: 100000000, 2: 5000000, 3: 200000,
-                             4: 10000, 5: 1000, 6: 400, 7: 100}
-            update_data['prizeAmount'] = prize_amounts.get(prize_level, 0)
+            update['prizeAmount'] = PRIZE_AMOUNTS.get(prize_level, 0)
             won += 1
-            print(f'[WIN] doc={doc.id}, user={data.get("catName")}, '
-                  f'等級={prize_level} {prize_desc}')
-        
-        doc.reference.update(update_data)
+            print(f'[WIN] {data.get("catName")} 中獎！等級={prize_level} {prize_desc}')
+
+        doc.reference.update(update)
         checked += 1
-    
+
     print(f'[INFO] 核對完成：共 {checked} 筆，中獎 {won} 筆')
     print('[INFO] 腳本執行完畢 ✓')
-
 
 if __name__ == '__main__':
     main()
