@@ -8,28 +8,24 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;background:#F4F2FB;min-height:100vh;color:#26215C}
 
-/* NAV */
 .topnav{background:#FAF0FB;border-bottom:0.5px solid #CECBF6;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{display:flex;align-items:center;gap:8px;cursor:pointer}
+.logo{display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none}
 .logo-icon{width:32px;height:32px;background:#7F77DD;border-radius:10px;display:flex;align-items:center;justify-content:center}
 .logo-text{font-size:16px;font-weight:500;color:#3C3489}
 .nav-links{display:flex;gap:4px}
-.nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:#534AB7;cursor:pointer;border:none;background:transparent;font-family:inherit}
+.nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:#534AB7;cursor:pointer;border:none;background:transparent;font-family:inherit;text-decoration:none}
 .nav-link:hover,.nav-link.active{background:#EEEDFE;font-weight:500}
-.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;text-decoration:none}
 .nav-cta:hover{background:#3C3489}
 .nav-user{display:flex;align-items:center;gap:8px}
 .nav-user-photo{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid #7F77DD}
 .nav-user-name{font-size:13px;color:#534AB7;font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nav-logout{font-size:12px;color:#888780;cursor:pointer;border:none;background:transparent;font-family:inherit}
-.nav-logout:hover{color:#534AB7}
 
-/* PAGES */
 .page{display:none;max-width:680px;margin:0 auto;padding:20px 16px 48px}
 .page.active{display:block}
 
-/* BUTTONS */
-.btn{display:block;width:100%;padding:14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit;transition:background .15s}
+.btn{display:block;width:100%;padding:14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
 .btn:hover{background:#3C3489}
 .btn.disabled{opacity:.45;pointer-events:none}
 .btn-outline{display:block;width:100%;padding:14px;background:transparent;color:#534AB7;border:0.5px solid #7F77DD;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
@@ -39,18 +35,15 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
 .stat-card{background:#fff;border:0.5px solid #CECBF6;border-radius:12px;padding:14px}
 
-/* HERO */
 .hero{background:#EEEDFE;border-radius:16px;padding:28px 20px 24px;text-align:center;margin-bottom:20px}
 .hero-tag{display:inline-block;background:#7F77DD;color:#EEEDFE;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;margin-bottom:12px}
 .hero-btn{display:inline-block;padding:14px 32px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit}
 .hero-btn:hover{background:#3C3489}
 
-/* RANK */
 .rank-item{display:flex;align-items:center;gap:10px;background:#fff;border:0.5px solid #CECBF6;border-radius:12px;padding:12px 14px;margin-bottom:8px}
 .rank-avatar{width:42px;height:42px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:#FAC775;border:1.5px solid #EF9F27}
 .rank-avatar img{width:100%;height:100%;object-fit:cover}
 
-/* UPLOAD */
 .loc-notice{background:#EEEDFE;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .upload-zone{border:2px dashed #AFA9EC;border-radius:14px;background:#FBEAF0;cursor:pointer;margin-bottom:14px;overflow:hidden;position:relative}
 .upload-placeholder{padding:36px 20px;text-align:center}
@@ -64,7 +57,6 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .radio{width:18px;height:18px;border-radius:50%;border:1.5px solid #CECBF6;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .radio.sel{background:#7F77DD;border-color:#7F77DD}
 
-/* LOADING */
 .loading-page{text-align:center;padding:60px 20px;background:#EEEDFE;border-radius:16px}
 @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
 .dot{width:9px;height:9px;border-radius:50%;background:#7F77DD;display:inline-block}
@@ -72,12 +64,10 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .dot:nth-child(2){animation:bounce 1.2s ease-in-out infinite .2s}
 .dot:nth-child(3){animation:bounce 1.2s ease-in-out infinite .4s}
 
-/* BALLS */
 .ball{width:38px;height:38px;border-radius:50%;background:#7F77DD;color:#EEEDFE;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;transform:scale(0);opacity:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .3s}
 .ball.sp{background:#EF9F27;color:#412402}
 .ball.show{transform:scale(1);opacity:1}
 
-/* SHARE CARD (comic style) */
 .share-card{border-radius:16px;overflow:hidden;position:relative;aspect-ratio:1/1;background:#00AADD;margin-bottom:14px}
 .share-card-bg{position:absolute;inset:0;background:#00AADD}
 .dots-pattern{position:absolute;inset:0;opacity:.25;background-image:radial-gradient(circle,#fff 1.5px,transparent 1.5px);background-size:18px 18px}
@@ -95,11 +85,9 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .share-ball{width:38px;height:38px;border-radius:50%;background:#EF9F27;border:2.5px solid #fff;color:#26215C;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .share-ball.special{background:#fff;color:#534AB7}
 
-/* LOGIN */
 .social-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;border:0.5px solid #CECBF6;width:100%;background:#fff;color:#26215C;font-family:inherit}
 .social-btn:hover{background:#F8F6FF}
 
-/* TOAST */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#26215C;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 
@@ -111,7 +99,7 @@ input[type=file]{display:none}
 <body>
 
 <nav class="topnav">
-  <div class="logo" onclick="showPage('home')">
+  <a class="logo" href="index.html">
     <div class="logo-icon">
       <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
         <ellipse cx="10" cy="13" rx="7" ry="5.5" fill="#EEEDFE" opacity=".9"/>
@@ -123,11 +111,11 @@ input[type=file]{display:none}
       </svg>
     </div>
     <span class="logo-text">LuckyCat</span>
-  </div>
+  </a>
   <div class="nav-links">
     <button class="nav-link active" id="nl-home" onclick="showPage('home')">首頁</button>
     <button class="nav-link" id="nl-upload" onclick="showPage('upload')">上傳</button>
-    <button class="nav-link" id="nl-rank" onclick="showPage('rank')">排行榜</button>
+    <a class="nav-link" href="rank.html">排行榜</a>
     <button class="nav-link" id="nl-profile" onclick="showPage('profile')">我的</button>
   </div>
   <div id="nav-right">
@@ -139,18 +127,18 @@ input[type=file]{display:none}
 <div class="page active" id="page-home">
   <div class="hero">
     <span class="hero-tag">全球幸運貓排行榜</span>
-    <img id="hero-gif" src="Malu_loading.gif" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
+    <img src="Malu loading.gif" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
     <h1 style="font-size:26px;font-weight:500;color:#26215C;line-height:1.3;margin-bottom:8px">讓你的貓咪<br>幫你選號碼</h1>
     <p style="font-size:14px;color:#534AB7;margin-bottom:20px">上傳完全免費 · 全球統計 · 即時排行</p>
     <button class="hero-btn" onclick="showPage('upload')">上傳我的貓咪</button>
   </div>
   <div class="stat-grid">
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">載入中...</div><div style="font-size:11px;color:#888780;margin-top:2px" id="stat-countries"></div></div>
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">本週抽號</div><div style="font-size:22px;font-weight:500" id="stat-draws">載入中...</div><div style="font-size:11px;color:#888780;margin-top:2px">累計紀錄</div></div>
+    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div><div style="font-size:11px;color:#888780;margin-top:2px" id="stat-countries"></div></div>
+    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div><div style="font-size:11px;color:#888780;margin-top:2px">筆紀錄</div></div>
   </div>
-  <div class="sec-title">本週幸運貓排行</div>
+  <div class="sec-title">最新幸運貓</div>
   <div id="home-rank-list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
-  <button class="btn-outline" style="margin-top:8px" onclick="showPage('rank')">查看完整排行榜</button>
+  <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none;margin-top:8px">查看完整排行榜 →</a>
 </div>
 
 <!-- UPLOAD -->
@@ -194,7 +182,7 @@ input[type=file]{display:none}
 <!-- LOADING -->
 <div class="page" id="page-loading">
   <div class="loading-page">
-    <img src="Malu_loading.gif" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
+    <img src="Malu loading.gif" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
     <div style="display:flex;gap:7px;justify-content:center;margin:20px 0 10px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
     <p style="font-size:16px;font-weight:500;color:#3C3489">正在幫你搜尋幸運號碼</p>
     <p style="font-size:13px;color:#7F77DD;margin-top:6px">胖橘貓已收到你的照片，全力奔跑中...</p>
@@ -275,25 +263,14 @@ input[type=file]{display:none}
     <p id="done-title" style="font-size:20px;font-weight:500;color:#26215C;margin:0 0 6px"></p>
     <p style="font-size:13px;color:#888780;margin:0 0 3px">開獎後自動核對，若中獎將通知你</p>
     <p id="done-country" style="font-size:13px;color:#534AB7;margin:0 0 22px"></p>
-    <img src="Malu_loading.gif" style="width:120px;height:90px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto 20px;opacity:.9" onerror="this.style.display='none'"/>
+    <img src="Malu loading.gif" style="width:120px;height:90px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto 20px;opacity:.9" onerror="this.style.display='none'"/>
     <div style="background:#F8F6FF;border-radius:14px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #CECBF6;text-align:left">
       <p id="done-lot-label" style="font-size:12px;color:#534AB7;font-weight:500;margin:0 0 10px"></p>
       <div id="done-balls" style="display:flex;gap:8px;flex-wrap:wrap"></div>
     </div>
     <button class="btn" onclick="showPage('home')">回首頁</button>
+    <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none">查看全球排行榜</a>
   </div>
-</div>
-
-<!-- RANK -->
-<div class="page" id="page-rank">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px">全球幸運排行榜</h2>
-  <div class="stat-grid">
-    <div class="stat-card" style="text-align:center"><div style="font-size:12px;color:#888780;margin-bottom:4px">參與國家</div><div style="font-size:22px;font-weight:500;color:#534AB7" id="rank-stat-countries">-</div></div>
-    <div class="stat-card" style="text-align:center"><div style="font-size:12px;color:#888780;margin-bottom:4px">全球貓咪</div><div style="font-size:22px;font-weight:500;color:#3B6D11" id="rank-stat-cats">-</div></div>
-  </div>
-  <div id="user-rank-row"></div>
-  <div class="sec-title">所有貓咪紀錄</div>
-  <div id="rank-list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
 </div>
 
 <!-- PROFILE -->
@@ -304,9 +281,7 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════════════════════════════════════
-     FIREBASE SDK
-═══════════════════════════════════════════════════════════ -->
+<!-- FIREBASE -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
@@ -315,41 +290,26 @@ import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
          query, orderBy, limit, serverTimestamp, updateDoc, increment }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
-// ── Firebase 設定 ──────────────────────────────────────────
 const firebaseConfig = {
   apiKey: "AIzaSyAP90Ihnh_ekNcchfPxdX-VuKdGmNDrktE",
   authDomain: "pangfu-pangji.firebaseapp.com",
   projectId: "pangfu-pangji",
   storageBucket: "pangfu-pangji.firebasestorage.app",
   messagingSenderId: "966100033494",
-  appId: "1:966100033494:web:b03e4664570ffe9a24ce77",
-  measurementId: "G-TBR98C2F4X"
+  appId: "1:966100033494:web:b03e4664570ffe9a24ce77"
 };
 
-const app   = initializeApp(firebaseConfig);
-const auth  = getAuth(app);
-const db    = getFirestore(app);
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-// ── 全域狀態 ───────────────────────────────────────────────
 window._state = {
-  user: null,
-  photoDataUrl: null,
-  hasPhoto: false,
-  curLot: 'tw',
-  currentNums: null,
-  userLocation: { country: '未知', city: '未知', countryCode: '' },
+  user: null, photoDataUrl: null, hasPhoto: false,
+  curLot: 'tw', currentNums: null,
+  userLocation: { country:'未知', city:'未知', countryCode:'' },
 };
 
-const LOTS = {
-  tw: { name:'台灣大樂透', flag:'🇹🇼', draw:'週二、週五', color:'#7F77DD',
-        main:{count:6,max:49}, sp:{count:1,max:49,label:'特別號'} },
-  us: { name:'US Powerball', flag:'🇺🇸', draw:'週一、三、六', color:'#D85A30',
-        main:{count:5,max:69}, sp:{count:1,max:26,label:'Powerball'} },
-  jp: { name:'日本 ロト6', flag:'🇯🇵', draw:'週一、週四', color:'#1D9E75',
-        main:{count:6,max:43}, sp:{count:1,max:43,label:'ボーナス'} },
-};
-
-// ── 位置偵測 ───────────────────────────────────────────────
+// ── Location ──────────────────────────────────────────────
 async function detectLocation() {
   try {
     const res = await fetch('https://ipapi.co/json/');
@@ -359,296 +319,119 @@ async function detectLocation() {
       city: d.city || '未知',
       countryCode: d.country_code || '',
     };
-  } catch(e) {
+  } catch {
     window._state.userLocation = { country:'未知', city:'未知', countryCode:'' };
   }
   const loc = window._state.userLocation;
-  const txt = `目前位置：${loc.city}，${loc.country} — 貓咪地區將記錄為此位置`;
-  document.getElementById('loc-text').textContent = txt;
-  document.getElementById('name-preview-loc').textContent = `📍 ${loc.city}，${loc.country}（自動偵測）`;
+  document.getElementById('loc-text').textContent =
+    `目前位置：${loc.city}，${loc.country} — 貓咪地區將記錄為此位置`;
+  document.getElementById('name-preview-loc').textContent =
+    `📍 ${loc.city}，${loc.country}（自動偵測）`;
 }
 detectLocation();
 
-// ── 號碼產生 ───────────────────────────────────────────────
-function pick(lot) {
-  const m = [];
-  while (m.length < lot.main.count) {
-    const n = Math.floor(Math.random() * lot.main.max) + 1;
-    if (!m.includes(n)) m.push(n);
-  }
-  m.sort((a, b) => a - b);
-  const s = [];
-  while (s.length < lot.sp.count) {
-    const n = Math.floor(Math.random() * lot.sp.max) + 1;
-    if (!m.includes(n) && !s.includes(n)) s.push(n);
-  }
-  return { main: m, special: s };
-}
-
-// ── 照片壓縮為 base64 縮圖 ─────────────────────────────────
-function compressPhoto(file) {
-  return new Promise(resolve => {
-    const reader = new FileReader();
-    reader.onload = e => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const MAX = 400;
-        let w = img.width, h = img.height;
-        if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
-        else       { if (h > MAX) { w = w * MAX / h; h = MAX; } }
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.7));
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-// ── Auth 狀態監聽 ──────────────────────────────────────────
+// ── Auth ──────────────────────────────────────────────────
 onAuthStateChanged(auth, async user => {
   window._state.user = user;
   const navRight = document.getElementById('nav-right');
   if (user) {
-    navRight.innerHTML = `
-      <div class="nav-user">
-        <img class="nav-user-photo" src="${user.photoURL || ''}" onerror="this.style.display='none'"/>
-        <span class="nav-user-name">${user.displayName || user.email}</span>
-        <button class="nav-logout" onclick="window._logout()">登出</button>
-      </div>`;
+    navRight.innerHTML = `<div class="nav-user">
+      <img class="nav-user-photo" src="${user.photoURL||''}" onerror="this.style.display='none'"/>
+      <span class="nav-user-name">${user.displayName||user.email}</span>
+      <button class="nav-logout" onclick="window._logout()">登出</button>
+    </div>`;
   } else {
     navRight.innerHTML = `<button class="nav-cta" onclick="showPage('upload')">開始選號</button>`;
   }
 });
 
-// ── Google 登入 ────────────────────────────────────────────
 window._loginWithGoogle = async function() {
   try {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    await signInWithPopup(auth, new GoogleAuthProvider());
     showPage('name');
-  } catch(e) {
-    showToast('登入失敗，請再試一次');
-  }
+  } catch(e) { showToast('登入失敗，請再試一次'); }
 };
-
 window._logout = async function() {
   await signOut(auth);
   showToast('已登出');
   showPage('home');
 };
 
-// ── 儲存到 Firestore ───────────────────────────────────────
+// ── Save to Firestore ─────────────────────────────────────
 window._saveRecord = async function(catName) {
   const { user, currentNums, curLot, photoDataUrl, userLocation } = window._state;
-  if (!user || !currentNums) return;
-
+  if (!user || !currentNums) return false;
+  const LOTS = {
+    tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五'},
+    us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六'},
+    jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四'},
+  };
   const lot = LOTS[curLot];
   const today = new Date();
-  const dateStr = today.getFullYear() + '.' +
-    String(today.getMonth()+1).padStart(2,'0') + '.' +
-    String(today.getDate()).padStart(2,'0');
-
+  const dateStr = today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
   try {
-    // 1. 儲存號碼紀錄
-    await addDoc(collection(db, 'draws'), {
+    await addDoc(collection(db,'draws'), {
       uid: user.uid,
-      catName: catName,
-      lotType: curLot,
-      lotName: lot.name,
-      lotFlag: lot.flag,
-      numbers: currentNums.main,
-      special: currentNums.special,
-      country: userLocation.country,
-      countryCode: userLocation.countryCode,
-      city: userLocation.city,
-      date: dateStr,
-      photoThumb: photoDataUrl,
-      createdAt: serverTimestamp(),
-      prizeLevel: 0,
-      prizeAmount: 0,
+      catName, lotType: curLot, lotName: lot.name, lotFlag: lot.flag,
+      numbers: currentNums.main, special: currentNums.special,
+      country: userLocation.country, countryCode: userLocation.countryCode,
+      city: userLocation.city, date: dateStr,
+      photoThumb: photoDataUrl || null,
+      createdAt: serverTimestamp(), prizeLevel: 0, prizeAmount: 0,
     });
-
-    // 2. 更新用戶資料（cats 集合）
-    const catRef = doc(db, 'cats', user.uid + '_' + Date.now());
-    await setDoc(catRef, {
-      uid: user.uid,
-      catName: catName,
-      country: userLocation.country,
-      countryCode: userLocation.countryCode,
-      city: userLocation.city,
-      photoThumb: photoDataUrl,
-      totalDraws: 1,
-      totalWins: 0,
-      createdAt: serverTimestamp(),
-    });
-
-    // 3. 更新全站統計
-    const statsRef = doc(db, 'stats', 'global');
     try {
-      await updateDoc(statsRef, {
-        totalCats: increment(1),
-        totalDraws: increment(1),
-      });
+      await updateDoc(doc(db,'stats','global'), { totalCats: increment(1), totalDraws: increment(1) });
     } catch {
-      await setDoc(statsRef, { totalCats: 1, totalDraws: 1 });
+      await setDoc(doc(db,'stats','global'), { totalCats:1, totalDraws:1 });
     }
-
     showToast('✓ 已儲存到排行榜！');
     return true;
-  } catch(e) {
-    showToast('儲存失敗：' + e.message);
-    return false;
-  }
+  } catch(e) { showToast('儲存失敗：'+e.message); return false; }
 };
 
-// ── 讀取排行榜 ─────────────────────────────────────────────
-window._loadRank = async function() {
-  try {
-    const q = query(collection(db, 'draws'), orderBy('createdAt', 'desc'), limit(20));
-    const snap = await getDocs(q);
-    const items = [];
-    snap.forEach(d => items.push({ id: d.id, ...d.data() }));
-    return items;
-  } catch(e) {
-    return [];
-  }
-};
-
-// ── 讀取全站統計 ───────────────────────────────────────────
-window._loadStats = async function() {
-  try {
-    const snap = await getDoc(doc(db, 'stats', 'global'));
-    return snap.exists() ? snap.data() : { totalCats: 0, totalDraws: 0 };
-  } catch { return { totalCats: 0, totalDraws: 0 }; }
-};
-
-// ── 讀取我的紀錄 ───────────────────────────────────────────
-window._loadMyRecords = async function() {
-  if (!window._state.user) return [];
-  try {
-    const q = query(
-      collection(db, 'draws'),
-      orderBy('createdAt', 'desc'),
-      limit(10)
-    );
-    const snap = await getDocs(q);
-    const items = [];
-    snap.forEach(d => {
-      const data = d.data();
-      if (data.uid === window._state.user.uid) items.push({ id: d.id, ...data });
-    });
-    return items;
-  } catch { return []; }
-};
-
-// ── 把函式掛到 window 讓 HTML onclick 可以呼叫 ──────────────
-window.loginWithGoogle = window._loginWithGoogle;
-
-// ── 載入首頁統計和排行 ────────────────────────────────────
+// ── Load home data ────────────────────────────────────────
 async function loadHomeData() {
-  const stats = await window._loadStats();
-  document.getElementById('stat-cats').textContent =
-    stats.totalCats ? stats.totalCats.toLocaleString() : '0';
-  document.getElementById('stat-draws').textContent =
-    stats.totalDraws ? stats.totalDraws.toLocaleString() : '0';
-
-  const items = await window._loadRank();
-  renderHomeRank(items);
-}
-
-function renderHomeRank(items) {
-  const el = document.getElementById('home-rank-list');
-  if (!items.length) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:#888780;font-size:13px">還沒有貓咪加入，成為第一個！</div>';
-    return;
-  }
-  el.innerHTML = items.slice(0, 3).map((item, i) => {
-    const rankColor = i === 0 ? '#BA7517' : i === 1 ? '#888780' : '#993C1D';
-    const photo = item.photoThumb
-      ? `<img src="${item.photoThumb}" style="width:100%;height:100%;object-fit:cover"/>`
-      : '🐱';
-    return `<div class="rank-item">
-      <span style="font-size:13px;font-weight:500;color:${rankColor};min-width:20px">${i+1}</span>
-      <div class="rank-avatar">${photo}</div>
-      <div style="flex:1">
-        <p style="font-size:14px;font-weight:500;margin:0">${item.catName}</p>
-        <p style="font-size:12px;color:#888780;margin:0">${item.lotFlag||''} ${item.city||''}, ${item.country||''} · ${item.lotName||''}</p>
-      </div>
-      <span class="tag" style="background:#FAEEDA;color:#633806">${item.date||''}</span>
-    </div>`;
-  }).join('');
-}
-
-loadHomeData();
-
-// ── 全球排行榜頁 ───────────────────────────────────────────
-window._renderRankPage = async function() {
-  const stats = await window._loadStats();
-  document.getElementById('rank-stat-cats').textContent = stats.totalCats || 0;
-
-  const items = await window._loadRank();
-  // 計算國家數
-  const countries = new Set(items.map(i => i.countryCode).filter(Boolean));
-  document.getElementById('rank-stat-countries').textContent = countries.size || 0;
-
-  // 我的貓咪
-  const userRow = document.getElementById('user-rank-row');
-  if (window._state.user) {
-    const mine = items.filter(i => i.uid === window._state.user.uid);
-    if (mine.length) {
-      const m = mine[0];
-      const photo = m.photoThumb ? `<img src="${m.photoThumb}" style="width:100%;height:100%;object-fit:cover"/>` : '🐱';
-      userRow.innerHTML = `
-        <div style="margin-bottom:14px">
-          <p class="sec-title">你的貓咪</p>
-          <div class="rank-item" style="border:1.5px solid #7F77DD;background:#EEEDFE">
-            <span style="font-size:13px;font-weight:500;color:#534AB7;min-width:20px">—</span>
-            <div class="rank-avatar" style="border-color:#7F77DD">${photo}</div>
-            <div style="flex:1">
-              <p style="font-size:14px;font-weight:500;margin:0">${m.catName}
-                <span style="font-size:10px;background:#7F77DD;color:#EEEDFE;padding:2px 7px;border-radius:10px">我的</span>
-              </p>
-              <p style="font-size:12px;color:#888780;margin:0">📍 ${m.city}, ${m.country} · ${m.lotName}</p>
-            </div>
-            <span class="tag" style="background:#EEEDFE;color:#534AB7">已加入</span>
-          </div>
-        </div>`;
-    } else { userRow.innerHTML = ''; }
-  } else { userRow.innerHTML = ''; }
-
-  const el = document.getElementById('rank-list');
-  if (!items.length) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:#888780;font-size:13px">還沒有紀錄，來加入吧！</div>';
-    return;
-  }
-  el.innerHTML = items.map((item, i) => {
-    const rankColor = i === 0 ? '#BA7517' : i === 1 ? '#888780' : i === 2 ? '#993C1D' : '#AFA9EC';
-    const photo = item.photoThumb ? `<img src="${item.photoThumb}" style="width:100%;height:100%;object-fit:cover"/>` : '🐱';
-    const nums = [...(item.numbers||[]).map(n=>`<span style="background:#7F77DD;color:#EEEDFE;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">${String(n).padStart(2,'0')}</span>`),
-                  ...(item.special||[]).map(n=>`<span style="background:#EF9F27;color:#412402;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600">${String(n).padStart(2,'0')}</span>`)].join('');
-    return `<div class="rank-item" style="flex-direction:column;align-items:flex-start">
-      <div style="display:flex;align-items:center;gap:10px;width:100%">
-        <span style="font-size:13px;font-weight:500;color:${rankColor};min-width:20px">${i+1}</span>
+  try {
+    const snap = await getDoc(doc(db,'stats','global'));
+    const stats = snap.exists() ? snap.data() : {};
+    document.getElementById('stat-cats').textContent  = (stats.totalCats||0).toLocaleString();
+    document.getElementById('stat-draws').textContent = (stats.totalDraws||0).toLocaleString();
+  } catch {}
+  try {
+    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(3));
+    const snap = await getDocs(q);
+    const items = [];
+    snap.forEach(d => items.push({id:d.id,...d.data()}));
+    const el = document.getElementById('home-rank-list');
+    if (!items.length) {
+      el.innerHTML='<div style="text-align:center;padding:20px;color:#888780;font-size:13px">還沒有貓咪，成為第一個！</div>';
+      return;
+    }
+    const rankColors=['#BA7517','#888780','#993C1D'];
+    el.innerHTML = items.map((item,i) => {
+      const photo = item.photoThumb
+        ? `<img src="${item.photoThumb}" style="width:100%;height:100%;object-fit:cover"/>`
+        : '🐱';
+      const loc = [item.city, item.country].filter(Boolean).join(', ');
+      return `<div class="rank-item">
+        <span style="font-size:13px;font-weight:500;color:${rankColors[i]||'#AFA9EC'};min-width:20px">${i+1}</span>
         <div class="rank-avatar">${photo}</div>
         <div style="flex:1">
-          <p style="font-size:14px;font-weight:500;margin:0">${item.catName}</p>
-          <p style="font-size:12px;color:#888780;margin:0">${item.lotFlag||''} ${item.city||''}, ${item.country||''}</p>
+          <p style="font-size:14px;font-weight:500;margin:0">${item.catName||''}</p>
+          <p style="font-size:12px;color:#888780;margin:0">${loc} · ${item.lotName||''}</p>
         </div>
-        <span class="tag" style="background:#FAEEDA;color:#633806">${item.lotName||''}</span>
-      </div>
-      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:8px;padding-left:30px">${nums}</div>
-    </div>`;
-  }).join('');
-};
+        <span class="tag" style="background:#FAEEDA;color:#633806">${item.date||''}</span>
+      </div>`;
+    }).join('');
+  } catch {}
+}
+loadHomeData();
 
-// ── 我的帳戶頁 ─────────────────────────────────────────────
+// ── Profile ───────────────────────────────────────────────
 window._renderProfile = async function() {
   const el = document.getElementById('profile-content');
   if (!window._state.user) {
-    el.innerHTML = `<div style="text-align:center;padding:48px 0">
+    el.innerHTML=`<div style="text-align:center;padding:48px 0">
       <div style="font-size:52px;margin-bottom:14px">🐱</div>
       <p style="font-size:16px;font-weight:500;color:#26215C;margin:0 0 6px">尚未登入</p>
       <p style="font-size:13px;color:#888780;margin:0 0 20px">加入排行榜後，號碼紀錄會顯示在這裡</p>
@@ -656,9 +439,8 @@ window._renderProfile = async function() {
     </div>`;
     return;
   }
-
   const user = window._state.user;
-  el.innerHTML = `<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">
     <img src="${user.photoURL||''}" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display='none'"/>
     <div>
       <p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">${user.displayName||'用戶'}</p>
@@ -667,35 +449,41 @@ window._renderProfile = async function() {
   </div>
   <div class="sec-title">我的號碼紀錄</div>
   <div id="my-records-list"><div style="text-align:center;padding:16px;color:#888780;font-size:13px">載入中...</div></div>`;
-
-  const records = await window._loadMyRecords();
-  const listEl = document.getElementById('my-records-list');
-  if (!records.length) {
-    listEl.innerHTML = '<div style="text-align:center;padding:16px;color:#888780;font-size:13px">還沒有紀錄</div>';
-    return;
-  }
-  listEl.innerHTML = records.map(item => {
-    const nums = [...(item.numbers||[]).map(n=>`<div class="ball show">${String(n).padStart(2,'0')}</div>`),
+  try {
+    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(20));
+    const snap = await getDocs(q);
+    const records = [];
+    snap.forEach(d => { const data=d.data(); if(data.uid===user.uid) records.push({id:d.id,...data}); });
+    const listEl = document.getElementById('my-records-list');
+    if (!records.length) { listEl.innerHTML='<div style="text-align:center;padding:16px;color:#888780;font-size:13px">還沒有紀錄</div>'; return; }
+    listEl.innerHTML = records.map(item => {
+      const nums=[...(item.numbers||[]).map(n=>`<div class="ball show">${String(n).padStart(2,'0')}</div>`),
                   ...(item.special||[]).map(n=>`<div class="ball sp show">${String(n).padStart(2,'0')}</div>`)].join('');
-    const status = item.prizeAmount > 0
-      ? `<span class="tag" style="background:#EAF3DE;color:#27500A">中獎 $${item.prizeAmount}</span>`
-      : `<span class="tag" style="background:#FAEEDA;color:#633806">待開獎</span>`;
-    return `<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;padding:14px 16px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <span style="font-size:13px;font-weight:500;color:#534AB7">${item.lotFlag||''} ${item.lotName||''} · ${item.date||''}</span>
-        ${status}
-      </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">${nums}</div>
-      <p style="font-size:11px;color:#AFA9EC;margin:8px 0 0">由 ${item.catName} 選出</p>
-    </div>`;
-  }).join('');
+      const status = item.prizeAmount>0
+        ? `<span class="tag" style="background:#EAF3DE;color:#27500A">中獎 $${item.prizeAmount}</span>`
+        : `<span class="tag" style="background:#FAEEDA;color:#633806">待開獎</span>`;
+      return `<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;padding:14px 16px;margin-bottom:8px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:500;color:#534AB7">${item.lotFlag||''} ${item.lotName||''} · ${item.date||''}</span>
+          ${status}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">${nums}</div>
+        <p style="font-size:11px;color:#AFA9EC;margin:8px 0 0">由 ${item.catName} 選出</p>
+      </div>`;
+    }).join('');
+  } catch {}
 };
 
+window.loginWithGoogle = window._loginWithGoogle;
 </script>
 
-<!-- ─── App 邏輯 (非 module，可被 onclick 呼叫) ─────────── -->
+<!-- App Logic -->
 <script>
-const LOTS={tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五',color:'#7F77DD',main:{count:6,max:49},sp:{count:1,max:49,label:'特別號'}},us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26,label:'Powerball'}},jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四',color:'#1D9E75',main:{count:6,max:43},sp:{count:1,max:43,label:'ボーナス'}}};
+const LOTS={
+  tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五',color:'#7F77DD',main:{count:6,max:49},sp:{count:1,max:49,label:'特別號'}},
+  us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26,label:'Powerball'}},
+  jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四',color:'#1D9E75',main:{count:6,max:43},sp:{count:1,max:43,label:'ボーナス'}},
+};
 
 function showPage(name){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -703,8 +491,7 @@ function showPage(name){
   document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));
   const nl=document.getElementById('nl-'+name);if(nl)nl.classList.add('active');
   window.scrollTo(0,0);
-  if(name==='rank' && window._renderRankPage) window._renderRankPage();
-  if(name==='profile' && window._renderProfile) window._renderProfile();
+  if(name==='profile'&&window._renderProfile) window._renderProfile();
 }
 
 function selectLot(key){
@@ -726,25 +513,23 @@ async function handleFile(input){
   const btn=document.getElementById('gen-btn');
   btn.textContent='產生幸運號碼';btn.classList.remove('disabled');
   if(window._state) window._state.hasPhoto=true;
-
-  // 壓縮照片
   const np=document.getElementById('name-preview-photo');np.innerHTML='';
-  const img1=document.createElement('img');img1.src=preview;img1.style.cssText='width:100%;height:100%;object-fit:cover';np.appendChild(img1);
-
+  const i1=document.createElement('img');i1.src=preview;i1.style.cssText='width:100%;height:100%;object-fit:cover';np.appendChild(i1);
   const sc=document.getElementById('share-cat-img');sc.innerHTML='';
-  const img2=document.createElement('img');img2.src=preview;img2.style.cssText='width:100%;height:100%;object-fit:cover;object-position:center top';sc.appendChild(img2);
-
-  // 非同步壓縮
-  if(window.compressPhoto){
-    window.compressPhoto(file).then(dataUrl=>{
-      if(window._state) window._state.photoDataUrl=dataUrl;
-    });
-  } else {
-    // fallback: 直接讀 base64
-    const reader=new FileReader();
-    reader.onload=e=>{if(window._state) window._state.photoDataUrl=e.target.result;};
-    reader.readAsDataURL(file);
-  }
+  const i2=document.createElement('img');i2.src=preview;i2.style.cssText='width:100%;height:100%;object-fit:cover;object-position:center top';sc.appendChild(i2);
+  // compress
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      const MAX=400;let w=img.width,h=img.height;
+      if(w>h){if(w>MAX){h=h*MAX/w;w=MAX;}}else{if(h>MAX){w=w*MAX/h;h=MAX;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      if(window._state) window._state.photoDataUrl=canvas.toDataURL('image/jpeg',0.7);
+    };img.src=e.target.result;
+  };reader.readAsDataURL(file);
 }
 
 function pickNums(lot){
@@ -770,7 +555,7 @@ function startGenerate(){
 function renderShareCard(nums){
   const lot=LOTS[window._state?window._state.curLot:'tw'];
   const today=new Date();
-  const dateStr=today.getFullYear()+'.'+ String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
+  const dateStr=today.getFullYear()+'.'+String(today.getMonth()+1).padStart(2,'0')+'.'+String(today.getDate()).padStart(2,'0');
   document.getElementById('share-date').textContent=dateStr;
   document.getElementById('share-won-txt').textContent=lot.flag+' '+lot.name;
   const bar=document.getElementById('share-numbers-bar');bar.innerHTML='';
@@ -779,8 +564,8 @@ function renderShareCard(nums){
 }
 
 function goToLogin(){
-  if(window._state&&window._state.user){showPage('name');}
-  else{showPage('login');}
+  if(window._state&&window._state.user) showPage('name');
+  else showPage('login');
 }
 
 function onNameInput(v){
@@ -794,11 +579,9 @@ async function confirmAndSave(){
   if(!name)return;
   const btn=document.getElementById('confirm-btn');
   btn.textContent='儲存中...';btn.classList.add('disabled');
-
-  const ok=await window._saveRecord(name);
+  await window._saveRecord(name);
   const lot=LOTS[window._state.curLot];
   const loc=window._state.userLocation;
-
   document.getElementById('done-title').textContent=name+' 已加入排行榜！';
   document.getElementById('done-country').textContent='現在代表 '+loc.country+' 參賽';
   document.getElementById('done-lot-label').textContent=lot.flag+' '+lot.name+' · '+lot.draw+' 開獎';
@@ -816,24 +599,6 @@ function showToast(msg){
   t.textContent=msg;t.classList.add('show');
   setTimeout(()=>t.classList.remove('show'),2800);
 }
-
-// 把部分函式掛到 window 讓 module script 可用
-window.compressPhoto=function(file){
-  return new Promise(resolve=>{
-    const reader=new FileReader();
-    reader.onload=e=>{
-      const img=new Image();
-      img.onload=()=>{
-        const canvas=document.createElement('canvas');
-        const MAX=400;let w=img.width,h=img.height;
-        if(w>h){if(w>MAX){h=h*MAX/w;w=MAX;}}else{if(h>MAX){w=w*MAX/h;h=MAX;}}
-        canvas.width=w;canvas.height=h;
-        canvas.getContext('2d').drawImage(img,0,0,w,h);
-        resolve(canvas.toDataURL('image/jpeg',0.7));
-      };img.src=e.target.result;
-    };reader.readAsDataURL(file);
-  });
-};
 </script>
 </body>
 </html>
