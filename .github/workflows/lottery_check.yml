@@ -2,11 +2,9 @@ name: 台灣大樂透開獎核對
 
 on:
   schedule:
-    # 週二 22:30 台灣時間 = UTC 14:30
-    - cron: '30 14 * * 2'
-    # 週五 22:30 台灣時間 = UTC 14:30
-    - cron: '30 14 * * 5'
-  workflow_dispatch:   # 手動觸發（測試用）
+    - cron: '30 14 * * 2'   # 週二 22:30 台灣時間
+    - cron: '30 14 * * 5'   # 週五 22:30 台灣時間
+  workflow_dispatch:
 
 jobs:
   check-lottery:
@@ -21,7 +19,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 firebase-admin
+        run: pip install requests beautifulsoup4 firebase-admin TaiwanLotteryCrawler
 
       - name: Run lottery checker
         env:
