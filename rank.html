@@ -4,25 +4,20 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>全球幸運貓排行榜 — LuckyCat</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;background:#F4F2FB;color:#26215C;min-height:100vh}
-
-/* NAV */
-.topnav{background:#FAF0FB;border-bottom:0.5px solid #CECBF6;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.topnav{background:#FAF0FB;border-bottom:0.5px solid #CECBF6;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000}
 .logo{display:flex;align-items:center;gap:8px;text-decoration:none}
 .logo-icon{width:32px;height:32px;background:#7F77DD;border-radius:10px;display:flex;align-items:center;justify-content:center}
 .logo-text{font-size:16px;font-weight:500;color:#3C3489}
 .nav-links{display:flex;gap:4px}
 .nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:#534AB7;text-decoration:none}
 .nav-link:hover,.nav-link.active{background:#EEEDFE;font-weight:500}
-.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none}
-
-/* CONTAINER */
+.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;font-family:inherit}
 .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
-
-/* HERO STATS */
-.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 @media(max-width:580px){.stats-row{grid-template-columns:repeat(2,1fr)}}
 .stat-card{background:#fff;border:0.5px solid #CECBF6;border-radius:12px;padding:14px;text-align:center}
 .stat-val{font-size:22px;font-weight:500;margin-bottom:2px}
@@ -34,35 +29,26 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .map-title{font-size:14px;font-weight:500}
 .map-legend{display:flex;gap:14px;font-size:11px;color:#888780}
 .leg{display:flex;align-items:center;gap:5px}
-.leg-dot{width:10px;height:10px;border-radius:50%}
-#map-canvas{width:100%;height:340px;position:relative;overflow:hidden;cursor:grab;background:#D6E8F5;user-select:none}
-@media(max-width:580px){#map-canvas{height:220px}}
-#map-canvas svg{position:absolute;inset:0;width:100%;height:100%}
-.pin{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:5}
-.pin-ring{position:absolute;border-radius:50%;opacity:.28;animation:ripple 2.2s ease-out infinite}
-@keyframes ripple{0%{transform:scale(1);opacity:.28}100%{transform:scale(3.2);opacity:0}}
-.pin-core{position:absolute;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.22);transition:transform .18s}
-.pin:hover .pin-core{transform:scale(1.45)}
-.tip{position:absolute;background:#26215C;color:#fff;font-size:12px;line-height:1.5;padding:8px 12px;border-radius:9px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:30;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.18)}
-.tip.on{opacity:1}
-.map-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);font-size:11px;color:#888780;background:rgba(255,255,255,.75);padding:4px 10px;border-radius:20px;pointer-events:none}
+.leg-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+#leafmap{width:100%;height:380px;z-index:1}
+@media(max-width:580px){#leafmap{height:240px}}
 
-/* ACTIVE COUNTRY BANNER */
-.country-banner{display:none;background:#EEEDFE;border-radius:12px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
-.country-banner.show{display:flex}
-.cb-left{font-size:14px;font-weight:500;color:#3C3489}
-.cb-close{font-size:12px;color:#888780;cursor:pointer;padding:4px 10px;border:0.5px solid #AFA9EC;border-radius:20px;background:transparent;font-family:inherit}
+/* country banner */
+.cc-banner{display:none;background:#EEEDFE;border-radius:12px;padding:11px 16px;margin-bottom:14px;align-items:center;justify-content:space-between}
+.cc-banner.show{display:flex}
+.cc-close{font-size:12px;color:#888780;cursor:pointer;padding:4px 10px;border:0.5px solid #AFA9EC;border-radius:20px;background:transparent;font-family:inherit}
 
-/* FILTER BAR */
+/* FILTERS */
 .filter-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
 .f-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.f-label{font-size:12px;color:#888780;white-space:nowrap}
+.f-lbl{font-size:12px;color:#888780;white-space:nowrap}
 .chip{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;transition:all .13s;font-family:inherit}
-.chip:hover{background:#EEEDFE;border-color:#AFA9EC}
+.chip:hover{background:#EEEDFE}
 .chip.on{background:#534AB7;color:#EEEDFE;border-color:#534AB7}
 .f-sep{width:1px;height:20px;background:#CECBF6}
+.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
 
-/* RANK LIST */
+/* RANK */
 .rank-list{display:flex;flex-direction:column;gap:8px}
 .rc{background:#fff;border:0.5px solid #CECBF6;border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
 .rc:hover{border-color:#AFA9EC}
@@ -77,11 +63,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .b{width:28px;height:28px;border-radius:50%;background:#7F77DD;color:#EEEDFE;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .b.sp{background:#EF9F27;color:#412402}
 .rc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
-.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
 .badge-me{font-size:10px;background:#7F77DD;color:#EEEDFE;padding:2px 8px;border-radius:10px}
-.win-amount{font-size:13px;font-weight:500;color:#3B6D11}
-
-/* EMPTY / LOADING */
 .empty{text-align:center;padding:48px 16px;color:#888780}
 .loading{display:flex;gap:6px;justify-content:center;padding:40px}
 @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
@@ -89,6 +71,11 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .dot:nth-child(1){animation:bounce 1.2s infinite 0s}
 .dot:nth-child(2){animation:bounce 1.2s infinite .2s}
 .dot:nth-child(3){animation:bounce 1.2s infinite .4s}
+
+/* Leaflet custom marker */
+.cat-marker{background:#7F77DD;border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;transition:transform .15s}
+.cat-marker:hover{transform:scale(1.25)}
+.cat-marker.won{background:#EF9F27}
 </style>
 </head>
 <body>
@@ -117,9 +104,8 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 
 <div class="wrap">
   <h1 style="font-size:22px;font-weight:500;margin-bottom:4px">全球幸運貓排行榜</h1>
-  <p style="font-size:14px;color:#534AB7;margin-bottom:20px">點擊地圖光點篩選國家，看看哪裡的貓最幸運</p>
+  <p style="font-size:14px;color:#534AB7;margin-bottom:20px">點擊地圖標記篩選國家，看看哪裡的貓最幸運</p>
 
-  <!-- STATS -->
   <div class="stats-row">
     <div class="stat-card"><div class="stat-val" style="color:#534AB7" id="s-cats">—</div><div class="stat-lbl">全球貓咪</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#3B6D11" id="s-prize">—</div><div class="stat-lbl">總中獎金額</div></div>
@@ -127,53 +113,47 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
     <div class="stat-card"><div class="stat-val" style="color:#BA7517" id="s-wins">—</div><div class="stat-lbl">中獎紀錄</div></div>
   </div>
 
-  <!-- MAP -->
   <div class="map-wrap">
     <div class="map-topbar">
       <span class="map-title">貓咪世界分佈</span>
       <div class="map-legend">
         <div class="leg"><div class="leg-dot" style="background:#7F77DD"></div>有貓咪</div>
         <div class="leg"><div class="leg-dot" style="background:#EF9F27"></div>已中獎</div>
-        <div class="leg"><span style="font-size:10px">圓圈大小 = 貓咪數量</span></div>
+        <div class="leg" style="font-size:10px">圓圈大小 = 貓咪數量</div>
       </div>
     </div>
-    <div id="map-canvas">
-      <div class="tip" id="tip"></div>
-      <div class="map-hint">點擊光點篩選國家</div>
-    </div>
+    <div id="leafmap"></div>
   </div>
 
-  <!-- ACTIVE COUNTRY BANNER -->
-  <div class="country-banner" id="country-banner">
-    <span class="cb-left" id="banner-text"></span>
-    <button class="cb-close" onclick="clearCountry()">清除篩選 ✕</button>
+  <div class="cc-banner" id="cc-banner">
+    <span style="font-size:14px;font-weight:500;color:#3C3489" id="banner-txt"></span>
+    <button class="cc-close" onclick="clearCC()">清除篩選 ✕</button>
   </div>
 
-  <!-- FILTERS -->
   <div class="filter-bar">
     <div class="f-group">
-      <span class="f-label">排序</span>
-      <button class="chip on" id="sort-wins" onclick="setSort('wins')">中獎次數</button>
-      <button class="chip" id="sort-prize" onclick="setSort('prize')">中獎金額</button>
-      <button class="chip" id="sort-newest" onclick="setSort('newest')">最新上傳</button>
+      <span class="f-lbl">排序</span>
+      <button class="chip on" id="sort-wins"   onclick="setSort('wins')">中獎次數</button>
+      <button class="chip"    id="sort-prize"  onclick="setSort('prize')">中獎金額</button>
+      <button class="chip"    id="sort-newest" onclick="setSort('newest')">最新上傳</button>
     </div>
     <div class="f-sep"></div>
     <div class="f-group">
-      <span class="f-label">樂透</span>
+      <span class="f-lbl">樂透</span>
       <button class="chip on" id="lot-all" onclick="setLot('all')">全部</button>
-      <button class="chip" id="lot-tw" onclick="setLot('tw')">🇹🇼 大樂透</button>
-      <button class="chip" id="lot-us" onclick="setLot('us')">🇺🇸 Powerball</button>
-      <button class="chip" id="lot-jp" onclick="setLot('jp')">🇯🇵 ロト6</button>
+      <button class="chip"    id="lot-tw"  onclick="setLot('tw')">🇹🇼 大樂透</button>
+      <button class="chip"    id="lot-us"  onclick="setLot('us')">🇺🇸 Powerball</button>
+      <button class="chip"    id="lot-jp"  onclick="setLot('jp')">🇯🇵 ロト6</button>
     </div>
   </div>
 
-  <!-- LIST -->
   <div id="rank-list">
     <div class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
 </div>
 
-<!-- FIREBASE -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
@@ -194,86 +174,162 @@ const db   = getFirestore(app);
 let me = null;
 onAuthStateChanged(auth, u => { me = u; window._me = u; rerender(); });
 
+// ── Load data ────────────────────────────────────────────
 async function loadDraws() {
   try {
     const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(300));
-    const s = await getDocs(q);
-    const a = []; s.forEach(d => a.push({id:d.id,...d.data()}));
+    const s = await getDocs(q); const a = [];
+    s.forEach(d => a.push({id:d.id,...d.data()}));
     return a;
   } catch { return []; }
 }
 async function loadStats() {
-  try {
-    const s = await getDoc(doc(db,'stats','global'));
-    return s.exists() ? s.data() : {};
-  } catch { return {}; }
+  try { const s = await getDoc(doc(db,'stats','global')); return s.exists()?s.data():{}; }
+  catch { return {}; }
 }
 
 const [draws, stats] = await Promise.all([loadDraws(), loadStats()]);
 window._draws = draws;
 
-// ── Stats cards ──
-const totalPrize = draws.reduce((s,d) => s + (d.prizeAmount||0), 0);
-const totalWins  = draws.filter(d => d.prizeAmount > 0).length;
+// ── Stats ────────────────────────────────────────────────
+const totalPrize = draws.reduce((s,d)=>s+(d.prizeAmount||0),0);
+const totalWins  = draws.filter(d=>d.prizeAmount>0).length;
 const countries  = [...new Set(draws.map(d=>d.countryCode).filter(Boolean))];
-document.getElementById('s-cats').textContent      = (stats.totalCats || draws.length || 0).toLocaleString();
-document.getElementById('s-prize').textContent     = '$' + (totalPrize >= 1000000 ? (totalPrize/1000000).toFixed(1)+'M' : totalPrize >= 1000 ? (totalPrize/1000).toFixed(0)+'K' : totalPrize);
-document.getElementById('s-countries').textContent = countries.length;
-document.getElementById('s-wins').textContent      = totalWins;
+document.getElementById('s-cats').textContent     = (stats.totalCats||draws.length||0).toLocaleString();
+document.getElementById('s-prize').textContent    = '$'+(totalPrize>=1000000?(totalPrize/1000000).toFixed(1)+'M':totalPrize>=1000?(totalPrize/1000).toFixed(0)+'K':totalPrize||0);
+document.getElementById('s-countries').textContent= countries.length;
+document.getElementById('s-wins').textContent     = totalWins;
 
-// ── Country chips (dynamic) ──
-window._countries = countries;
-window._draws = draws;
+// ── Helpers ───────────────────────────────────────────────
+function flagEmoji(cc) {
+  if(!cc||cc.length!==2) return '';
+  return [...cc.toUpperCase()].map(c=>String.fromCodePoint(127397+c.charCodeAt())).join('');
+}
+window._flagEmoji = flagEmoji;
 
-// ── Draw map ──
-buildMap(draws);
+// Country centroids
+const CENT = {
+  TW:[25.0,121.5],JP:[35.7,139.7],US:[37,-96],TR:[39,35],DE:[51.2,10.4],
+  GB:[52,-1],FR:[46.2,2.2],KR:[37.5,127.5],CN:[35,105],AU:[-26,134],
+  BR:[-15,-50],CA:[57,-100],MX:[24,-102],IN:[20,77],ID:[-5,120],
+  TH:[15,101],SG:[1.3,103.8],MY:[4,110],PH:[12,122],VN:[16,108],
+  IT:[42,12],ES:[40,-4],RU:[60,90],ZA:[-30,25],EG:[26,30],
+  NG:[9,8],AR:[-35,-64],CL:[-35,-71],CO:[4,-74],PL:[52,20],
+  NL:[52.3,5.3],BE:[50.5,4.5],SE:[60,18],NO:[62,10],CH:[47,8],
+  AT:[47,14],PT:[39,-8],GR:[38,23],UA:[49,32],HK:[22.3,114.2],
+  NZ:[-41,174],SA:[24,45],AE:[24,54],IL:[31,35],
+};
 
-// ── Initial render ──
-window._me = me;
-rerender();
-window.rerender = rerender;
+// ── Leaflet map ───────────────────────────────────────────
+const map = L.map('leafmap', {
+  center: [20, 15],
+  zoom: 2,
+  minZoom: 1,
+  maxZoom: 6,
+  worldCopyJump: true,
+  zoomControl: true,
+});
 
+// Tile layer — CartoDB light (no API key needed)
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '© OpenStreetMap © CARTO',
+  subdomains: 'abcd',
+  maxZoom: 19,
+}).addTo(map);
+
+// Aggregate per country
+const ccDraws={}, ccWins={}, ccPrize={}, ccNames={};
+draws.forEach(d => {
+  const cc = d.countryCode; if(!cc) return;
+  ccDraws[cc]  = (ccDraws[cc]||0)+1;
+  ccNames[cc]  = d.country||cc;
+  if(d.prizeAmount>0){
+    ccWins[cc]  = (ccWins[cc]||0)+1;
+    ccPrize[cc] = (ccPrize[cc]||0)+(d.prizeAmount||0);
+  }
+});
+
+// Add circle markers
+Object.keys(ccDraws).forEach(cc => {
+  const cent = CENT[cc];
+  if(!cent) return;
+  const count  = ccDraws[cc]||0;
+  const wins   = ccWins[cc]||0;
+  const prize  = ccPrize[cc]||0;
+  const hasWin = wins > 0;
+  const radius = Math.min(10 + Math.sqrt(count)*8, 40);
+  const color  = hasWin ? '#EF9F27' : '#7F77DD';
+  const fe     = flagEmoji(cc);
+  const prizeStr = prize>0 ? `<br>中獎金額：$${prize>=1000000?(prize/1000000).toFixed(1)+'M':prize>=1000?(prize/1000).toFixed(0)+'K':prize}` : '';
+
+  const circle = L.circleMarker(cent, {
+    radius,
+    fillColor: color,
+    color: '#fff',
+    weight: 2.5,
+    opacity: 1,
+    fillOpacity: 0.82,
+  }).addTo(map);
+
+  circle.bindTooltip(
+    `<strong>${fe} ${ccNames[cc]||cc}</strong><br>${count} 隻貓咪 · ${wins} 次中獎${prizeStr}`,
+    { direction:'top', offset:[0,-4], className:'leaflet-tooltip' }
+  );
+
+  circle.on('click', () => {
+    window._ccF = cc;
+    const banner = document.getElementById('cc-banner');
+    document.getElementById('banner-txt').textContent =
+      `${fe} ${ccNames[cc]||cc} — ${count} 隻貓咪 · ${wins} 次中獎`;
+    banner.classList.add('show');
+    rerender();
+    // scroll down to list
+    document.getElementById('rank-list').scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+
+window._map = map;
+
+// ── Render list ───────────────────────────────────────────
 function rerender() {
   let items = [...(window._draws||[])];
-  const lotF = window._lotF || 'all';
-  const ccF  = window._ccF  || 'all';
-  const srt  = window._srt  || 'wins';
-
-  if (lotF !== 'all') items = items.filter(d => d.lotType === lotF);
-  if (ccF  !== 'all') items = items.filter(d => d.countryCode === ccF);
-
-  if (srt === 'wins')   items.sort((a,b) => (b.prizeLevel||0)-(a.prizeLevel||0) || (b.prizeAmount||0)-(a.prizeAmount||0));
-  else if (srt === 'prize') items.sort((a,b) => (b.prizeAmount||0)-(a.prizeAmount||0));
-  // newest: already desc by createdAt
-
+  const lotF = window._lotF||'all';
+  const ccF  = window._ccF||'all';
+  const srt  = window._srt||'wins';
+  if(lotF!=='all') items=items.filter(d=>d.lotType===lotF);
+  if(ccF!=='all')  items=items.filter(d=>d.countryCode===ccF);
+  if(srt==='wins')   items.sort((a,b)=>(b.prizeLevel||0)-(a.prizeLevel||0)||(b.prizeAmount||0)-(a.prizeAmount||0));
+  else if(srt==='prize') items.sort((a,b)=>(b.prizeAmount||0)-(a.prizeAmount||0));
   renderList(items, window._me);
 }
+window.rerender = rerender;
 
 function renderList(items, user) {
   const el = document.getElementById('rank-list');
-  if (!items.length) {
-    el.innerHTML = `<div class="empty"><div style="font-size:48px;margin-bottom:12px">🐱</div><p style="font-size:15px;font-weight:500;margin-bottom:5px">這裡還沒有貓咪</p><p style="font-size:13px">換個篩選或成為第一個！</p></div>`;
+  if(!items.length){
+    el.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:12px">🐱</div><p style="font-size:15px;font-weight:500;margin-bottom:5px">這裡還沒有貓咪</p><p style="font-size:13px">換個篩選或成為第一個！</p></div>`;
     return;
   }
-  const uid = user ? user.uid : null;
-  el.innerHTML = `<div class="rank-list">${items.map((d,i) => {
-    const isMe = uid && d.uid === uid;
-    const rc = i===0?'#BA7517':i===1?'#888780':i===2?'#993C1D':'#AFA9EC';
-    const photo = d.photoThumb ? `<img src="${d.photoThumb}" alt="${d.catName}"/>` : '🐱';
+  const uid = user?user.uid:null;
+  el.innerHTML=`<div class="rank-list">${items.map((d,i)=>{
+    const isMe = uid&&d.uid===uid;
+    const rc   = i===0?'#BA7517':i===1?'#888780':i===2?'#993C1D':'#AFA9EC';
+    const photo= d.photoThumb?`<img src="${d.photoThumb}" alt="${d.catName}"/>`:'🐱';
     const nums = [
       ...(d.numbers||[]).map(n=>`<div class="b">${String(n).padStart(2,'0')}</div>`),
       ...(d.special||[]).map(n=>`<div class="b sp">${String(n).padStart(2,'0')}</div>`)
     ].join('');
-    const flag = flagEmoji(d.countryCode||'');
-    const prizeTag = d.prizeAmount > 0
-      ? `<div class="win-amount">$${d.prizeAmount.toLocaleString()}</div><span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ${d.prizeLevel||''}等</span>`
-      : `<span class="tag" style="background:#F4F2FB;color:#888780">待開獎</span>`;
+    const loc  = [d.city, d.country].filter(Boolean).join(', ');
+    const fe   = flagEmoji(d.countryCode||'');
+    const prizeTag = d.prizeAmount>0
+      ?`<div style="font-size:13px;font-weight:500;color:#3B6D11">$${d.prizeAmount.toLocaleString()}</div><span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ${d.prizeLevel||''}等</span>`
+      :`<span class="tag" style="background:#F4F2FB;color:#888780">待開獎</span>`;
     return `<div class="rc ${isMe?'mine':''}">
       <div class="rc-num" style="color:${rc}">${i+1}</div>
       <div class="rc-photo">${photo}</div>
       <div class="rc-body">
         <div class="rc-name">${d.catName||''}${isMe?'<span class="badge-me">我的</span>':''}</div>
-        <div class="rc-meta">${flag} ${d.city||''}${d.country?', '+d.country:''} · ${d.lotFlag||''} ${d.lotName||''} · ${d.date||''}</div>
+        <div class="rc-meta">${fe} ${loc} · ${d.lotFlag||''} ${d.lotName||''} · ${d.date||''}</div>
         <div class="balls">${nums}</div>
       </div>
       <div class="rc-right">${prizeTag}</div>
@@ -281,168 +337,11 @@ function renderList(items, user) {
   }).join('')}</div>`;
 }
 
-function flagEmoji(cc) {
-  if (!cc||cc.length!==2) return '';
-  return [...cc.toUpperCase()].map(c=>String.fromCodePoint(127397+c.charCodeAt())).join('');
-}
-window._flagEmoji = flagEmoji;
-
-function buildMap(draws) {
-  const canvas = document.getElementById('map-canvas');
-  const W = canvas.offsetWidth || 680;
-  const H = canvas.offsetHeight || 340;
-
-  // equirectangular
-  const proj = (lat, lon) => [(lon+180)/360*W, (90-lat)/180*H];
-
-  // SVG base map
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(svgNS,'svg');
-  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  svg.style.cssText='position:absolute;inset:0;width:100%;height:100%';
-
-  // ocean
-  const bg = document.createElementNS(svgNS,'rect');
-  bg.setAttribute('width',W); bg.setAttribute('height',H); bg.setAttribute('fill','#C8DCF0');
-  svg.appendChild(bg);
-
-  // lat/lon grid
-  for(let lo=-150;lo<=180;lo+=30){
-    const [x]=proj(0,lo); const l=document.createElementNS(svgNS,'line');
-    l.setAttribute('x1',x);l.setAttribute('y1',0);l.setAttribute('x2',x);l.setAttribute('y2',H);
-    l.setAttribute('stroke','#B8CCDF');l.setAttribute('stroke-width','0.4'); svg.appendChild(l);
-  }
-  for(let la=-60;la<=90;la+=30){
-    const [,y]=proj(la,0); const l=document.createElementNS(svgNS,'line');
-    l.setAttribute('x1',0);l.setAttribute('y1',y);l.setAttribute('x2',W);l.setAttribute('y2',y);
-    l.setAttribute('stroke','#B8CCDF');l.setAttribute('stroke-width','0.4'); svg.appendChild(l);
-  }
-
-  // Simplified continent paths (equirectangular-ish)
-  const landPaths = [
-    // North America
-    'M148,42 L220,38 L238,60 L250,95 L240,130 L205,155 L178,160 L148,145 L118,125 L105,95 L112,62 Z',
-    // Greenland
-    'M218,18 L248,14 L262,28 L252,45 L228,48 L212,36 Z',
-    // South America
-    'M190,168 L230,162 L248,185 L255,230 L245,275 L220,300 L195,295 L178,265 L172,220 L176,185 Z',
-    // Europe
-    'M328,42 L392,36 L410,52 L415,75 L395,95 L365,100 L335,88 L320,68 Z',
-    // Africa
-    'M330,108 L392,104 L408,128 L415,175 L405,230 L380,268 L348,272 L320,240 L308,192 L312,148 Z',
-    // Russia/North Asia
-    'M395,28 L570,22 L590,55 L578,80 L530,90 L460,88 L410,78 L392,55 Z',
-    // Middle East
-    'M393,96 L445,92 L460,115 L450,135 L415,138 L390,120 Z',
-    // South Asia
-    'M435,100 L498,96 L510,120 L500,150 L470,165 L445,152 L432,128 Z',
-    // SE Asia
-    'M500,130 L548,125 L558,148 L544,165 L515,162 L498,148 Z',
-    // East Asia / China / Japan
-    'M470,60 L555,55 L572,85 L560,110 L520,118 L488,108 L465,85 Z',
-    // Korea/Japan
-    'M548,72 L570,68 L578,82 L566,92 L548,88 Z',
-    // Australia
-    'M512,210 L590,205 L608,240 L600,272 L564,282 L528,272 L508,248 Z',
-    // New Zealand
-    'M610,268 L622,260 L628,278 L616,286 Z',
-  ];
-  landPaths.forEach(d=>{
-    const p=document.createElementNS(svgNS,'path');
-    p.setAttribute('d',d); p.setAttribute('fill','#C2D4A0');
-    p.setAttribute('stroke','#AABF88'); p.setAttribute('stroke-width','0.8');
-    svg.appendChild(p);
-  });
-
-  canvas.appendChild(svg);
-
-  // Country centroids (lat, lon)
-  const C = {
-    TW:[23.5,121],JP:[35.7,139.7],US:[37,-96],TR:[39,35],DE:[51,10],
-    GB:[52,-1],FR:[46,2],KR:[36,128],CN:[35,105],AU:[-26,134],
-    BR:[-15,-50],CA:[57,-100],MX:[24,-102],IN:[20,77],ID:[-5,120],
-    TH:[15,101],SG:[1.3,103.8],MY:[4,110],PH:[12,122],VN:[16,108],
-    IT:[42,12],ES:[40,-4],RU:[60,90],ZA:[-30,25],EG:[26,30],
-    NG:[9,8],AR:[-35,-64],CL:[-35,-71],CO:[4,-74],PL:[52,20],
-    NL:[52,5],BE:[50,4],SE:[60,18],NO:[62,10],CH:[47,8],AT:[47,14],
-    PT:[39,-8],GR:[38,23],UA:[49,32],HK:[22.3,114.2],TH:[15,101],
-    NZ:[-41,174],SA:[24,45],AE:[24,54],IL:[31,35],
-  };
-
-  // Aggregate by country
-  const ccDraws={}, ccWins={}, ccPrize={};
-  draws.forEach(d=>{
-    const cc=d.countryCode; if(!cc) return;
-    ccDraws[cc]=(ccDraws[cc]||0)+1;
-    if(d.prizeAmount>0){ ccWins[cc]=(ccWins[cc]||0)+1; ccPrize[cc]=(ccPrize[cc]||0)+(d.prizeAmount||0); }
-  });
-
-  const tip = document.getElementById('tip');
-
-  Object.keys(ccDraws).forEach(cc=>{
-    const cent=C[cc]; if(!cent) return;
-    const [px,py]=proj(cent[0],cent[1]);
-    const count=ccDraws[cc]||0;
-    const wins=ccWins[cc]||0;
-    const prize=ccPrize[cc]||0;
-    const hasWin=wins>0;
-    const sz=Math.min(7+Math.sqrt(count)*4,24);
-    const col=hasWin?'#EF9F27':'#7F77DD';
-
-    const pin=document.createElement('div');
-    pin.className='pin';
-    pin.style.cssText=`left:${px}px;top:${py}px;width:${sz*2}px;height:${sz*2}px`;
-
-    const ring=document.createElement('div');
-    ring.className='pin-ring';
-    ring.style.cssText=`width:${sz*2}px;height:${sz*2}px;top:0;left:0;background:${col}`;
-    ring.style.animationDelay = (Math.random()*2)+'s';
-
-    const core=document.createElement('div');
-    core.className='pin-core';
-    core.style.cssText=`width:${sz}px;height:${sz}px;top:${sz/2}px;left:${sz/2}px;background:${col}`;
-
-    pin.appendChild(ring); pin.appendChild(core);
-
-    const fe = flagEmoji(cc);
-    const prizeStr = prize>0 ? ` · 中獎 $${prize>=1000000?(prize/1000000).toFixed(1)+'M':prize>=1000?(prize/1000).toFixed(0)+'K':prize}` : '';
-    pin.addEventListener('mouseenter',e=>{
-      tip.innerHTML=`<strong>${fe} ${cc}</strong><br>${count} 隻貓咪 · ${wins} 次中獎${prizeStr}`;
-      tip.classList.add('on');
-    });
-    pin.addEventListener('mousemove',e=>{
-      const r=canvas.getBoundingClientRect();
-      let tx=e.clientX-r.left+14, ty=e.clientY-r.top-44;
-      if(tx+160>W) tx=e.clientX-r.left-160;
-      if(ty<4) ty=4;
-      tip.style.left=tx+'px'; tip.style.top=ty+'px';
-    });
-    pin.addEventListener('mouseleave',()=>tip.classList.remove('on'));
-    pin.addEventListener('click',()=>selectCountry(cc,count,wins,prize,fe));
-    canvas.appendChild(pin);
-  });
-}
-
-function selectCountry(cc,count,wins,prize,fe) {
-  window._ccF = cc;
-  const banner=document.getElementById('country-banner');
-  const prizeStr = prize>0 ? ` · 中獎 $${prize>=1000000?(prize/1000000).toFixed(1)+'M':prize}` : '';
-  document.getElementById('banner-text').textContent =
-    `${fe} ${cc} — ${count} 隻貓咪 · ${wins} 次中獎${prizeStr}`;
-  banner.classList.add('show');
-  rerender();
-}
-window.selectCountry = selectCountry;
-window.clearCountry = function(){
-  window._ccF='all';
-  document.getElementById('country-banner').classList.remove('show');
-  rerender();
-};
+rerender();
 </script>
 
 <script>
 window._lotF='all'; window._ccF='all'; window._srt='wins';
-
 function setSort(k){
   window._srt=k;
   document.querySelectorAll('[id^="sort-"]').forEach(e=>e.classList.remove('on'));
@@ -453,6 +352,11 @@ function setLot(k){
   window._lotF=k;
   document.querySelectorAll('[id^="lot-"]').forEach(e=>e.classList.remove('on'));
   document.getElementById('lot-'+k).classList.add('on');
+  window.rerender&&window.rerender();
+}
+function clearCC(){
+  window._ccF='all';
+  document.getElementById('cc-banner').classList.remove('show');
   window.rerender&&window.rerender();
 }
 </script>
