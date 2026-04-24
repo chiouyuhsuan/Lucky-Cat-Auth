@@ -457,7 +457,7 @@ const LOTS = {
   us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26,label:'Powerball'}},
   jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四',color:'#1D9E75',main:{count:6,max:43},sp:{count:1,max:43,label:'ボーナス'}},
 };
-const GEMINI_KEY = 'AIzaSyA8Qprh1LlW5dXwC_Vq0YIR3V3Zz7lvMx0';
+// 圖片審核使用 TensorFlow.js MobileNet（本地辨識，免費無限制）
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -493,33 +493,71 @@ function setVerifyBar(state, msg) {
   }
 }
 
-async function verifyWithGemini(base64Data) {
-  const prompt = '請嚴格分析這張圖片，只回傳 JSON，不要其他文字。判斷標準：1. is_pet: 圖片主角是否為真實的貓咪、狗狗、兔子等寵物動物的照片（true/false）。注意：人物照片、卡通、插畫、圖表、食物、風景、產品等一律為 false。2. is_safe: 圖片是否無色情暴力等不雅內容（true/false）。3. reason: 若 is_pet 為 false，用繁體中文簡短說明是什麼內容。格式：{"is_pet":true,"is_safe":true,"reason":""}';
+// TF.js 模型實例（lazy load）
+let tfModel = null;
+
+// 動物相關的 ImageNet 類別關鍵字
+const ANIMAL_KEYWORDS = [
+  'cat','kitten','tabby','persian','siamese','angora','egyptian','tiger cat',
+  'dog','puppy','poodle','retriever','labrador','bulldog','husky','shiba','chihuahua',
+  'rabbit','bunny','hamster','guinea pig','ferret','chinchilla',
+  'bird','parrot','cockatiel','budgie',
+  'fish','goldfish','turtle','lizard','gecko',
+  'lion','tiger','leopard','cheetah','panther',
+  'fox','wolf','bear','panda','raccoon',
+  'horse','cow','sheep','goat','pig',
+  'elephant','giraffe','zebra','monkey','gorilla'
+];
+
+async function loadTFModel() {
+  if (tfModel) return tfModel;
+  // 動態載入 TF.js 和 MobileNet
+  if (!window.tf) {
+    await new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  if (!window.mobilenet) {
+    await new Promise(function(resolve, reject) {
+      var s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js';
+      s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  tfModel = await window.mobilenet.load({version: 2, alpha: 1.0});
+  return tfModel;
+}
+
+async function verifyWithTFJS(imageElement) {
   try {
-    const resp = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': GEMINI_KEY
-        },
-        body: JSON.stringify({
-          contents: [{parts: [
-            {inline_data: {mime_type: 'image/jpeg', data: base64Data.replace(/^data:image\/\w+;base64,/, '')}},
-            {text: prompt}
-          ]}],
-          generationConfig: {temperature: 0, maxOutputTokens: 200}
-        })
-      }
-    );
-    const data = await resp.json();
-    const text = (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text) || '';
-    const clean = text.replace(/```json|```/g, '').trim();
-    return JSON.parse(clean);
+    const model = await loadTFModel();
+    const predictions = await model.classify(imageElement, 5);
+    console.log('TF.js 辨識結果:', predictions);
+
+    // 檢查前5名預測中是否有動物
+    var isAnimal = predictions.some(function(p) {
+      var cls = p.className.toLowerCase();
+      return ANIMAL_KEYWORDS.some(function(kw) { return cls.indexOf(kw) !== -1; });
+    });
+
+    // 取得最高信心度的類別
+    var topClass = predictions[0] ? predictions[0].className : '未知';
+    var topProb  = predictions[0] ? Math.round(predictions[0].probability * 100) : 0;
+
+    return {
+      is_pet: isAnimal,
+      is_safe: true, // TF.js 不做不雅偵測，預設安全
+      reason: isAnimal ? '' : ('這看起來是「' + topClass + '」，目前只支援貓貓等寵物照片喔 🐱'),
+      topClass: topClass,
+      topProb: topProb
+    };
   } catch(e) {
-    console.warn('Gemini 審核失敗:', e);
-    return {is_pet: true, is_safe: true, reason: ''};
+    console.warn('TF.js 辨識失敗:', e);
+    return {is_pet: true, is_safe: true, reason: ''}; // 失敗時放行
   }
 }
 
@@ -535,7 +573,7 @@ async function handleFile(input) {
   btn.textContent = '驗證中...';
   btn.classList.add('disabled');
   if (window._state) window._state.hasPhoto = false;
-  setVerifyBar('checking', '🐱 貓貓驗證中，請稍候...');
+  setVerifyBar('checking', '🐱 AI 辨識中，請稍候（首次載入約 5 秒）...');
 
   const np = document.getElementById('name-preview-photo');
   np.innerHTML = '';
@@ -565,8 +603,8 @@ async function handleFile(input) {
       const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
       if (window._state) window._state.photoDataUrl = dataUrl;
 
-      const result = await verifyWithGemini(dataUrl);
-      console.log('Gemini 結果:', result);
+      const result = await verifyWithTFJS(img);
+      console.log('TF.js 結果:', result);
 
       if (!result.is_safe) {
         setVerifyBar('fail', '此圖片包含不適當內容，請重新選擇');
