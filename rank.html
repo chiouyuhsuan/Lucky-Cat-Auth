@@ -321,9 +321,14 @@ function renderList(items, user) {
     ].join('');
     const loc  = [d.city, d.country].filter(Boolean).join(', ');
     const fe   = flagEmoji(d.countryCode||'');
-    const prizeTag = d.prizeAmount>0
-      ?`<div style="font-size:13px;font-weight:500;color:#3B6D11">$${d.prizeAmount.toLocaleString()}</div><span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ${d.prizeLevel||''}等</span>`
-      :`<span class="tag" style="background:#F4F2FB;color:#888780">待開獎</span>`;
+    // 三種狀態：已核對中獎 / 已核對未中獎 / 尚未核對(待開獎)
+    const checked = !!d.checkedAt;
+    const won     = d.prizeLevel > 0;
+    const prizeTag = won
+      ? `<div style="font-size:13px;font-weight:500;color:#3B6D11">$${(d.prizeAmount||0).toLocaleString()}</div><span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ${d.prizeLevel}等</span>`
+      : checked
+        ? `<span class="tag" style="background:#FCEBEB;color:#791F1F">未中獎</span>`
+        : `<span class="tag" style="background:#F4F2FB;color:#888780">待開獎</span>`;
     return `<div class="rc ${isMe?'mine':''}">
       <div class="rc-num" style="color:${rc}">${i+1}</div>
       <div class="rc-photo">${photo}</div>
