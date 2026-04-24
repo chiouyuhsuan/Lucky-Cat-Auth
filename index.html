@@ -494,7 +494,7 @@ function setVerifyBar(state, msg) {
 }
 
 async function verifyWithGemini(base64Data) {
-  const prompt = '請分析這張圖片，用 JSON 格式回答：1. is_pet: 是否有貓咪、狗狗、兔子等寵物或動物（true/false）2. is_safe: 是否安全無不雅內容（true/false）3. reason: 若 is_pet 為 false，用繁體中文說明原因（一句話）。只回傳 JSON，例如：{"is_pet":true,"is_safe":true,"reason":""}';
+  const prompt = '請嚴格分析這張圖片，只回傳 JSON，不要其他文字。判斷標準：1. is_pet: 圖片主角是否為真實的貓咪、狗狗、兔子等寵物動物的照片（true/false）。注意：人物照片、卡通、插畫、圖表、食物、風景、產品等一律為 false。2. is_safe: 圖片是否無色情暴力等不雅內容（true/false）。3. reason: 若 is_pet 為 false，用繁體中文簡短說明是什麼內容。格式：{"is_pet":true,"is_safe":true,"reason":""}';
   try {
     const resp = await fetch(
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY,
