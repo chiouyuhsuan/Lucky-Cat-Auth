@@ -162,21 +162,20 @@ def fetch_prize_amounts_lottolyzer(period):
                     if level: break
                 if level is None: continue
 
-                # 在本行找最大的金額（每注獎金通常是最大數字）
-                best = 0
-                for cell in cells:
-                    # 格式：$220,705,904 或 220705904 或 220,705,904
-                    m = re.search(r'\$?([\d,]+)', cell.replace(',',''))
-                    if m:
-                        val_str = re.sub(r'[^\d]', '', cell)
-                        if val_str:
-                            val = int(val_str)
-                            if val > best:
-                                best = val
+                # lottolyzer 欄位：獎項 | 獎金總額 | 中獎注數 | 每人各分
+                # 取最後一個含金額的欄位（每人各分）
+                per_person = 0
+                for cell in reversed(cells):
+                    clean = re.sub(r'[,$\s]', '', cell)
+                    if re.match(r'^\d+$', clean) and len(clean) >= 3:
+                        val = int(clean)
+                        if val >= 400:  # 最低獎金400，過濾掉注數等小數字
+                            per_person = val
+                            break
 
-                if best > 0 and level not in FIXED_AMOUNTS:
-                    amounts[level] = best
-                    print(f'[INFO] {level}等獎金: ${best:,}')
+                if per_person > 0 and level not in FIXED_AMOUNTS:
+                    amounts[level] = per_person
+                    print(f'[INFO] {level}等獎金: ${per_person:,}')
 
     except Exception as e:
         print(f'[WARN] Playwright/lottolyzer 失敗: {e}，使用預設值')
