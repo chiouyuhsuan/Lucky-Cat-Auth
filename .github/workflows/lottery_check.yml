@@ -19,7 +19,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 firebase-admin lxml taiwanlottery
+        run: |
+          pip install requests beautifulsoup4 firebase-admin lxml taiwanlottery playwright
+          playwright install chromium --with-deps
 
       - name: Run lottery checker
         env:
