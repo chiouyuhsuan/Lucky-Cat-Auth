@@ -163,15 +163,28 @@ def fetch_prize_amounts_lottolyzer(period):
                 if level is None: continue
 
                 # lottolyzer 欄位：獎項 | 獎金總額 | 中獎注數 | 每人各分
-                # 取最後一個含金額的欄位（每人各分）
+                # 格式範例：「2名中獎每人各分 $1,944,756」或最後一欄純數字
                 per_person = 0
-                for cell in reversed(cells):
-                    clean = re.sub(r'[,$\s]', '', cell)
-                    if re.match(r'^\d+$', clean) and len(clean) >= 3:
-                        val = int(clean)
-                        if val >= 400:  # 最低獎金400，過濾掉注數等小數字
-                            per_person = val
-                            break
+
+                # 優先找含「每人各分」的格子
+                for cell in cells:
+                    if '每人各分' in cell or '每人' in cell:
+                        m = re.search(r'\$?([\d,]+)$', cell.strip())
+                        if m:
+                            val = int(m.group(1).replace(',',''))
+                            if val >= 400:
+                                per_person = val
+                                break
+
+                # 備用：取最後一格純數字
+                if per_person == 0:
+                    for cell in reversed(cells):
+                        clean = re.sub(r'[,$\s]', '', cell)
+                        if re.match(r'^\d+$', clean):
+                            val = int(clean)
+                            if val >= 400:
+                                per_person = val
+                                break
 
                 if per_person > 0 and level not in FIXED_AMOUNTS:
                     amounts[level] = per_person
