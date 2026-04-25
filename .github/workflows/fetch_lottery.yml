@@ -1,0 +1,29 @@
+name: 台灣大樂透抓號碼+獎金
+
+on:
+  schedule:
+    - cron: '0 14 * * 2'   # 週二 22:00 台灣時間
+    - cron: '0 14 * * 5'   # 週五 22:00 台灣時間
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4 firebase-admin lxml taiwanlottery playwright
+          playwright install chromium --with-deps
+
+      - name: Run fetch lottery
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: python scripts/fetch_lottery.py
