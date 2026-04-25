@@ -123,11 +123,28 @@ def main():
 
         # 檢查時間窗口
         ca = data.get('createdAt')
-        if not ca or not hasattr(ca, 'seconds'):
-            print(f'[SKIP] {data.get("catName")} 無 createdAt')
+        ct = None
+        if ca is None:
+            # createdAt 不存在，改用 date 欄位推算（格式 2026.04.23）
+            date_str = data.get('date', '')
+            if date_str:
+                try:
+                    d = datetime.strptime(date_str.replace('.', '/'), '%Y/%m/%d').replace(tzinfo=TZ_TW)
+                    ct = d.replace(hour=12, minute=0)
+                    print(f'[INFO] {data.get("catName")} 用date推算: {ct.strftime("%m/%d %H:%M")}')
+                except Exception as e:
+                    print(f'[SKIP] {data.get("catName")} date解析失敗: {e}')
+        elif hasattr(ca, 'seconds'):
+            ct = datetime.fromtimestamp(ca.seconds, tz=TZ_TW)
+        elif hasattr(ca, 'timestamp'):
+            ct = datetime.fromtimestamp(ca.timestamp(), tz=TZ_TW)
+        elif isinstance(ca, (int, float)):
+            ct = datetime.fromtimestamp(ca, tz=TZ_TW)
+        else:
+            print(f'[SKIP] {data.get("catName")} createdAt格式未知: {type(ca)}')
+        if ct is None:
             skipped += 1
             continue
-        ct = datetime.fromtimestamp(ca.seconds, tz=TZ_TW)
         in_window = start_dt <= ct <= end_dt
         print(f'[CHECK] {data.get("catName")} createdAt={ct.strftime("%m/%d %H:%M")} 在窗口={in_window}')
         if not in_window:
