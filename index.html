@@ -567,38 +567,137 @@ window._renderProfile = async function() {
     return;
   }
   const user = window._state.user;
-  const name = user.displayName || user.email || '用戶';
+  const displayName = user.displayName || user.email || '用戶';
   el.innerHTML = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
     + (user.photoURL ? '<img src="' + user.photoURL + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>')
-    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + name + '</p>'
+    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + displayName + '</p>'
     + '<p style="font-size:12px;color:#888780;margin:0">' + (user.email||'') + '</p></div></div>'
-    + '<div class="sec-title">我的號碼紀錄</div>'
-    + '<div id="my-records-list"><div style="text-align:center;padding:16px;color:#888780;font-size:13px">載入中...</div></div>';
+    + '<div class="sec-title">我的貓咪</div>'
+    + '<div id="my-cats-list"><div style="text-align:center;padding:16px;color:#888780;font-size:13px">載入中...</div></div>';
+
   try {
-    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(20));
-    const snap = await getDocs(q);
-    const records = [];
-    snap.forEach(d => { const data=d.data(); if(data.uid===user.uid) records.push({id:d.id,...data}); });
-    const listEl = document.getElementById('my-records-list');
-    if (!records.length) { listEl.innerHTML='<div style="text-align:center;padding:16px;color:#888780;font-size:13px">還沒有紀錄</div>'; return; }
-    listEl.innerHTML = records.map(item => {
-      const nums = [...(item.numbers||[]).map(n=>'<div class="ball show">'+String(n).padStart(2,'0')+'</div>'),
-                    ...(item.special||[]).map(n=>'<div class="ball sp show">'+String(n).padStart(2,'0')+'</div>')].join('');
-      const checked = !!item.checkedAt;
-      const won = item.prizeLevel > 0;
-      const status = won
-        ? '<span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ' + item.prizeLevel + '等</span>'
-        : checked
-          ? '<span class="tag" style="background:#FCEBEB;color:#791F1F">未中獎</span>'
-          : '<span class="tag" style="background:#FAEEDA;color:#633806">待開獎</span>';
-      return '<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;padding:14px 16px;margin-bottom:8px">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-        + '<span style="font-size:13px;font-weight:500;color:#534AB7">' + (item.lotFlag||'') + ' ' + (item.lotName||'') + ' · ' + (item.date||'') + '</span>'
-        + status + '</div>'
-        + '<div style="display:flex;gap:6px;flex-wrap:wrap">' + nums + '</div>'
-        + '<p style="font-size:11px;color:#AFA9EC;margin:8px 0 0">由 ' + item.catName + ' 選出</p></div>';
+    // 1. 讀取 cats 集合（此用戶的貓）
+    const catsSnap = await getDocs(query(
+      collection(db,'cats'),
+      where('uid','==',user.uid)
+    ));
+    const cats = [];
+    catsSnap.forEach(d => cats.push({id:d.id,...d.data()}));
+
+    // 2. 讀取 draws 集合（此用戶的所有選號紀錄）
+    const drawsSnap = await getDocs(query(
+      collection(db,'draws'),
+      orderBy('createdAt','desc'),
+      limit(100)
+    ));
+    const allDraws = [];
+    drawsSnap.forEach(d => { const data=d.data(); if(data.uid===user.uid) allDraws.push({id:d.id,...data}); });
+
+    const listEl = document.getElementById('my-cats-list');
+
+    if (!cats.length && !allDraws.length) {
+      listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#888780;font-size:13px">還沒有紀錄，去上傳你的貓咪吧！</div>';
+      return;
+    }
+
+    // 3. 把 draws 按 catName 分組（相容舊紀錄沒有 catId 的情況）
+    const drawsByCat = {};
+    allDraws.forEach(function(draw) {
+      const key = draw.catId || ('__nocat__' + draw.catName);
+      if (!drawsByCat[key]) drawsByCat[key] = [];
+      drawsByCat[key].push(draw);
+    });
+
+    // 4. 建立顯示清單：cats 集合有的 + 沒有 catId 的舊紀錄
+    const catCards = [];
+
+    // cats 集合的貓
+    cats.forEach(function(cat) {
+      const draws = drawsByCat[cat.id] || [];
+      // 計算即時統計（補充 cats 集合可能不完整的情況）
+      const totalDraws  = Math.max(cat.totalDraws || 0, draws.length);
+      const totalWins   = cat.totalWins || 0;
+      const totalPrize  = cat.totalPrize || 0;
+      const winRate     = totalDraws > 0 ? Math.round(totalWins / totalDraws * 100) : 0;
+      catCards.push({cat, draws, totalDraws, totalWins, totalPrize, winRate});
+    });
+
+    // 沒有對應 cat 的舊紀錄（按 catName 分組）
+    const handledCatIds = new Set(cats.map(c => c.id));
+    const orphanGroups = {};
+    allDraws.forEach(function(draw) {
+      if (draw.catId && handledCatIds.has(draw.catId)) return;
+      const key = draw.catName || '未命名';
+      if (!orphanGroups[key]) orphanGroups[key] = {draws:[], photo: draw.photoThumb};
+      orphanGroups[key].draws.push(draw);
+    });
+    Object.entries(orphanGroups).forEach(function([catName, group]) {
+      const draws = group.draws;
+      const totalWins  = draws.filter(d => d.prizeLevel > 0).length;
+      const totalPrize = draws.reduce(function(s,d){return s+(d.prizeAmount||0);},0);
+      const winRate    = draws.length > 0 ? Math.round(totalWins/draws.length*100) : 0;
+      catCards.push({
+        cat: {catName, photoThumb: group.photo, totalDraws: draws.length, totalWins, totalPrize},
+        draws, totalDraws: draws.length, totalWins, totalPrize, winRate
+      });
+    });
+
+    // 5. 渲染
+    listEl.innerHTML = catCards.map(function(item, idx) {
+      const cat = item.cat;
+      const drawsHtml = item.draws.map(function(draw) {
+        const nums = (draw.numbers||[]).map(function(n){
+          return '<div class="ball show" style="width:30px;height:30px;font-size:11px">'+String(n).padStart(2,'0')+'</div>';
+        }).join('');
+        const special = (draw.special||[]).map(function(n){
+          return '<div class="ball sp show" style="width:30px;height:30px;font-size:11px">'+String(n).padStart(2,'0')+'</div>';
+        }).join('');
+        const checked = !!draw.checkedAt;
+        const won = (draw.prizeLevel||0) > 0;
+        const status = won
+          ? '<span class="tag" style="background:#EAF3DE;color:#27500A;font-size:10px">中獎'+draw.prizeLevel+'等</span>'
+          : checked
+            ? '<span class="tag" style="background:#FCEBEB;color:#791F1F;font-size:10px">未中獎</span>'
+            : '<span class="tag" style="background:#FAEEDA;color:#633806;font-size:10px">待開獎</span>';
+        return '<div style="padding:10px 0;border-bottom:0.5px solid #F4F2FB">'
+          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+          + '<span style="font-size:12px;color:#534AB7">' + (draw.lotFlag||'') + ' ' + (draw.date||'') + '</span>'
+          + status + '</div>'
+          + '<div style="display:flex;gap:5px;flex-wrap:wrap">' + nums + special + '</div>'
+          + (won ? '<p style="font-size:11px;color:#27500A;margin:5px 0 0">獎金 $' + (draw.prizeAmount||0).toLocaleString() + '</p>' : '')
+          + '</div>';
+      }).join('');
+
+      const photo = cat.photoThumb
+        ? '<img src="'+cat.photoThumb+'" style="width:100%;height:100%;object-fit:cover"/>'
+        : '🐱';
+      const winRateColor = item.winRate > 0 ? '#27500A' : '#888780';
+
+      return '<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;margin-bottom:10px;overflow:hidden">'
+        // 貓咪卡片頭部（點擊展開）
+        + '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="toggleCat(\'cat-draws-'+idx+'\')">'
+        + '<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;border:1.5px solid #CECBF6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">' + photo + '</div>'
+        + '<div style="flex:1">'
+        + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + cat.catName + '</p>'
+        + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
+        + '<span style="font-size:12px;color:#888780">抽了 <b style="color:#26215C">' + item.totalDraws + '</b> 次</span>'
+        + '<span style="font-size:12px;color:#888780">中獎 <b style="color:#27500A">' + item.totalWins + '</b> 次</span>'
+        + '<span style="font-size:12px;color:#888780">中獎率 <b style="color:'+winRateColor+'">' + item.winRate + '%</b></span>'
+        + (item.totalPrize > 0 ? '<span style="font-size:12px;color:#888780">累積 <b style="color:#EF9F27">$'+item.totalPrize.toLocaleString()+'</b></span>' : '')
+        + '</div></div>'
+        + '<span style="font-size:12px;color:#AFA9EC" id="cat-arrow-'+idx+'">▼</span>'
+        + '</div>'
+        // 展開區域
+        + '<div id="cat-draws-'+idx+'" style="display:none;padding:0 16px 4px;border-top:0.5px solid #F4F2FB">'
+        + (item.draws.length ? drawsHtml : '<p style="font-size:13px;color:#888780;padding:12px 0">還沒有抽號紀錄</p>')
+        + '</div>'
+        + '</div>';
     }).join('');
-  } catch {}
+
+  } catch(e) {
+    console.error('renderProfile error:', e);
+    document.getElementById('my-cats-list').innerHTML = '<div style="text-align:center;padding:16px;color:#791F1F;font-size:13px">載入失敗，請重新整理</div>';
+  }
 };
 
 window.loginWithGoogle = window._loginWithGoogle;
@@ -922,6 +1021,17 @@ function showToast(msg) {
   var t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2800);
+}
+
+function toggleCat(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  var isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  // 找對應箭頭
+  var arrowId = id.replace('cat-draws-', 'cat-arrow-');
+  var arrow = document.getElementById(arrowId);
+  if (arrow) arrow.textContent = isOpen ? '▼' : '▲';
 }
 
 // 偵測從其他頁跳來的目標頁面（等 Firebase auth 載入完才跳頁）
