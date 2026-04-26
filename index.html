@@ -369,6 +369,7 @@ detectLocation();
 // ── Auth 狀態 ─────────────────────────────────────────────
 onAuthStateChanged(auth, user => {
   window._state.user = user;
+  window._authReady = true;
   const navRight = document.getElementById('nav-right');
   if (user) {
     const name = user.displayName || user.email || '用戶';
@@ -802,12 +803,21 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 2800);
 }
 
-// 偵測從其他頁跳來的目標頁面
+// 偵測從其他頁跳來的目標頁面（等 Firebase auth 載入完才跳頁）
 (function() {
   var goto = sessionStorage.getItem('goto');
   if (goto) {
     sessionStorage.removeItem('goto');
-    setTimeout(function() { showPage(goto); }, 100);
+    // 等 auth 狀態確認後再跳頁（最多等 3 秒）
+    var waited = 0;
+    var interval = setInterval(function() {
+      waited += 100;
+      // _state.user 已被 onAuthStateChanged 設定（包含 null）
+      if (window._authReady || waited >= 3000) {
+        clearInterval(interval);
+        showPage(goto);
+      }
+    }, 100);
   }
 })();
 </script>
