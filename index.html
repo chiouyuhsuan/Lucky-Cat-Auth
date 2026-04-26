@@ -801,6 +801,15 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2800);
 }
+
+// 偵測從其他頁跳來的目標頁面
+(function() {
+  var goto = sessionStorage.getItem('goto');
+  if (goto) {
+    sessionStorage.removeItem('goto');
+    setTimeout(function() { showPage(goto); }, 100);
+  }
+})();
 </script>
 </body>
 </html>
