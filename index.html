@@ -620,8 +620,8 @@ function renderResultAction() {
   if (!el) return;
   const user = window._state && window._state.user;
   if (user) {
-    el.innerHTML = '<a class="btn" href="rank.html" style="display:block;text-align:center;text-decoration:none">查看我的排行榜紀錄</a>'
-      + '<button class="btn-outline" onclick="goToName()">加入排行榜 + 追蹤開獎</button>'
+    el.innerHTML = '<button class="btn" onclick="goToName()">加入排行榜 + 追蹤開獎</button>'
+      + '<a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none">查看排行榜紀錄（不儲存本次）</a>'
       + '<button class="btn-outline" onclick="showPage(\'home\')" style="color:#888780;border-color:#CECBF6">稍後再說</button>';
   } else {
     el.innerHTML = '<button class="btn" onclick="goToLogin()">加入全球排行榜 + 追蹤開獎</button>'
