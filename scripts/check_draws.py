@@ -175,6 +175,24 @@ def main():
         doc.reference.update(upd)
         checked += 1
 
+        # 更新 cats 累積欄位
+        cat_id = data.get('catId')
+        if cat_id:
+            try:
+                cat_ref = db.collection('cats').document(cat_id)
+                cat_upd = {'lastCheckedAt': firestore.SERVER_TIMESTAMP}
+                if lv > 0:
+                    # 先讀取再更新（避免 Increment API 版本問題）
+                    cat_snap = cat_ref.get()
+                    if cat_snap.exists:
+                        cat_data = cat_snap.to_dict()
+                        cat_upd['totalWins']  = (cat_data.get('totalWins', 0) or 0) + 1
+                        cat_upd['totalPrize'] = (cat_data.get('totalPrize', 0) or 0) + upd['prizeAmount']
+                cat_ref.update(cat_upd)
+                print(f'[INFO] cats/{cat_id} 已更新累積數據')
+            except Exception as e:
+                print(f'[WARN] 更新 cats 失敗: {e}')
+
     print(f'[INFO] 核對完成：{checked} 筆，中獎 {won} 筆，跳過 {skipped} 筆')
     print('[INFO] check_draws 完畢 ✓')
 
