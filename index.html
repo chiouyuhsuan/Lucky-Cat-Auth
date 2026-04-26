@@ -613,20 +613,28 @@ window._renderProfile = async function() {
 
     // cats 集合的貓
     cats.forEach(function(cat) {
-      const draws = drawsByCat[cat.id] || [];
-      // 計算即時統計（補充 cats 集合可能不完整的情況）
-      const totalDraws  = Math.max(cat.totalDraws || 0, draws.length);
-      const totalWins   = cat.totalWins || 0;
-      const totalPrize  = cat.totalPrize || 0;
+      // 找此貓的所有 draws：有 catId 對應的 + 沒有 catId 但同名的舊紀錄
+      const draws = allDraws.filter(function(d) {
+        return (d.catId && d.catId === cat.id) ||
+               (!d.catId && d.catName === cat.catName);
+      });
+      // 從 draws 即時計算（比 cats 集合的欄位更準確）
+      const totalDraws  = draws.length;
+      const totalWins   = draws.filter(function(d){ return (d.prizeLevel||0) > 0; }).length;
+      const totalPrize  = draws.reduce(function(s,d){ return s+(d.prizeAmount||0); }, 0);
       const winRate     = totalDraws > 0 ? Math.round(totalWins / totalDraws * 100) : 0;
       catCards.push({cat, draws, totalDraws, totalWins, totalPrize, winRate});
     });
 
-    // 沒有對應 cat 的舊紀錄（按 catName 分組）
-    const handledCatIds = new Set(cats.map(c => c.id));
+    // 沒有對應 cat 的舊紀錄（按 catName 分組，排除已在 cats 集合的名字）
+    const handledCatIds   = new Set(cats.map(c => c.id));
+    const handledCatNames = new Set(cats.map(c => c.catName)); // 排除同名
     const orphanGroups = {};
     allDraws.forEach(function(draw) {
+      // 已有 catId 對應的跳過
       if (draw.catId && handledCatIds.has(draw.catId)) return;
+      // cats 集合已有同名貓的也跳過（舊紀錄沒有 catId 但名字相同）
+      if (handledCatNames.has(draw.catName)) return;
       const key = draw.catName || '未命名';
       if (!orphanGroups[key]) orphanGroups[key] = {draws:[], photo: draw.photoThumb};
       orphanGroups[key].draws.push(draw);
