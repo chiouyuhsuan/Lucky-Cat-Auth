@@ -284,6 +284,23 @@ input[type=file]{display:none}
   <label style="font-size:13px;color:#888780;margin-bottom:6px;display:block">貓咪暱稱</label>
   <input type="text" id="cat-name-input" placeholder="例如：Malu、胖虎、奶油..." maxlength="20" oninput="onNameInput(this.value)"/>
   <p style="font-size:12px;color:#AFA9EC;margin:0 0 16px">這個名字會顯示在全球排行榜上</p>
+
+  <!-- 同名貓詢問區塊（動態顯示）-->
+  <div id="same-cat-block" style="display:none;background:#FFF8EC;border:1px solid #F0C866;border-radius:12px;padding:14px;margin-bottom:14px">
+    <p style="font-size:13px;font-weight:500;color:#633806;margin:0 0 10px">🐱 你有一隻同名的貓咪，是這隻嗎？</p>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div id="same-cat-photo" style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>
+      <div>
+        <p id="same-cat-name-txt" style="font-size:14px;font-weight:500;color:#26215C;margin:0 0 2px"></p>
+        <p id="same-cat-stats" style="font-size:12px;color:#888780;margin:0"></p>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;padding:10px;font-size:13px" onclick="useSameCat()">是同一隻！累積紀錄</button>
+      <button class="btn-outline" style="flex:1;padding:10px;font-size:13px" onclick="useNewCat()">不是，建新貓咪</button>
+    </div>
+  </div>
+
   <div style="display:flex;align-items:flex-start;gap:8px;padding:12px;background:#F4F2FB;border-radius:10px;margin-bottom:18px">
     <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid #7F77DD;background:#EEEDFE;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
     <p style="font-size:12px;color:#888780;line-height:1.6;margin:0">我同意將貓咪照片、地區和中獎紀錄用於全球排行榜統計。個人資料不對外揭露。</p>
@@ -425,8 +442,54 @@ window._logout = async function() {
   showPage('home');
 };
 
+// ── 查詢同名貓 ───────────────────────────────────────────
+window._findSameCat = async function(catName) {
+  const user = window._state.user;
+  if (!user) return null;
+  try {
+    const q = query(collection(db,'cats'),
+      where('uid','==',user.uid),
+      where('catName','==',catName)
+    );
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      const d = snap.docs[0];
+      return {id: d.id, ...d.data()};
+    }
+  } catch(e) { console.warn('findSameCat error:', e); }
+  return null;
+};
+
+// ── 建立或更新貓咪主檔 ────────────────────────────────────
+window._upsertCat = async function(catId, catName, isNew) {
+  const { user, photoDataUrl, userLocation } = window._state;
+  if (!user) return null;
+  try {
+    if (isNew || !catId) {
+      // 建新貓
+      const ref = await addDoc(collection(db,'cats'), {
+        uid: user.uid, catName,
+        photoThumb: photoDataUrl || null,
+        country: userLocation.country, countryCode: userLocation.countryCode,
+        city: userLocation.city,
+        totalDraws: 1, totalWins: 0, totalPrize: 0,
+        createdAt: serverTimestamp(), lastDrawAt: serverTimestamp(),
+      });
+      return ref.id;
+    } else {
+      // 更新既有貓（換照片 + 累積抽號次數）
+      await updateDoc(doc(db,'cats',catId), {
+        photoThumb: photoDataUrl || null,
+        totalDraws: increment(1),
+        lastDrawAt: serverTimestamp(),
+      });
+      return catId;
+    }
+  } catch(e) { console.warn('upsertCat error:', e); return null; }
+};
+
 // ── 儲存選號到 Firestore ──────────────────────────────────
-window._saveRecord = async function(catName) {
+window._saveRecord = async function(catName, catId) {
   const { user, currentNums, curLot, photoDataUrl, userLocation } = window._state;
   if (!user || !currentNums) return false;
   const LOTS = {
@@ -439,7 +502,8 @@ window._saveRecord = async function(catName) {
   const dateStr = today.getFullYear() + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + String(today.getDate()).padStart(2,'0');
   try {
     await addDoc(collection(db,'draws'), {
-      uid: user.uid, catName, lotType: curLot, lotName: lot.name, lotFlag: lot.flag,
+      uid: user.uid, catId: catId || null,
+      catName, lotType: curLot, lotName: lot.name, lotFlag: lot.flag,
       numbers: currentNums.main, special: currentNums.special,
       country: userLocation.country, countryCode: userLocation.countryCode,
       city: userLocation.city, date: dateStr,
@@ -447,9 +511,9 @@ window._saveRecord = async function(catName) {
       createdAt: serverTimestamp(), prizeLevel: 0, prizeAmount: 0,
     });
     try {
-      await updateDoc(doc(db,'stats','global'), { totalCats: increment(1), totalDraws: increment(1) });
+      await updateDoc(doc(db,'stats','global'), { totalDraws: increment(1) });
     } catch {
-      await setDoc(doc(db,'stats','global'), { totalCats:1, totalDraws:1 });
+      await setDoc(doc(db,'stats','global'), { totalDraws:1 });
     }
     showToast('✓ 已儲存到排行榜！');
     return true;
@@ -773,10 +837,57 @@ function renderShareCard(nums) {
   nums.special.forEach(function(n) { var d = document.createElement('div'); d.className = 'share-ball special'; d.textContent = String(n).padStart(2,'0'); bar.appendChild(d); });
 }
 
+var _nameCheckTimer = null;
+var _sameCatData = null;  // 儲存查到的同名貓資料
+var _useExistingCat = false;  // 用戶選擇是否用同一隻
+
 function onNameInput(v) {
   document.getElementById('name-preview-text').textContent = v || '你的貓咪';
   document.getElementById('share-cat-name').textContent = v ? v.toUpperCase() : 'LUCKY CAT';
   document.getElementById('confirm-btn').classList.toggle('disabled', !v.trim());
+  document.getElementById('same-cat-block').style.display = 'none';
+  _sameCatData = null; _useExistingCat = false;
+
+  // debounce 500ms 後查同名貓
+  if (_nameCheckTimer) clearTimeout(_nameCheckTimer);
+  if (v.trim().length >= 1 && window._state && window._state.user) {
+    _nameCheckTimer = setTimeout(async function() {
+      var found = await window._findSameCat(v.trim());
+      if (found) {
+        _sameCatData = found;
+        showSameCatBlock(found);
+      }
+    }, 500);
+  }
+}
+
+function showSameCatBlock(cat) {
+  var block = document.getElementById('same-cat-block');
+  var photo = document.getElementById('same-cat-photo');
+  var nameTxt = document.getElementById('same-cat-name-txt');
+  var stats = document.getElementById('same-cat-stats');
+  if (cat.photoThumb) {
+    photo.innerHTML = '<img src="' + cat.photoThumb + '" style="width:100%;height:100%;object-fit:cover"/>';
+  } else {
+    photo.innerHTML = '🐱';
+  }
+  nameTxt.textContent = cat.catName;
+  stats.textContent = '已抽 ' + (cat.totalDraws||0) + ' 次 · 中獎 ' + (cat.totalWins||0) + ' 次' +
+    (cat.totalPrize > 0 ? ' · 累積 $' + cat.totalPrize.toLocaleString() : '');
+  block.style.display = 'block';
+}
+
+function useSameCat() {
+  _useExistingCat = true;
+  document.getElementById('same-cat-block').style.display = 'none';
+  showToast('✓ 將累積到同一隻 ' + _sameCatData.catName + ' 的紀錄');
+}
+
+function useNewCat() {
+  _useExistingCat = false;
+  _sameCatData = null;
+  document.getElementById('same-cat-block').style.display = 'none';
+  showToast('將建立新的貓咪檔案');
 }
 
 async function confirmAndSave() {
@@ -784,7 +895,17 @@ async function confirmAndSave() {
   if (!name) return;
   var btn = document.getElementById('confirm-btn');
   btn.textContent = '儲存中...'; btn.classList.add('disabled');
-  await window._saveRecord(name);
+
+  // 決定 catId：用同一隻貓 or 建新貓
+  var catId = null;
+  if (_useExistingCat && _sameCatData) {
+    // 沿用舊 catId，更新照片
+    catId = await window._upsertCat(_sameCatData.id, name, false);
+  } else {
+    // 建立新貓
+    catId = await window._upsertCat(null, name, true);
+  }
+  await window._saveRecord(name, catId);
   var lot = LOTS[window._state.curLot];
   var loc = window._state.userLocation;
   document.getElementById('done-title').textContent = name + ' 已加入排行榜！';
