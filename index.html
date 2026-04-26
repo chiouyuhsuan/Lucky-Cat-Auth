@@ -14,7 +14,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .nav-links{display:flex;gap:4px}
 .nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:#534AB7;cursor:pointer;border:none;background:transparent;font-family:inherit;text-decoration:none}
 .nav-link:hover,.nav-link.active{background:#EEEDFE;font-weight:500}
-.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;text-decoration:none}
+.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
 .nav-cta:hover{background:#3C3489}
 .nav-user{display:flex;align-items:center;gap:8px}
 .nav-user-photo{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid #7F77DD}
@@ -25,7 +25,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .btn{display:block;width:100%;padding:14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
 .btn:hover{background:#3C3489}
 .btn.disabled{opacity:.45;pointer-events:none}
-.btn-outline{display:block;width:100%;padding:14px;background:transparent;color:#534AB7;border:0.5px solid #7F77DD;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
+.btn-outline{display:block;width:100%;padding:14px;background:transparent;color:#534AB7;border:0.5px solid #7F77DD;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit;text-decoration:none}
 .btn-outline:hover{background:#EEEDFE}
 .tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
 .sec-title{font-size:13px;font-weight:500;color:#888780;letter-spacing:.03em;margin-bottom:10px}
@@ -85,9 +85,29 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .verify-bar.fail{display:flex;background:#FCEBEB;color:#791F1F}
 .verify-spin{width:16px;height:16px;border:2px solid #7F77DD;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-input[type=text]{width:100%;padding:12px 14px;border:0.5px solid #CECBF6;border-radius:10px;background:#F8F6FF;font-size:15px;color:#26215C;margin-bottom:4px;font-family:inherit}
-input[type=text]:focus{outline:none;border-color:#7F77DD}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:flex;align-items:flex-end;justify-content:center}
+.modal-overlay.hidden{display:none}
+.modal-box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:680px;padding:20px 20px 36px;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:36px;height:4px;background:#CECBF6;border-radius:2px;margin:0 auto 18px}
+.modal-title{font-size:17px;font-weight:500;color:#26215C;margin-bottom:6px}
+.modal-sub{font-size:13px;color:#888780;margin-bottom:18px;line-height:1.6}
+.modal-divider{display:flex;align-items:center;gap:8px;margin:10px 0}
+.modal-divider-line{flex:1;height:.5px;background:#CECBF6}
+.modal-skip{text-align:center;font-size:13px;color:#888780;cursor:pointer;padding:10px;margin-top:4px}
+.modal-skip:hover{color:#534AB7}
+
+/* EMAIL AUTH */
+.auth-tabs{display:flex;gap:0;margin-bottom:16px;border:0.5px solid #CECBF6;border-radius:10px;overflow:hidden}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border:none;background:#F8F6FF;color:#888780;font-family:inherit}
+.auth-tab.active{background:#7F77DD;color:#EEEDFE}
+input[type=email],input[type=password],input[type=text]{width:100%;padding:12px 14px;border:0.5px solid #CECBF6;border-radius:10px;background:#F8F6FF;font-size:15px;color:#26215C;margin-bottom:8px;font-family:inherit}
+input[type=email]:focus,input[type=password]:focus,input[type=text]:focus{outline:none;border-color:#7F77DD}
 input[type=file]{display:none}
+.err-msg{font-size:12px;color:#791F1F;margin-bottom:8px;display:none}
+.err-msg.show{display:block}
 </style>
 </head>
 <body>
@@ -108,14 +128,33 @@ input[type=file]{display:none}
   </a>
   <div class="nav-links">
     <button class="nav-link active" id="nl-home" onclick="showPage('home')">首頁</button>
-    <button class="nav-link" id="nl-upload" onclick="showPage('upload')">上傳</button>
+    <button class="nav-link" id="nl-upload" onclick="handleUploadClick()">上傳</button>
     <a class="nav-link" href="rank.html">排行榜</a>
     <button class="nav-link" id="nl-profile" onclick="showPage('profile')">我的</button>
   </div>
   <div id="nav-right">
-    <button class="nav-cta" onclick="showPage('upload')">開始選號</button>
+    <button class="nav-cta" onclick="handleUploadClick()">開始選號</button>
   </div>
 </nav>
+
+<!-- 登入提示 Modal -->
+<div class="modal-overlay hidden" id="login-prompt-modal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🐱 登入可以累積貓咪幸運值！</div>
+    <div class="modal-sub">登入後每次選號都會累積到你的貓咪檔案，追蹤歷史中獎紀錄、計算中獎率，讓你的貓成為全球最幸運的貓！</div>
+    <button class="social-btn" onclick="loginWithGoogle(); closeModal('login-prompt-modal')">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.566 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+      以 Google 登入
+    </button>
+    <button class="social-btn" onclick="closeModal('login-prompt-modal'); showPage('email-auth')">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="3" width="16" height="12" rx="2" stroke="#534AB7" stroke-width="1.3"/><path d="M1 5l8 5 8-5" stroke="#534AB7" stroke-width="1.3" stroke-linecap="round"/></svg>
+      Email 註冊 / 登入
+    </button>
+    <div class="modal-divider"><div class="modal-divider-line"></div><span style="font-size:12px;color:#888780">或</span><div class="modal-divider-line"></div></div>
+    <div class="modal-skip" onclick="closeModal('login-prompt-modal'); showPage('upload')">不用，直接抽號 →</div>
+  </div>
+</div>
 
 <!-- HOME -->
 <div class="page active" id="page-home">
@@ -124,15 +163,43 @@ input[type=file]{display:none}
     <img src="Malu loading.gif" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
     <h1 style="font-size:26px;font-weight:500;color:#26215C;line-height:1.3;margin-bottom:8px">讓你的貓咪<br>幫你選號碼</h1>
     <p style="font-size:14px;color:#534AB7;margin-bottom:20px">上傳完全免費 · 全球統計 · 即時排行</p>
-    <button class="hero-btn" onclick="showPage('upload')">上傳我的貓咪</button>
+    <button class="hero-btn" onclick="handleUploadClick()">上傳我的貓咪</button>
   </div>
   <div class="stat-grid">
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div><div style="font-size:11px;color:#888780;margin-top:2px" id="stat-countries"></div></div>
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div><div style="font-size:11px;color:#888780;margin-top:2px">筆紀錄</div></div>
+    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div></div>
+    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div></div>
   </div>
   <div class="sec-title">最新幸運貓</div>
   <div id="home-rank-list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
   <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none;margin-top:8px">查看完整排行榜 →</a>
+</div>
+
+<!-- EMAIL AUTH -->
+<div class="page" id="page-email-auth">
+  <h2 style="font-size:20px;font-weight:500;margin-bottom:16px">帳號登入 / 註冊</h2>
+  <div class="auth-tabs">
+    <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">登入</button>
+    <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">註冊</button>
+  </div>
+  <div id="auth-login-form">
+    <input type="email" id="login-email" placeholder="Email"/>
+    <input type="password" id="login-password" placeholder="密碼"/>
+    <div class="err-msg" id="login-err"></div>
+    <button class="btn" onclick="loginWithEmail()">登入</button>
+  </div>
+  <div id="auth-register-form" style="display:none">
+    <input type="email" id="reg-email" placeholder="Email"/>
+    <input type="password" id="reg-password" placeholder="密碼（至少 6 位）"/>
+    <input type="password" id="reg-password2" placeholder="確認密碼"/>
+    <div class="err-msg" id="reg-err"></div>
+    <button class="btn" onclick="registerWithEmail()">建立帳號</button>
+  </div>
+  <div class="modal-divider" style="margin:14px 0"><div class="modal-divider-line"></div><span style="font-size:12px;color:#888780">或</span><div class="modal-divider-line"></div></div>
+  <button class="social-btn" onclick="loginWithGoogle()">
+    <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.566 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+    以 Google 繼續
+  </button>
+  <button class="btn-outline" onclick="showPage('upload')" style="margin-top:8px">不用，直接抽號</button>
 </div>
 
 <!-- UPLOAD -->
@@ -200,26 +267,11 @@ input[type=file]{display:none}
     </div>
     <div class="share-numbers-bar" id="share-numbers-bar"></div>
   </div>
-  <button class="btn" onclick="goToLogin()">加入全球排行榜 + 追蹤開獎</button>
-  <button class="btn-outline" onclick="showPage('home')">稍後再說</button>
+  <!-- 動態按鈕：已登入/未登入不同 -->
+  <div id="result-action"></div>
 </div>
 
-<!-- LOGIN -->
-<div class="page" id="page-login">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px">加入全球排行榜</h2>
-  <div style="background:#F4F2FB;border-radius:16px;padding:20px;border:0.5px solid #CECBF6">
-    <p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">登入以追蹤開獎結果</p>
-    <p style="font-size:13px;color:#888780;margin:0 0 16px">讓你的貓咪參與全球幸運排行，開獎後自動核對</p>
-    <button class="social-btn" onclick="loginWithGoogle()">
-      <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.566 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
-      以 Google 繼續
-    </button>
-    <div style="display:flex;align-items:center;gap:8px;margin:10px 0"><div style="flex:1;height:.5px;background:#CECBF6"></div><span style="font-size:12px;color:#888780">或</span><div style="flex:1;height:.5px;background:#CECBF6"></div></div>
-    <div style="text-align:center;font-size:13px;color:#888780;cursor:pointer;padding:8px" onclick="showPage('result')">先跳過，只看號碼</div>
-  </div>
-</div>
-
-<!-- NAME -->
+<!-- NAME（已登入後命名貓咪）-->
 <div class="page" id="page-name">
   <h2 style="font-size:20px;font-weight:500;margin-bottom:16px">幫你的貓取個名字</h2>
   <div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">
@@ -267,10 +319,11 @@ input[type=file]{display:none}
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged }
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+         createUserWithEmailAndPassword, signInWithEmailAndPassword }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
-         query, orderBy, limit, serverTimestamp, updateDoc, increment }
+         query, orderBy, limit, serverTimestamp, updateDoc, increment, where }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -292,6 +345,7 @@ window._state = {
   userLocation: { country:'未知', city:'未知', countryCode:'' },
 };
 
+// ── 位置偵測 ──────────────────────────────────────────────
 async function detectLocation() {
   try {
     const res = await fetch('https://ipapi.co/json/');
@@ -305,39 +359,72 @@ async function detectLocation() {
     window._state.userLocation = { country:'未知', city:'未知', countryCode:'' };
   }
   const loc = window._state.userLocation;
-  const locEl = document.getElementById('loc-text');
-  if (locEl) locEl.textContent = '目前位置：' + loc.city + '，' + loc.country + ' — 貓咪地區將記錄為此位置';
-  const locEl2 = document.getElementById('name-preview-loc');
-  if (locEl2) locEl2.textContent = '📍 ' + loc.city + '，' + loc.country + '（自動偵測）';
+  const el = document.getElementById('loc-text');
+  if (el) el.textContent = '目前位置：' + loc.city + '，' + loc.country + ' — 貓咪地區將記錄為此位置';
+  const el2 = document.getElementById('name-preview-loc');
+  if (el2) el2.textContent = '📍 ' + loc.city + '，' + loc.country + '（自動偵測）';
 }
 detectLocation();
 
-onAuthStateChanged(auth, async user => {
+// ── Auth 狀態 ─────────────────────────────────────────────
+onAuthStateChanged(auth, user => {
   window._state.user = user;
   const navRight = document.getElementById('nav-right');
   if (user) {
+    const name = user.displayName || user.email || '用戶';
     navRight.innerHTML = '<div class="nav-user">'
-      + '<img class="nav-user-photo" src="' + (user.photoURL||'') + '" onerror="this.style.display=\'none\'"/>'
-      + '<span class="nav-user-name">' + (user.displayName||user.email) + '</span>'
+      + (user.photoURL ? '<img class="nav-user-photo" src="' + user.photoURL + '" onerror="this.style.display=\'none\'"/>' : '')
+      + '<span class="nav-user-name">' + name + '</span>'
       + '<button class="nav-logout" onclick="window._logout()">登出</button>'
       + '</div>';
   } else {
-    navRight.innerHTML = '<button class="nav-cta" onclick="showPage(\'upload\')">開始選號</button>';
+    navRight.innerHTML = '<button class="nav-cta" onclick="handleUploadClick()">開始選號</button>';
   }
+  // 更新結果頁按鈕
+  renderResultAction();
 });
 
+// ── 登入方法 ──────────────────────────────────────────────
 window._loginWithGoogle = async function() {
   try {
     await signInWithPopup(auth, new GoogleAuthProvider());
-    showPage('name');
-  } catch(e) { showToast('登入失敗，請再試一次'); }
+    showToast('✓ 登入成功！');
+    // 如果在 email-auth 頁，跳回上傳
+    if (document.getElementById('page-email-auth').classList.contains('active')) {
+      showPage('upload');
+    }
+  } catch(e) { showToast('登入失敗：' + e.message); }
 };
+
+window._loginWithEmail = async function(email, password) {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    showToast('✓ 登入成功！');
+    showPage('upload');
+    return true;
+  } catch(e) {
+    return e.message;
+  }
+};
+
+window._registerWithEmail = async function(email, password) {
+  try {
+    await createUserWithEmailAndPassword(auth, email, password);
+    showToast('✓ 帳號建立成功！');
+    showPage('upload');
+    return true;
+  } catch(e) {
+    return e.message;
+  }
+};
+
 window._logout = async function() {
   await signOut(auth);
   showToast('已登出');
   showPage('home');
 };
 
+// ── 儲存選號到 Firestore ──────────────────────────────────
 window._saveRecord = async function(catName) {
   const { user, currentNums, curLot, photoDataUrl, userLocation } = window._state;
   if (!user || !currentNums) return false;
@@ -368,6 +455,7 @@ window._saveRecord = async function(catName) {
   } catch(e) { showToast('儲存失敗：' + e.message); return false; }
 };
 
+// ── 首頁資料 ──────────────────────────────────────────────
 async function loadHomeData() {
   try {
     const snap = await getDoc(doc(db,'stats','global'));
@@ -387,9 +475,7 @@ async function loadHomeData() {
     }
     const rankColors = ['#BA7517','#888780','#993C1D'];
     el.innerHTML = items.map((item,i) => {
-      const photo = item.photoThumb
-        ? '<img src="' + item.photoThumb + '" style="width:100%;height:100%;object-fit:cover"/>'
-        : '🐱';
+      const photo = item.photoThumb ? '<img src="' + item.photoThumb + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱';
       const loc = [item.city, item.country].filter(Boolean).join(', ');
       return '<div class="rank-item">'
         + '<span style="font-size:13px;font-weight:500;color:' + (rankColors[i]||'#AFA9EC') + ';min-width:20px">' + (i+1) + '</span>'
@@ -403,22 +489,24 @@ async function loadHomeData() {
 }
 loadHomeData();
 
+// ── 個人頁 ─────────────────────────────────────────────────
 window._renderProfile = async function() {
   const el = document.getElementById('profile-content');
   if (!window._state.user) {
     el.innerHTML = '<div style="text-align:center;padding:48px 0">'
       + '<div style="font-size:52px;margin-bottom:14px">🐱</div>'
       + '<p style="font-size:16px;font-weight:500;color:#26215C;margin:0 0 6px">尚未登入</p>'
-      + '<p style="font-size:13px;color:#888780;margin:0 0 20px">加入排行榜後，號碼紀錄會顯示在這裡</p>'
-      + '<button class="btn" style="max-width:200px;margin:0 auto" onclick="showPage(\'upload\')">去上傳貓咪</button>'
+      + '<p style="font-size:13px;color:#888780;margin:0 0 20px">登入後可查看你的選號紀錄</p>'
+      + '<button class="btn" style="max-width:200px;margin:0 auto" onclick="showPage(\'email-auth\')">登入 / 註冊</button>'
       + '</div>';
     return;
   }
   const user = window._state.user;
+  const name = user.displayName || user.email || '用戶';
   el.innerHTML = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
-    + '<img src="' + (user.photoURL||'') + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>'
-    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + (user.displayName||'用戶') + '</p>'
-    + '<p style="font-size:12px;color:#888780;margin:0">' + user.email + '</p></div></div>'
+    + (user.photoURL ? '<img src="' + user.photoURL + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>')
+    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + name + '</p>'
+    + '<p style="font-size:12px;color:#888780;margin:0">' + (user.email||'') + '</p></div></div>'
     + '<div class="sec-title">我的號碼紀錄</div>'
     + '<div id="my-records-list"><div style="text-align:center;padding:16px;color:#888780;font-size:13px">載入中...</div></div>';
   try {
@@ -449,15 +537,17 @@ window._renderProfile = async function() {
 };
 
 window.loginWithGoogle = window._loginWithGoogle;
+window.loginWithEmail = window._loginWithEmail;
+window.registerWithEmail = window._registerWithEmail;
 </script>
 
 <script>
 const LOTS = {
-  tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五',color:'#7F77DD',main:{count:6,max:49},sp:{count:1,max:49,label:'特別號'}},
-  us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26,label:'Powerball'}},
-  jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四',color:'#1D9E75',main:{count:6,max:43},sp:{count:1,max:43,label:'ボーナス'}},
+  tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五',color:'#7F77DD',main:{count:6,max:49},sp:{count:1,max:49}},
+  us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26}},
+  jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四',color:'#1D9E75',main:{count:6,max:43},sp:{count:1,max:43}},
 };
-// 圖片審核使用 TensorFlow.js MobileNet（本地辨識，免費無限制）
+const GEMINI_KEY = 'AIzaSyA8Qprh1LlW5dXwC_Vq0YIR3V3Zz7lvMx0';
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -467,7 +557,80 @@ function showPage(name) {
   if (nl) nl.classList.add('active');
   window.scrollTo(0, 0);
   if (name === 'profile' && window._renderProfile) window._renderProfile();
+  if (name === 'result') renderResultAction();
 }
+
+// 點擊上傳按鈕：未登入先問，已登入直接進
+function handleUploadClick() {
+  if (window._state && window._state.user) {
+    showPage('upload');
+  } else {
+    document.getElementById('login-prompt-modal').classList.remove('hidden');
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+// 點 Modal 背景關閉
+document.getElementById('login-prompt-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal('login-prompt-modal');
+});
+
+// Email 登入/註冊 tab 切換
+function switchAuthTab(tab) {
+  document.getElementById('auth-login-form').style.display    = tab === 'login'    ? '' : 'none';
+  document.getElementById('auth-register-form').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+}
+
+async function loginWithEmail() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-err');
+  if (!email || !password) { showErr(errEl, '請輸入 Email 和密碼'); return; }
+  errEl.classList.remove('show');
+  const result = await window._loginWithEmail(email, password);
+  if (result !== true) showErr(errEl, '登入失敗：' + result);
+}
+
+async function registerWithEmail() {
+  const email  = document.getElementById('reg-email').value.trim();
+  const pw1    = document.getElementById('reg-password').value;
+  const pw2    = document.getElementById('reg-password2').value;
+  const errEl  = document.getElementById('reg-err');
+  if (!email) { showErr(errEl, '請輸入 Email'); return; }
+  if (pw1.length < 6) { showErr(errEl, '密碼至少 6 位'); return; }
+  if (pw1 !== pw2) { showErr(errEl, '兩次密碼不一致'); return; }
+  errEl.classList.remove('show');
+  const result = await window._registerWithEmail(email, pw1);
+  if (result !== true) showErr(errEl, '註冊失敗：' + result);
+}
+
+function showErr(el, msg) {
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+// 結果頁動態按鈕
+function renderResultAction() {
+  const el = document.getElementById('result-action');
+  if (!el) return;
+  const user = window._state && window._state.user;
+  if (user) {
+    el.innerHTML = '<a class="btn" href="rank.html" style="display:block;text-align:center;text-decoration:none">查看我的排行榜紀錄</a>'
+      + '<button class="btn-outline" onclick="goToName()">加入排行榜 + 追蹤開獎</button>'
+      + '<button class="btn-outline" onclick="showPage(\'home\')" style="color:#888780;border-color:#CECBF6">稍後再說</button>';
+  } else {
+    el.innerHTML = '<button class="btn" onclick="goToLogin()">加入全球排行榜 + 追蹤開獎</button>'
+      + '<button class="btn-outline" onclick="showPage(\'home\')">稍後再說</button>';
+  }
+}
+
+function goToLogin() { showPage('email-auth'); }
+function goToName()  { showPage('name'); }
 
 function selectLot(key) {
   ['tw','us','jp'].forEach(k => {
@@ -482,82 +645,49 @@ function selectLot(key) {
 function setVerifyBar(state, msg) {
   const bar = document.getElementById('verify-bar');
   bar.className = 'verify-bar ' + state;
-  if (state === 'checking') {
-    bar.innerHTML = '<div class="verify-spin"></div><span>' + msg + '</span>';
-  } else if (state === 'pass') {
-    bar.innerHTML = '<span>✅</span><span>' + msg + '</span>';
-  } else if (state === 'fail') {
-    bar.innerHTML = '<span>❌</span><span>' + msg + '</span>';
-  } else {
-    bar.style.display = 'none';
-  }
+  if (state === 'checking') bar.innerHTML = '<div class="verify-spin"></div><span>' + msg + '</span>';
+  else if (state === 'pass') bar.innerHTML = '<span>✅</span><span>' + msg + '</span>';
+  else if (state === 'fail') bar.innerHTML = '<span>❌</span><span>' + msg + '</span>';
+  else bar.style.display = 'none';
 }
 
-// TF.js 模型實例（lazy load）
+// TF.js
 let tfModel = null;
-
-// 動物相關的 ImageNet 類別關鍵字
-const ANIMAL_KEYWORDS = [
-  'cat','kitten','tabby','persian','siamese','angora','egyptian','tiger cat',
-  'dog','puppy','poodle','retriever','labrador','bulldog','husky','shiba','chihuahua',
-  'rabbit','bunny','hamster','guinea pig','ferret','chinchilla',
-  'bird','parrot','cockatiel','budgie',
-  'fish','goldfish','turtle','lizard','gecko',
-  'lion','tiger','leopard','cheetah','panther',
-  'fox','wolf','bear','panda','raccoon',
-  'horse','cow','sheep','goat','pig',
-  'elephant','giraffe','zebra','monkey','gorilla'
-];
+const ANIMAL_KEYWORDS = ['cat','kitten','tabby','persian','siamese','angora','egyptian','tiger cat','dog','puppy','poodle','retriever','labrador','bulldog','husky','shiba','chihuahua','rabbit','bunny','hamster','guinea pig','ferret','bird','parrot','budgie','fish','goldfish','turtle','lizard','gecko','lion','tiger','leopard','cheetah','fox','wolf','bear','panda','raccoon','horse','cow','sheep','goat','pig','elephant','monkey'];
 
 async function loadTFModel() {
   if (tfModel) return tfModel;
-  // 動態載入 TF.js 和 MobileNet
-  if (!window.tf) {
-    await new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js';
-      s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-  if (!window.mobilenet) {
-    await new Promise(function(resolve, reject) {
-      var s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js';
-      s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
+  if (!window.tf) await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js');
+  if (!window.mobilenet) await loadScript('https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js');
   tfModel = await window.mobilenet.load({version: 2, alpha: 1.0});
   return tfModel;
 }
 
-async function verifyWithTFJS(imageElement) {
+function loadScript(src) {
+  return new Promise(function(resolve, reject) {
+    var s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+async function verifyWithTFJS(img) {
   try {
     const model = await loadTFModel();
-    const predictions = await model.classify(imageElement, 5);
-    console.log('TF.js 辨識結果:', predictions);
-
-    // 檢查前5名預測中是否有動物
-    var isAnimal = predictions.some(function(p) {
-      var cls = p.className.toLowerCase();
+    const predictions = await model.classify(img, 5);
+    console.log('TF.js:', predictions);
+    const isAnimal = predictions.some(function(p) {
+      const cls = p.className.toLowerCase();
       return ANIMAL_KEYWORDS.some(function(kw) { return cls.indexOf(kw) !== -1; });
     });
-
-    // 取得最高信心度的類別
-    var topClass = predictions[0] ? predictions[0].className : '未知';
-    var topProb  = predictions[0] ? Math.round(predictions[0].probability * 100) : 0;
-
+    const topClass = predictions[0] ? predictions[0].className : '未知內容';
     return {
       is_pet: isAnimal,
-      is_safe: true, // TF.js 不做不雅偵測，預設安全
-      reason: isAnimal ? '' : ('這看起來是「' + topClass + '」，目前只支援貓貓等寵物照片喔 🐱'),
-      topClass: topClass,
-      topProb: topProb
+      reason: isAnimal ? '' : '這看起來是「' + topClass + '」，目前只支援貓咪或寵物照片 🐱'
     };
   } catch(e) {
-    console.warn('TF.js 辨識失敗:', e);
-    return {is_pet: true, is_safe: true, reason: ''}; // 失敗時放行
+    console.warn('TF.js 失敗:', e);
+    return {is_pet: true, reason: ''};
   }
 }
 
@@ -568,63 +698,40 @@ async function handleFile(input) {
   document.getElementById('preview-img').src = preview;
   document.getElementById('upload-placeholder').style.display = 'none';
   document.getElementById('preview-frame').style.display = 'flex';
-
   const btn = document.getElementById('gen-btn');
-  btn.textContent = '驗證中...';
-  btn.classList.add('disabled');
+  btn.textContent = '驗證中...'; btn.classList.add('disabled');
   if (window._state) window._state.hasPhoto = false;
   setVerifyBar('checking', '🐱 AI 辨識中，請稍候（首次載入約 5 秒）...');
 
-  const np = document.getElementById('name-preview-photo');
+  var np = document.getElementById('name-preview-photo');
   np.innerHTML = '';
-  const i1 = document.createElement('img');
-  i1.src = preview;
-  i1.style.cssText = 'width:100%;height:100%;object-fit:cover';
-  np.appendChild(i1);
-
-  const sc = document.getElementById('share-cat-img');
+  var i1 = document.createElement('img'); i1.src = preview; i1.style.cssText = 'width:100%;height:100%;object-fit:cover'; np.appendChild(i1);
+  var sc = document.getElementById('share-cat-img');
   sc.innerHTML = '';
-  const i2 = document.createElement('img');
-  i2.src = preview;
-  i2.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top';
-  sc.appendChild(i2);
+  var i2 = document.createElement('img'); i2.src = preview; i2.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top'; sc.appendChild(i2);
 
-  const reader = new FileReader();
+  var reader = new FileReader();
   reader.onload = async function(e) {
-    const img = new Image();
+    var img = new Image();
     img.onload = async function() {
-      const canvas = document.createElement('canvas');
-      const MAX = 400;
-      let w = img.width, h = img.height;
+      var canvas = document.createElement('canvas');
+      var MAX = 400; var w = img.width; var h = img.height;
       if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
-      else        { if (h > MAX) { w = w * MAX / h; h = MAX; } }
+      else       { if (h > MAX) { w = w * MAX / h; h = MAX; } }
       canvas.width = w; canvas.height = h;
       canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
       if (window._state) window._state.photoDataUrl = dataUrl;
 
-      const result = await verifyWithTFJS(img);
-      console.log('TF.js 結果:', result);
-
-      if (!result.is_safe) {
-        setVerifyBar('fail', '此圖片包含不適當內容，請重新選擇');
-        btn.textContent = '請重新上傳照片';
-        btn.classList.add('disabled');
-        if (window._state) window._state.hasPhoto = false;
-        return;
-      }
+      var result = await verifyWithTFJS(img);
       if (!result.is_pet) {
-        const reason = result.reason || '目前只支援貓貓照片喔 🐱';
-        setVerifyBar('fail', reason + '　請上傳貓咪或寵物的照片！');
-        btn.textContent = '請重新上傳照片';
-        btn.classList.add('disabled');
+        setVerifyBar('fail', result.reason + '　請上傳貓咪或寵物的照片！');
+        btn.textContent = '請重新上傳照片'; btn.classList.add('disabled');
         if (window._state) window._state.hasPhoto = false;
         return;
       }
-
       setVerifyBar('pass', '貓貓驗證通過！準備選號 🎉');
-      btn.textContent = '產生幸運號碼';
-      btn.classList.remove('disabled');
+      btn.textContent = '產生幸運號碼'; btn.classList.remove('disabled');
       if (window._state) window._state.hasPhoto = true;
     };
     img.src = e.target.result;
@@ -633,27 +740,21 @@ async function handleFile(input) {
 }
 
 function pickNums(lot) {
-  const m = [];
-  while (m.length < lot.main.count) {
-    const n = Math.floor(Math.random() * lot.main.max) + 1;
-    if (!m.includes(n)) m.push(n);
-  }
-  m.sort((a, b) => a - b);
-  const s = [];
-  while (s.length < lot.sp.count) {
-    const n = Math.floor(Math.random() * lot.sp.max) + 1;
-    if (!m.includes(n) && !s.includes(n)) s.push(n);
-  }
+  var m = [];
+  while (m.length < lot.main.count) { var n = Math.floor(Math.random() * lot.main.max) + 1; if (!m.includes(n)) m.push(n); }
+  m.sort(function(a,b){return a-b;});
+  var s = [];
+  while (s.length < lot.sp.count) { var n = Math.floor(Math.random() * lot.sp.max) + 1; if (!m.includes(n) && !s.includes(n)) s.push(n); }
   return {main: m, special: s};
 }
 
 function startGenerate() {
   if (!window._state || !window._state.hasPhoto) return;
-  const lot = LOTS[window._state.curLot];
+  var lot = LOTS[window._state.curLot];
   document.getElementById('loading-lot-name').textContent = lot.flag + ' ' + lot.name;
   showPage('loading');
   setTimeout(function() {
-    const nums = pickNums(lot);
+    var nums = pickNums(lot);
     if (window._state) window._state.currentNums = nums;
     renderShareCard(nums);
     showPage('result');
@@ -661,30 +762,14 @@ function startGenerate() {
 }
 
 function renderShareCard(nums) {
-  const lot = LOTS[window._state ? window._state.curLot : 'tw'];
-  const today = new Date();
-  const dateStr = today.getFullYear() + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + String(today.getDate()).padStart(2,'0');
+  var lot = LOTS[window._state ? window._state.curLot : 'tw'];
+  var today = new Date();
+  var dateStr = today.getFullYear() + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + String(today.getDate()).padStart(2,'0');
   document.getElementById('share-date').textContent = dateStr;
   document.getElementById('share-won-txt').textContent = lot.flag + ' ' + lot.name;
-  const bar = document.getElementById('share-numbers-bar');
-  bar.innerHTML = '';
-  nums.main.forEach(function(n) {
-    const d = document.createElement('div');
-    d.className = 'share-ball';
-    d.textContent = String(n).padStart(2, '0');
-    bar.appendChild(d);
-  });
-  nums.special.forEach(function(n) {
-    const d = document.createElement('div');
-    d.className = 'share-ball special';
-    d.textContent = String(n).padStart(2, '0');
-    bar.appendChild(d);
-  });
-}
-
-function goToLogin() {
-  if (window._state && window._state.user) showPage('name');
-  else showPage('login');
+  var bar = document.getElementById('share-numbers-bar'); bar.innerHTML = '';
+  nums.main.forEach(function(n) { var d = document.createElement('div'); d.className = 'share-ball'; d.textContent = String(n).padStart(2,'0'); bar.appendChild(d); });
+  nums.special.forEach(function(n) { var d = document.createElement('div'); d.className = 'share-ball special'; d.textContent = String(n).padStart(2,'0'); bar.appendChild(d); });
 }
 
 function onNameInput(v) {
@@ -694,39 +779,26 @@ function onNameInput(v) {
 }
 
 async function confirmAndSave() {
-  const name = document.getElementById('cat-name-input').value.trim();
+  var name = document.getElementById('cat-name-input').value.trim();
   if (!name) return;
-  const btn = document.getElementById('confirm-btn');
-  btn.textContent = '儲存中...';
-  btn.classList.add('disabled');
+  var btn = document.getElementById('confirm-btn');
+  btn.textContent = '儲存中...'; btn.classList.add('disabled');
   await window._saveRecord(name);
-  const lot = LOTS[window._state.curLot];
-  const loc = window._state.userLocation;
+  var lot = LOTS[window._state.curLot];
+  var loc = window._state.userLocation;
   document.getElementById('done-title').textContent = name + ' 已加入排行榜！';
   document.getElementById('done-country').textContent = '現在代表 ' + loc.country + ' 參賽';
   document.getElementById('done-lot-label').textContent = lot.flag + ' ' + lot.name + ' · ' + lot.draw + ' 開獎';
-  const db2 = document.getElementById('done-balls');
-  db2.innerHTML = '';
-  const nums = window._state.currentNums;
-  nums.main.forEach(function(n) {
-    const d = document.createElement('div');
-    d.className = 'ball show';
-    d.textContent = String(n).padStart(2, '0');
-    db2.appendChild(d);
-  });
-  nums.special.forEach(function(n) {
-    const d = document.createElement('div');
-    d.className = 'ball sp show';
-    d.textContent = String(n).padStart(2, '0');
-    db2.appendChild(d);
-  });
+  var db2 = document.getElementById('done-balls'); db2.innerHTML = '';
+  var nums = window._state.currentNums;
+  nums.main.forEach(function(n) { var d = document.createElement('div'); d.className = 'ball show'; d.textContent = String(n).padStart(2,'0'); db2.appendChild(d); });
+  nums.special.forEach(function(n) { var d = document.createElement('div'); d.className = 'ball sp show'; d.textContent = String(n).padStart(2,'0'); db2.appendChild(d); });
   showPage('done');
 }
 
 function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2800);
 }
 </script>
