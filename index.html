@@ -758,16 +758,6 @@ function switchAuthTab(tab) {
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
 }
 
-async function loginWithEmail() {
-  const email    = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-  const errEl    = document.getElementById('login-err');
-  if (!email || !password) { showErr(errEl, '請輸入 Email 和密碼'); return; }
-  errEl.classList.remove('show');
-  const result = await window._loginWithEmail(email, password);
-  if (result !== true) showErr(errEl, '登入失敗：' + result);
-}
-
 async function registerWithEmail() {
   const email  = document.getElementById('reg-email').value.trim();
   const pw1    = document.getElementById('reg-password').value;
@@ -777,8 +767,24 @@ async function registerWithEmail() {
   if (pw1.length < 6) { showErr(errEl, '密碼至少 6 位'); return; }
   if (pw1 !== pw2) { showErr(errEl, '兩次密碼不一致'); return; }
   errEl.classList.remove('show');
+  if (typeof window._registerWithEmail !== 'function') {
+    showErr(errEl, '系統初始化中，請稍後再試'); return;
+  }
   const result = await window._registerWithEmail(email, pw1);
   if (result !== true) showErr(errEl, '註冊失敗：' + result);
+}
+
+async function loginWithEmail() {
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errEl    = document.getElementById('login-err');
+  if (!email || !password) { showErr(errEl, '請輸入 Email 和密碼'); return; }
+  errEl.classList.remove('show');
+  if (typeof window._loginWithEmail !== 'function') {
+    showErr(errEl, '系統初始化中，請稍後再試'); return;
+  }
+  const result = await window._loginWithEmail(email, password);
+  if (result !== true) showErr(errEl, '登入失敗：' + result);
 }
 
 function showErr(el, msg) {
