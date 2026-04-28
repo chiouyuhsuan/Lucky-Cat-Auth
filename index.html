@@ -106,7 +106,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 input[type=email],input[type=password],input[type=text]{width:100%;padding:12px 14px;border:0.5px solid #CECBF6;border-radius:10px;background:#F8F6FF;font-size:15px;color:#26215C;margin-bottom:8px;font-family:inherit}
 input[type=email]:focus,input[type=password]:focus,input[type=text]:focus{outline:none;border-color:#7F77DD}
 input[type=file]{display:none}
-.err-msg{font-size:12px;color:#791F1F;margin-bottom:8px;display:none}
+.err-msg{font-size:12px;color:#791F1F;margin-bottom:8px;display:none;padding:8px 12px;background:#FCEBEB;border-radius:8px}
 .err-msg.show{display:block}
 </style>
 </head>
@@ -421,7 +421,15 @@ window._loginWithEmail = async function(email, password) {
     showPage('upload');
     return true;
   } catch(e) {
-    return e.message;
+    const msgs = {
+      'auth/user-not-found': '找不到此帳號，請先註冊',
+      'auth/wrong-password': '密碼錯誤',
+      'auth/invalid-email': 'Email 格式不正確',
+      'auth/invalid-credential': 'Email 或密碼錯誤',
+      'auth/too-many-requests': '嘗試次數過多，請稍後再試',
+      'auth/network-request-failed': '網路連線失敗，請稍後再試',
+    };
+    return msgs[e.code] || ('錯誤：' + e.message);
   }
 };
 
@@ -432,7 +440,14 @@ window._registerWithEmail = async function(email, password) {
     showPage('upload');
     return true;
   } catch(e) {
-    return e.message;
+    const msgs = {
+      'auth/email-already-in-use': '此 Email 已被註冊，請改用登入',
+      'auth/invalid-email': 'Email 格式不正確',
+      'auth/weak-password': '密碼太簡單，請至少 6 位英數字',
+      'auth/operation-not-allowed': 'Email 登入尚未啟用',
+      'auth/network-request-failed': '網路連線失敗，請稍後再試',
+    };
+    return msgs[e.code] || ('錯誤：' + e.message);
   }
 };
 
