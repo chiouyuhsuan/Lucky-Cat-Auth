@@ -434,12 +434,15 @@ window._loginWithEmail = async function(email, password) {
 };
 
 window._registerWithEmail = async function(email, password) {
+  console.log('[DEBUG] registerWithEmail called:', email);
   try {
-    await createUserWithEmailAndPassword(auth, email, password);
+    const result = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('[DEBUG] register success:', result.user.email);
     window.showToast && window.showToast('✓ 帳號建立成功！');
     window.showPage && window.showPage('upload');
     return true;
   } catch(e) {
+    console.log('[DEBUG] register error:', e.code, e.message);
     const msgs = {
       'auth/email-already-in-use': '此 Email 已被註冊，請改用登入',
       'auth/invalid-email': 'Email 格式不正確',
@@ -448,7 +451,7 @@ window._registerWithEmail = async function(email, password) {
       'auth/admin-restricted-operation': '目前不開放自助註冊，請聯絡管理員',
       'auth/network-request-failed': '網路連線失敗，請稍後再試',
     };
-    return msgs[e.code] || ('錯誤：' + e.message);
+    return msgs[e.code] || ('錯誤：' + e.code + ' ' + e.message);
   }
 };
 
@@ -725,8 +728,8 @@ window._renderProfile = async function() {
 };
 
 window.loginWithGoogle = window._loginWithGoogle;
-window.loginWithEmail = window._loginWithEmail;
-window.registerWithEmail = window._registerWithEmail;
+// 注意：不要在這裡 assign loginWithEmail 和 registerWithEmail
+// 因為普通 script 裡已經定義了從 DOM 讀值的版本，不能被覆蓋
 </script>
 
 <script>
