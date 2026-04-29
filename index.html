@@ -437,7 +437,7 @@ window._registerWithEmail = async function(email, password) {
   try {
     await createUserWithEmailAndPassword(auth, email, password);
     showToast('✓ 帳號建立成功！');
-    showPage('upload');
+    window.showPage('upload');
     return true;
   } catch(e) {
     const msgs = {
@@ -453,8 +453,8 @@ window._registerWithEmail = async function(email, password) {
 
 window._logout = async function() {
   await signOut(auth);
-  showToast('已登出');
-  showPage('home');
+  window.showToast && window.showToast('已登出');
+  window.showPage('home');
 };
 
 // ── 查詢同名貓 ───────────────────────────────────────────
@@ -746,6 +746,7 @@ function showPage(name) {
   if (name === 'profile' && window._renderProfile) window._renderProfile();
   if (name === 'result') renderResultAction();
 }
+window.showPage = showPage;
 
 // 點擊上傳按鈕：未登入先問，已登入直接進
 function handleUploadClick() {
@@ -1051,6 +1052,7 @@ function showToast(msg) {
   t.textContent = msg; t.classList.add('show');
   setTimeout(function() { t.classList.remove('show'); }, 2800);
 }
+window.showToast = showToast;
 
 function toggleCat(id) {
   var el = document.getElementById(id);
