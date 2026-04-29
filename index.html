@@ -444,7 +444,8 @@ window._registerWithEmail = async function(email, password) {
       'auth/email-already-in-use': '此 Email 已被註冊，請改用登入',
       'auth/invalid-email': 'Email 格式不正確',
       'auth/weak-password': '密碼太簡單，請至少 6 位英數字',
-      'auth/operation-not-allowed': 'Email 登入尚未啟用',
+      'auth/operation-not-allowed': 'Email 登入尚未啟用，請聯絡管理員',
+      'auth/admin-restricted-operation': '目前不開放自助註冊，請聯絡管理員',
       'auth/network-request-failed': '網路連線失敗，請稍後再試',
     };
     return msgs[e.code] || ('錯誤：' + e.message);
