@@ -406,19 +406,19 @@ onAuthStateChanged(auth, user => {
 window._loginWithGoogle = async function() {
   try {
     await signInWithPopup(auth, new GoogleAuthProvider());
-    showToast('✓ 登入成功！');
+    window.showToast && window.showToast('✓ 登入成功！');
     // 如果在 email-auth 頁，跳回上傳
     if (document.getElementById('page-email-auth').classList.contains('active')) {
-      showPage('upload');
+      window.showPage && window.showPage('upload');
     }
-  } catch(e) { showToast('登入失敗：' + e.message); }
+  } catch(e) { window.showToast && window.showToast('登入失敗：' + e.message); }
 };
 
 window._loginWithEmail = async function(email, password) {
   try {
     await signInWithEmailAndPassword(auth, email, password);
-    showToast('✓ 登入成功！');
-    showPage('upload');
+    window.showToast && window.showToast('✓ 登入成功！');
+    window.showPage && window.showPage('upload');
     return true;
   } catch(e) {
     const msgs = {
@@ -436,8 +436,8 @@ window._loginWithEmail = async function(email, password) {
 window._registerWithEmail = async function(email, password) {
   try {
     await createUserWithEmailAndPassword(auth, email, password);
-    showToast('✓ 帳號建立成功！');
-    window.showPage('upload');
+    window.showToast && window.showToast('✓ 帳號建立成功！');
+    window.showPage && window.showPage('upload');
     return true;
   } catch(e) {
     const msgs = {
@@ -530,9 +530,9 @@ window._saveRecord = async function(catName, catId) {
     } catch {
       await setDoc(doc(db,'stats','global'), { totalDraws:1 });
     }
-    showToast('✓ 已儲存到排行榜！');
+    window.showToast && window.showToast('✓ 已儲存到排行榜！');
     return true;
-  } catch(e) { showToast('儲存失敗：' + e.message); return false; }
+  } catch(e) { window.showToast && window.showToast('儲存失敗：' + e.message); return false; }
 };
 
 // ── 首頁資料 ──────────────────────────────────────────────
@@ -577,7 +577,7 @@ window._renderProfile = async function() {
       + '<div style="font-size:52px;margin-bottom:14px">🐱</div>'
       + '<p style="font-size:16px;font-weight:500;color:#26215C;margin:0 0 6px">尚未登入</p>'
       + '<p style="font-size:13px;color:#888780;margin:0 0 20px">登入後可查看你的選號紀錄</p>'
-      + '<button class="btn" style="max-width:200px;margin:0 auto" onclick="showPage(\'email-auth\')">登入 / 註冊</button>'
+      + '<button class="btn" style="max-width:200px;margin:0 auto" onclick="window.showPage && window.showPage(\'email-auth\')">登入 / 註冊</button>'
       + '</div>';
     return;
   }
