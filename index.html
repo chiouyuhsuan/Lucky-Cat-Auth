@@ -186,6 +186,9 @@ input[type=file]{display:none}
     <input type="password" id="login-password" placeholder="密碼"/>
     <div class="err-msg" id="login-err"></div>
     <button class="btn" onclick="loginWithEmail()">登入</button>
+    <div style="text-align:center;margin-top:4px">
+      <span style="font-size:12px;color:#7F77DD;cursor:pointer" onclick="showForgotPassword()">忘記密碼？</span>
+    </div>
   </div>
   <div id="auth-register-form" style="display:none">
     <input type="email" id="reg-email" placeholder="Email"/>
@@ -200,6 +203,20 @@ input[type=file]{display:none}
     以 Google 繼續
   </button>
   <button class="btn-outline" onclick="showPage('upload')" style="margin-top:8px">不用，直接抽號</button>
+</div>
+
+<!-- 忘記密碼 Modal -->
+<div class="modal-overlay hidden" id="forgot-modal">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🔑 重設密碼</div>
+    <div class="modal-sub">輸入你的 Email，我們會寄送重設密碼連結給你</div>
+    <input type="email" id="forgot-email" placeholder="Email"/>
+    <div class="err-msg" id="forgot-err"></div>
+    <div class="verify-bar" id="forgot-success" style="display:none;background:#EAF3DE;color:#27500A;padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px">✅ 重設連結已寄出，請檢查你的信箱</div>
+    <button class="btn" onclick="sendForgotPassword()">寄送重設連結</button>
+    <div class="modal-skip" onclick="closeModal('forgot-modal')">取消</div>
+  </div>
 </div>
 
 <!-- UPLOAD -->
@@ -337,7 +354,7 @@ input[type=file]{display:none}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
-         createUserWithEmailAndPassword, signInWithEmailAndPassword }
+         createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
          query, orderBy, limit, serverTimestamp, updateDoc, increment, where }
@@ -438,8 +455,8 @@ window._registerWithEmail = async function(email, password) {
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     console.log('[DEBUG] register success:', result.user.email);
-    window.showToast && window.showToast('✓ 帳號建立成功！');
-    window.showPage && window.showPage('upload');
+    window.showToast && window.showToast('🎉 帳號建立成功！歡迎加入 LuckyCat');
+    setTimeout(function() { window.showPage && window.showPage('upload'); }, 1200);
     return true;
   } catch(e) {
     console.log('[DEBUG] register error:', e.code, e.message);
@@ -452,6 +469,19 @@ window._registerWithEmail = async function(email, password) {
       'auth/network-request-failed': '網路連線失敗，請稍後再試',
     };
     return msgs[e.code] || ('錯誤：' + e.code + ' ' + e.message);
+  }
+};
+
+window._sendPasswordReset = async function(email) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return true;
+  } catch(e) {
+    const msgs = {
+      'auth/user-not-found': '找不到此 Email 的帳號',
+      'auth/invalid-email': 'Email 格式不正確',
+    };
+    return msgs[e.code] || ('錯誤：' + e.message);
   }
 };
 
@@ -810,6 +840,34 @@ async function loginWithEmail() {
 function showErr(el, msg) {
   el.textContent = msg;
   el.classList.add('show');
+}
+
+function showForgotPassword() {
+  // 預填當前 email
+  var email = document.getElementById('login-email').value.trim();
+  if (email) document.getElementById('forgot-email').value = email;
+  document.getElementById('forgot-err').classList.remove('show');
+  document.getElementById('forgot-success').style.display = 'none';
+  document.getElementById('forgot-modal').classList.remove('hidden');
+}
+
+async function sendForgotPassword() {
+  var email = document.getElementById('forgot-email').value.trim();
+  var errEl = document.getElementById('forgot-err');
+  var successEl = document.getElementById('forgot-success');
+  if (!email) { showErr(errEl, '請輸入 Email'); return; }
+  errEl.classList.remove('show');
+  if (typeof window._sendPasswordReset !== 'function') {
+    showErr(errEl, '系統初始化中，請稍後再試'); return;
+  }
+  var result = await window._sendPasswordReset(email);
+  if (result === true) {
+    successEl.style.display = 'flex';
+    errEl.classList.remove('show');
+    setTimeout(function() { closeModal('forgot-modal'); }, 3000);
+  } else {
+    showErr(errEl, result);
+  }
 }
 
 // 結果頁動態按鈕
