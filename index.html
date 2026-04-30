@@ -18,8 +18,15 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .nav-cta:hover{background:#3C3489}
 .nav-user{display:flex;align-items:center;gap:8px}
 .nav-user-photo{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid #7F77DD}
+.nav-user-avatar{width:28px;height:28px;border-radius:50%;background:#7F77DD;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .nav-user-name{font-size:13px;color:#534AB7;font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nav-logout{font-size:12px;color:#888780;cursor:pointer;border:none;background:transparent;font-family:inherit}
+.nav-user-menu{display:flex;align-items:center;gap:6px;cursor:pointer;position:relative;padding:4px 8px;border-radius:8px;transition:background .15s}
+.nav-user-menu:hover{background:#EEEDFE}
+.nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:0.5px solid #CECBF6;border-radius:12px;box-shadow:0 8px 24px rgba(83,74,183,.15);min-width:160px;overflow:hidden;display:none;z-index:200}
+.nav-dropdown.open{display:block}
+.nav-dropdown-item{padding:10px 14px;font-size:13px;color:#26215C;cursor:pointer;transition:background .15s}
+.nav-dropdown-item:hover{background:#F4F2FB}
+.nav-dropdown-divider{height:0.5px;background:#CECBF6}
 .page{display:none;max-width:680px;margin:0 auto;padding:20px 16px 48px}
 .page.active{display:block}
 .btn{display:block;width:100%;padding:14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
@@ -130,7 +137,7 @@ input[type=file]{display:none}
     <button class="nav-link active" id="nl-home" onclick="showPage('home')">首頁</button>
     <button class="nav-link" id="nl-upload" onclick="handleUploadClick()">上傳</button>
     <a class="nav-link" href="rank.html">排行榜</a>
-    <button class="nav-link" id="nl-profile" onclick="showPage('profile')">我的</button>
+    <a class="nav-link" href="wall.html">貓咪牆</a>
     <a class="nav-link" href="about.html">關於</a>
   </div>
   <div id="nav-right">
@@ -407,12 +414,19 @@ onAuthStateChanged(auth, user => {
   window._authReady = true;
   const navRight = document.getElementById('nav-right');
   if (user) {
-    const name = user.displayName || user.email || '用戶';
-    navRight.innerHTML = '<div class="nav-user">'
-      + (user.photoURL ? '<img class="nav-user-photo" src="' + user.photoURL + '" onerror="this.style.display=\'none\'"/>' : '')
+    const name = user.displayName || (user.email ? user.email.split('@')[0] : '用戶');
+    const photo = user.photoURL
+      ? '<img class="nav-user-photo" src="' + user.photoURL + '" onerror="this.style.display=\'none\'"/>'
+      : '<div class="nav-user-avatar">' + name.charAt(0).toUpperCase() + '</div>';
+    navRight.innerHTML = '<div class="nav-user-menu" id="nav-user-menu" onclick="window.toggleUserMenu()">'
+      + photo
       + '<span class="nav-user-name">' + name + '</span>'
-      + '<button class="nav-logout" onclick="window._logout()">登出</button>'
-      + '</div>';
+      + '<span style="font-size:10px;color:#888780;margin-left:2px">▾</span>'
+      + '<div class="nav-dropdown" id="nav-dropdown">'
+      + '<div class="nav-dropdown-item" onclick="event.stopPropagation();window.showPage(\'profile\')">🐱 我的貓咪紀錄</div>'
+      + '<div class="nav-dropdown-divider"></div>'
+      + '<div class="nav-dropdown-item" style="color:#791F1F" onclick="event.stopPropagation();window._logout()">登出</div>'
+      + '</div></div>';
   } else {
     navRight.innerHTML = '<button class="nav-cta" onclick="handleUploadClick()">開始選號</button>';
   }
@@ -782,6 +796,18 @@ function showPage(name) {
   if (name === 'result') renderResultAction();
 }
 window.showPage = showPage;
+
+window.toggleUserMenu = function() {
+  var dd = document.getElementById('nav-dropdown');
+  if (dd) dd.classList.toggle('open');
+};
+document.addEventListener('click', function(e) {
+  var menu = document.getElementById('nav-user-menu');
+  if (menu && !menu.contains(e.target)) {
+    var dd = document.getElementById('nav-dropdown');
+    if (dd) dd.classList.remove('open');
+  }
+});
 
 // 點擊上傳按鈕：未登入先問，已登入直接進
 function handleUploadClick() {

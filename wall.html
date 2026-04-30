@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>LuckyCat — 全球幸運貓牆</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Noto+Sans+TC:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --purple:#7F77DD;--purple-deep:#534AB7;--purple-light:#EEEDFE;
+  --orange:#EF9F27;--bg:#F4F2FB;--text:#26215C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-height:100vh}
+
+/* NAV */
+.topnav{background:rgba(26,26,46,.95);backdrop-filter:blur(10px);border-bottom:0.5px solid rgba(127,119,221,.3);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-icon{width:32px;height:32px;background:var(--purple);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-text{font-size:16px;font-weight:700;color:#EEEDFE;font-family:'Nunito',sans-serif}
+.nav-links{display:flex;gap:4px}
+.nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:rgba(255,255,255,.7);text-decoration:none;border:none;background:transparent;font-family:inherit;cursor:pointer}
+.nav-link:hover,.nav-link.active{background:rgba(127,119,221,.2);color:#fff}
+.nav-cta{padding:7px 14px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;text-decoration:none}
+
+/* HEADER */
+.wall-header{text-align:center;padding:40px 20px 20px;position:relative}
+.wall-header::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:300px;height:300px;background:radial-gradient(circle,rgba(127,119,221,.3) 0%,transparent 70%);pointer-events:none}
+.wall-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(127,119,221,.2);border:1px solid rgba(127,119,221,.4);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:#AFA9EC;margin-bottom:14px}
+.wall-title{font-family:'Nunito',sans-serif;font-size:clamp(28px,5vw,44px);font-weight:900;line-height:1.15;margin-bottom:10px}
+.wall-title .accent{color:var(--orange)}
+.wall-sub{font-size:14px;color:rgba(255,255,255,.55);margin-bottom:24px}
+
+/* STATS BAR */
+.stats-bar{display:flex;justify-content:center;gap:24px;margin-bottom:32px;flex-wrap:wrap}
+.stat-item{text-align:center}
+.stat-num{font-family:'Nunito',sans-serif;font-size:24px;font-weight:900;color:var(--orange)}
+.stat-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
+
+/* FILTERS */
+.filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 20px 24px;max-width:680px;margin:0 auto}
+.filter-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+.filter-btn:hover,.filter-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
+
+/* MASONRY WALL */
+.cat-wall{column-count:2;column-gap:8px;padding:0 10px 60px;max-width:1200px;margin:0 auto}
+@media(min-width:480px){.cat-wall{column-count:3}}
+@media(min-width:720px){.cat-wall{column-count:4}}
+@media(min-width:960px){.cat-wall{column-count:5}}
+@media(min-width:1200px){.cat-wall{column-count:6}}
+
+.cat-card{break-inside:avoid;margin-bottom:8px;border-radius:12px;overflow:hidden;position:relative;cursor:pointer;background:#2a2a3e}
+.cat-card:hover .cat-overlay{opacity:1}
+.cat-card img{width:100%;display:block;transition:transform .3s}
+.cat-card:hover img{transform:scale(1.04)}
+.cat-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.85) 0%,transparent 50%);opacity:0;transition:opacity .25s;display:flex;flex-direction:column;justify-content:flex-end;padding:10px}
+.cat-name{font-size:13px;font-weight:700;color:#fff;line-height:1.2}
+.cat-loc{font-size:10px;color:rgba(255,255,255,.65);margin-top:2px}
+.cat-prize{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;margin-top:4px}
+.cat-prize.won{background:rgba(234,243,222,.9);color:#27500A}
+.cat-prize.pending{background:rgba(250,238,218,.9);color:#633806}
+
+/* PLACEHOLDER */
+.cat-placeholder{width:100%;aspect-ratio:1/1;background:rgba(127,119,221,.1);display:flex;align-items:center;justify-content:center;font-size:32px}
+
+/* LOADING */
+.loading-wall{text-align:center;padding:60px 20px;color:rgba(255,255,255,.4)}
+.loading-dots{display:flex;gap:8px;justify-content:center;margin-top:12px}
+.ld{width:8px;height:8px;border-radius:50%;background:var(--purple);animation:ldpulse 1.2s ease-in-out infinite}
+.ld:nth-child(2){animation-delay:.2s}
+.ld:nth-child(3){animation-delay:.4s}
+@keyframes ldpulse{0%,80%,100%{transform:scale(.5);opacity:.3}40%{transform:scale(1);opacity:1}}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s}
+.lightbox.show{opacity:1;pointer-events:all}
+.lightbox-inner{position:relative;max-width:90vw;max-height:90vh}
+.lightbox-inner img{max-width:80vw;max-height:75vh;border-radius:16px;object-fit:contain}
+.lightbox-info{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to top,rgba(0,0,0,.9),transparent);border-radius:0 0 16px 16px;padding:20px 16px 14px}
+.lightbox-name{font-family:'Nunito',sans-serif;font-size:20px;font-weight:800;color:#fff}
+.lightbox-meta{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
+.lightbox-close{position:absolute;top:-14px;right:-14px;width:32px;height:32px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:16px;backdrop-filter:blur(4px)}
+.lightbox-close:hover{background:rgba(255,255,255,.25)}
+
+/* FADE IN */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.cat-card{animation:fadeIn .4s ease forwards;opacity:0}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="logo" href="index.html">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <ellipse cx="10" cy="13" rx="7" ry="5.5" fill="#EEEDFE" opacity=".9"/>
+        <polygon points="4,9 7,3 10,9" fill="#EEEDFE" opacity=".9"/>
+        <polygon points="10,9 13,3 16,9" fill="#EEEDFE" opacity=".9"/>
+        <circle cx="7.5" cy="11.5" r="1.5" fill="#3C3489"/>
+        <circle cx="12.5" cy="11.5" r="1.5" fill="#3C3489"/>
+        <ellipse cx="10" cy="14" rx="2" ry="1.2" fill="#F4C0D1"/>
+      </svg>
+    </div>
+    <span class="logo-text">LuckyCat</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">首頁</a>
+    <a class="nav-link" href="index.html">上傳</a>
+    <a class="nav-link" href="rank.html">排行榜</a>
+    <a class="nav-link active" href="wall.html">貓咪牆</a>
+    <a class="nav-link" href="about.html">關於</a>
+  </div>
+  <a class="nav-cta" href="index.html">加入</a>
+</nav>
+
+<div class="wall-header">
+  <div class="wall-badge">🐾 全球貓咪照片牆</div>
+  <h1 class="wall-title">每一隻貓都是<span class="accent">幸運的故事</span></h1>
+  <p class="wall-sub">來自世界各地的貓咪，在這裡聚集</p>
+  <div class="stats-bar">
+    <div class="stat-item"><div class="stat-num" id="wall-count">—</div><div class="stat-lbl">全球貓咪</div></div>
+    <div class="stat-item"><div class="stat-num" id="wall-countries">—</div><div class="stat-lbl">參與國家</div></div>
+    <div class="stat-item"><div class="stat-num" id="wall-winners">—</div><div class="stat-lbl">中獎紀錄</div></div>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="setFilter('all')">全部</button>
+  <button class="filter-btn" onclick="setFilter('won')">🏆 中獎貓</button>
+  <button class="filter-btn" onclick="setFilter('tw')">🇹🇼 台灣</button>
+  <button class="filter-btn" onclick="setFilter('recent')">🆕 最新上傳</button>
+</div>
+
+<div id="cat-wall" class="cat-wall">
+  <div class="loading-wall" style="column-span:all">
+    <div>載入中...</div>
+    <div class="loading-dots"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
+  </div>
+</div>
+
+<!-- LIGHTBOX -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+  <div class="lightbox-inner" id="lightbox-inner">
+    <div class="lightbox-close" onclick="closeLightbox()">✕</div>
+    <img id="lightbox-img" src="" alt=""/>
+    <div class="lightbox-info">
+      <div class="lightbox-name" id="lightbox-name"></div>
+      <div class="lightbox-meta" id="lightbox-meta"></div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, orderBy, limit, where }
+  from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
+
+const app = initializeApp({
+  apiKey:"AIzaSyAP90Ihnh_ekNcchfPxdX-VuKdGmNDrktE",
+  authDomain:"pangfu-pangji.firebaseapp.com",
+  projectId:"pangfu-pangji",
+  storageBucket:"pangfu-pangji.firebasestorage.app",
+  messagingSenderId:"966100033494",
+  appId:"1:966100033494:web:b03e4664570ffe9a24ce77"
+});
+const db = getFirestore(app);
+
+let allDraws = [];
+let currentFilter = 'all';
+
+async function loadWall() {
+  try {
+    const snap = await getDocs(query(
+      collection(db, 'draws'),
+      orderBy('createdAt', 'desc'),
+      limit(500)
+    ));
+    allDraws = [];
+    snap.forEach(d => {
+      const data = d.to_dict ? d.to_dict() : d.data();
+      if (data.photoThumb) allDraws.push({id: d.id, ...data});
+    });
+
+    // 統計數字
+    const countries = new Set(allDraws.map(d => d.countryCode).filter(Boolean));
+    const winners   = allDraws.filter(d => (d.prizeLevel || 0) > 0).length;
+    document.getElementById('wall-count').textContent = allDraws.length.toLocaleString();
+    document.getElementById('wall-countries').textContent = countries.size;
+    document.getElementById('wall-winners').textContent = winners;
+
+    renderWall(allDraws);
+  } catch(e) {
+    console.error(e);
+    document.getElementById('cat-wall').innerHTML = '<div class="loading-wall" style="column-span:all">載入失敗，請重新整理</div>';
+  }
+}
+
+function renderWall(draws) {
+  const wall = document.getElementById('cat-wall');
+  if (!draws.length) {
+    wall.innerHTML = '<div class="loading-wall" style="column-span:all">目前還沒有貓咪，成為第一個！</div>';
+    return;
+  }
+
+  wall.innerHTML = draws.map((item, idx) => {
+    const won     = (item.prizeLevel || 0) > 0;
+    const loc     = [item.city, item.country].filter(Boolean).join(', ');
+    const prize   = won
+      ? '<span class="cat-prize won">🏆 中獎 ' + item.prizeLevel + '等</span>'
+      : item.checkedAt
+        ? ''
+        : '<span class="cat-prize pending">⏳ 待開獎</span>';
+    const delay   = (idx % 20) * 0.05;
+
+    return '<div class="cat-card" style="animation-delay:' + delay + 's" onclick="window.openLightbox(' + JSON.stringify(JSON.stringify(item)) + ')">'
+      + '<img src="' + item.photoThumb + '" alt="' + (item.catName || '') + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'">'
+      + '<div class="cat-overlay">'
+      + '<div class="cat-name">' + (item.catName || '貓咪') + '</div>'
+      + '<div class="cat-loc">' + loc + '</div>'
+      + prize
+      + '</div></div>';
+  }).join('');
+}
+
+window._allDraws = () => allDraws;
+window._renderWall = renderWall;
+
+loadWall();
+</script>
+
+<script>
+let currentFilter = 'all';
+
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  const all = window._allDraws ? window._allDraws() : [];
+  let filtered = all;
+  if (f === 'won')    filtered = all.filter(d => (d.prizeLevel || 0) > 0);
+  if (f === 'tw')     filtered = all.filter(d => d.countryCode === 'TW');
+  if (f === 'recent') filtered = all.slice(0, 50);
+  if (window._renderWall) window._renderWall(filtered);
+}
+
+function openLightbox(jsonStr) {
+  const item = JSON.parse(jsonStr);
+  document.getElementById('lightbox-img').src = item.photoThumb || '';
+  document.getElementById('lightbox-name').textContent = item.catName || '貓咪';
+  const loc = [item.city, item.country].filter(Boolean).join('・');
+  const prize = (item.prizeLevel || 0) > 0
+    ? '  🏆 中獎 ' + item.prizeLevel + '等'
+    : item.checkedAt ? '  未中獎' : '  ⏳ 待開獎';
+  document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize;
+  document.getElementById('lightbox').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox(e) {
+  if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
+  document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
+</script>
+</body>
+</html>
