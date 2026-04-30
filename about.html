@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>關於 LuckyCat — 我們的故事</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --purple:#7F77DD;
+  --purple-deep:#534AB7;
+  --purple-light:#EEEDFE;
+  --orange:#EF9F27;
+  --pink:#F4C0D1;
+  --bg:#F4F2FB;
+  --text:#26215C;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden}
+
+/* NAV */
+.topnav{background:#FAF0FB;border-bottom:0.5px solid #CECBF6;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none}
+.logo-icon{width:32px;height:32px;background:var(--purple);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-text{font-size:16px;font-weight:700;color:#3C3489;font-family:'Nunito',sans-serif}
+.nav-links{display:flex;gap:4px}
+.nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:var(--purple-deep);cursor:pointer;border:none;background:transparent;font-family:inherit;text-decoration:none}
+.nav-link:hover,.nav-link.active{background:var(--purple-light);font-weight:500}
+.nav-cta{padding:7px 14px;background:var(--purple-deep);color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;text-decoration:none}
+
+/* HERO */
+.hero{position:relative;padding:60px 20px 80px;text-align:center;overflow:hidden}
+.hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#EEEDFE 0%,#FAF0FB 50%,#FBE8F0 100%);z-index:0}
+.hero-dots{position:absolute;inset:0;opacity:.4;background-image:radial-gradient(circle,var(--purple) 1px,transparent 1px);background-size:28px 28px;z-index:0}
+.hero-content{position:relative;z-index:1;max-width:640px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1.5px solid var(--purple-light);border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;color:var(--purple);margin-bottom:20px;box-shadow:0 2px 8px rgba(127,119,221,.12)}
+.hero-title{font-family:'Nunito',sans-serif;font-size:clamp(32px,6vw,52px);font-weight:900;color:var(--text);line-height:1.15;margin-bottom:16px}
+.hero-title .accent{color:var(--purple)}
+.hero-title .accent2{color:var(--orange)}
+.hero-sub{font-size:15px;color:#534AB7;line-height:1.7;max-width:480px;margin:0 auto 28px}
+.hero-cats{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:8px}
+.cat-chip{background:#fff;border:1.5px solid #CECBF6;border-radius:12px;padding:8px 14px;font-size:13px;display:flex;align-items:center;gap:6px;box-shadow:0 2px 6px rgba(0,0,0,.05)}
+
+/* SECTIONS */
+.section{max-width:680px;margin:0 auto;padding:48px 20px}
+.section-tag{display:inline-block;background:var(--purple-light);color:var(--purple-deep);font-size:11px;font-weight:700;letter-spacing:.08em;padding:4px 12px;border-radius:20px;margin-bottom:12px;text-transform:uppercase}
+.section-title{font-family:'Nunito',sans-serif;font-size:26px;font-weight:800;color:var(--text);margin-bottom:14px;line-height:1.3}
+.section-body{font-size:14px;line-height:1.9;color:#444;margin-bottom:16px}
+.section-body b{color:var(--text);font-weight:600}
+
+/* ORIGIN STORY */
+.origin-card{background:#fff;border-radius:20px;padding:28px;border:0.5px solid #CECBF6;box-shadow:0 4px 16px rgba(127,119,221,.08);margin-bottom:20px;position:relative;overflow:hidden}
+.origin-card::before{content:'';position:absolute;top:-20px;right:-20px;width:100px;height:100px;background:var(--purple-light);border-radius:50%;opacity:.5}
+.origin-quote{font-size:15px;font-style:italic;line-height:1.8;color:#534AB7;border-left:3px solid var(--purple);padding-left:16px;margin:16px 0}
+
+/* CATS PHOTO SECTION */
+.cats-section{background:linear-gradient(135deg,#FBE8F0,#EEEDFE);border-radius:24px;padding:32px 24px;margin:20px 0;text-align:center}
+.cats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.cat-photo-slot{background:#fff;border-radius:16px;aspect-ratio:1/1;display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed #CECBF6;gap:8px;transition:all .2s}
+.cat-photo-slot:hover{border-color:var(--purple);background:var(--purple-light)}
+.cat-photo-slot .slot-emoji{font-size:36px}
+.cat-photo-slot .slot-name{font-size:12px;font-weight:600;color:var(--purple)}
+.cats-note{font-size:12px;color:#888780;margin-top:8px}
+
+/* STATS VISION */
+.vision-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.vision-card{background:#fff;border-radius:16px;padding:20px;border:0.5px solid #CECBF6;text-align:center}
+.vision-num{font-family:'Nunito',sans-serif;font-size:32px;font-weight:900;color:var(--purple);line-height:1}
+.vision-unit{font-size:11px;color:var(--purple);font-weight:600;margin-top:2px}
+.vision-label{font-size:12px;color:#888780;margin-top:6px}
+
+/* INSPIRATION */
+.inspo-row{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap}
+.inspo-card{flex:1;min-width:140px;background:#fff;border-radius:16px;padding:18px 14px;border:0.5px solid #CECBF6;text-align:center}
+.inspo-icon{font-size:32px;margin-bottom:8px}
+.inspo-title{font-size:13px;font-weight:600;color:var(--text);margin-bottom:4px}
+.inspo-desc{font-size:11px;color:#888780;line-height:1.5}
+
+/* FUTURE */
+.future-list{margin:16px 0;display:flex;flex-direction:column;gap:10px}
+.future-item{display:flex;align-items:flex-start;gap:12px;background:#fff;border-radius:12px;padding:14px;border:0.5px solid #CECBF6}
+.future-icon{width:32px;height:32px;border-radius:8px;background:var(--purple-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.future-text{font-size:13px;color:#444;line-height:1.6}
+.future-text b{color:var(--text)}
+
+/* CTA */
+.cta-section{background:linear-gradient(135deg,var(--purple-deep),#7F77DD);border-radius:24px;padding:40px 24px;text-align:center;margin:20px 0}
+.cta-title{font-family:'Nunito',sans-serif;font-size:24px;font-weight:800;color:#fff;margin-bottom:10px}
+.cta-sub{font-size:14px;color:rgba(255,255,255,.8);margin-bottom:24px;line-height:1.6}
+.cta-btn{display:inline-block;background:#fff;color:var(--purple-deep);padding:14px 32px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;font-family:'Nunito',sans-serif}
+.cta-btn:hover{background:var(--purple-light)}
+
+/* DIVIDER */
+.divider{height:0.5px;background:linear-gradient(to right,transparent,#CECBF6,transparent);margin:8px 0}
+
+/* ANIMATE */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{opacity:0;animation:fadeUp .6s ease forwards}
+.delay-1{animation-delay:.1s}
+.delay-2{animation-delay:.2s}
+.delay-3{animation-delay:.3s}
+.delay-4{animation-delay:.4s}
+</style>
+</head>
+<body>
+
+<nav class="topnav">
+  <a class="logo" href="index.html">
+    <div class="logo-icon">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <ellipse cx="10" cy="13" rx="7" ry="5.5" fill="#EEEDFE" opacity=".9"/>
+        <polygon points="4,9 7,3 10,9" fill="#EEEDFE" opacity=".9"/>
+        <polygon points="10,9 13,3 16,9" fill="#EEEDFE" opacity=".9"/>
+        <circle cx="7.5" cy="11.5" r="1.5" fill="#3C3489"/>
+        <circle cx="12.5" cy="11.5" r="1.5" fill="#3C3489"/>
+        <ellipse cx="10" cy="14" rx="2" ry="1.2" fill="#F4C0D1"/>
+      </svg>
+    </div>
+    <span class="logo-text">LuckyCat</span>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link" href="index.html">首頁</a>
+    <a class="nav-link" href="index.html">上傳</a>
+    <a class="nav-link" href="rank.html">排行榜</a>
+    <a class="nav-link active" href="about.html">關於</a>
+  </div>
+  <a class="nav-cta" href="index.html">開始選號</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-dots"></div>
+  <div class="hero-content">
+    <div class="hero-badge fade-up">🐱 我們的故事</div>
+    <h1 class="hero-title fade-up delay-1">
+      全世界最<span class="accent">幸運</span>的貓<br/>在哪裡？<span class="accent2">讓我們一起找出來</span>
+    </h1>
+    <p class="hero-sub fade-up delay-2">一個從四隻家貓出發，想邀請全球貓咪一起參與的瘋狂實驗</p>
+    <div class="hero-cats fade-up delay-3">
+      <div class="cat-chip">🏡 從領養開始</div>
+      <div class="cat-chip">🐙 章魚哥的啟示</div>
+      <div class="cat-chip">🎯 100 萬張照片的夢想</div>
+    </div>
+  </div>
+</div>
+
+<!-- ORIGIN -->
+<div class="section">
+  <span class="section-tag">起源故事</span>
+  <h2 class="section-title">一切從四隻貓開始</h2>
+
+  <div class="origin-card">
+    <p class="section-body">
+      最初是兩次不期而遇的領養，後來又主動迎來了兩兄弟。四隻貓咪讓我深刻感受到——<b>愛貓人士，真的無處不在</b>。牠們不只是寵物，更像是家人，帶來的歡笑與療癒遠遠超出想像。
+    </p>
+    <div class="origin-quote">
+      「如果連章魚都能預測世足冠軍，那全球的貓咪，是不是也藏著某種神秘的幸運能量？」
+    </div>
+    <p class="section-body">
+      2010 年世界盃，德國章魚哥 Paul 以接近完美的預測成績震驚全球。而日本自古流傳的招財貓傳說，更讓人對動物與好運之間的連結充滿好奇。
+      這個想法在心裡悄悄發芽——<b>如果換成全球的貓咪來選樂透號碼呢？</b>
+    </p>
+  </div>
+
+  <!-- 四隻貓的照片 -->
+  <div class="cats-section">
+    <span class="section-tag">我的四隻貓</span>
+    <h3 style="font-family:'Nunito',sans-serif;font-size:18px;font-weight:800;margin:8px 0 4px">這一切的起源</h3>
+    <p style="font-size:13px;color:#534AB7;margin-bottom:4px">（照片即將上架，牠們的位置已為你保留好了 🐾）</p>
+    <div class="cats-grid">
+      <div class="cat-photo-slot">
+        <div class="slot-emoji">🐱</div>
+        <div class="slot-name">領養貓咪 1</div>
+      </div>
+      <div class="cat-photo-slot">
+        <div class="slot-emoji">🐱</div>
+        <div class="slot-name">領養貓咪 2</div>
+      </div>
+      <div class="cat-photo-slot">
+        <div class="slot-emoji">🐱</div>
+        <div class="slot-name">兄弟貓 大哥</div>
+      </div>
+      <div class="cat-photo-slot">
+        <div class="slot-emoji">🐱</div>
+        <div class="slot-name">兄弟貓 弟弟</div>
+      </div>
+    </div>
+    <p class="cats-note">📸 照片更新後，這裡將展示牠們的真實面孔</p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- INSPIRATION -->
+<div class="section">
+  <span class="section-tag">靈感來源</span>
+  <h2 class="section-title">招財貓 × 章魚哥 × 大數據</h2>
+  <p class="section-body">三個看似不相關的事物，串起了 LuckyCat 的誕生。</p>
+  <div class="inspo-row">
+    <div class="inspo-card">
+      <div class="inspo-icon">🐾</div>
+      <div class="inspo-title">日本招財貓</div>
+      <div class="inspo-desc">千年傳說，貓咪自古與好運緊密相連</div>
+    </div>
+    <div class="inspo-card">
+      <div class="inspo-icon">🐙</div>
+      <div class="inspo-title">章魚哥 Paul</div>
+      <div class="inspo-desc">動物的直覺，也許真的藏著人類無法理解的智慧</div>
+    </div>
+    <div class="inspo-card">
+      <div class="inspo-icon">📊</div>
+      <div class="inspo-title">全球大統計</div>
+      <div class="inspo-desc">當樣本夠大，或許真的能找出貓咪與幸運的規律</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- VISION -->
+<div class="section">
+  <span class="section-tag">我們的目標</span>
+  <h2 class="section-title">一個瘋狂但認真的夢想</h2>
+  <p class="section-body">這不只是一個選號工具——它是一場全球規模的貓咪幸運大調查。</p>
+
+  <div class="vision-grid">
+    <div class="vision-card">
+      <div class="vision-num">100萬</div>
+      <div class="vision-unit">張照片</div>
+      <div class="vision-label">來自世界各地的貓咪</div>
+    </div>
+    <div class="vision-card">
+      <div class="vision-num">10萬</div>
+      <div class="vision-unit">隻貓</div>
+      <div class="vision-label">建立屬於自己的檔案</div>
+    </div>
+  </div>
+
+  <div class="origin-card" style="margin-top:0">
+    <p class="section-body">
+      當我們累積足夠多的資料，也許能開始探索一些有趣的問題：<b>橘貓真的比較幸運嗎？圓臉貓和尖臉貓的中獎率有差異嗎？</b>
+      短毛與長毛、胖貓與瘦貓、獨居貓與群居貓⋯⋯這些特徵與幸運之間，是否存在某種神秘的關聯？
+    </p>
+    <p class="section-body" style="margin-bottom:0">
+      我們不敢保證找到答案，但我們敢保證——<b>這會是一段有貓有笑、有夢有據的旅程</b>。
+    </p>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- FUTURE -->
+<div class="section">
+  <span class="section-tag">未來計畫</span>
+  <h2 class="section-title">這只是起點</h2>
+  <div class="future-list">
+    <div class="future-item">
+      <div class="future-icon">🗺️</div>
+      <div class="future-text"><b>全球幸運地圖</b><br/>追蹤世界各地的中獎紀錄，看看哪個國家的貓最有偏財運</div>
+    </div>
+    <div class="future-item">
+      <div class="future-icon">📈</div>
+      <div class="future-text"><b>貓咪特徵分析</b><br/>當樣本累積到一定規模，開始統計體型、顏色、臉型與幸運率的關聯</div>
+    </div>
+    <div class="future-item">
+      <div class="future-icon">🏆</div>
+      <div class="future-text"><b>年度最幸運貓</b><br/>每年評選出中獎率最高的貓咪，頒發「年度幸運代言喵」頭銜</div>
+    </div>
+    <div class="future-item">
+      <div class="future-icon">🌍</div>
+      <div class="future-text"><b>支援更多樂透</b><br/>逐步加入美國 Powerball、日本ロト6 等各國彩券，讓全球貓咪都能參與</div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div style="max-width:680px;margin:0 auto;padding:0 20px 60px">
+  <div class="cta-section">
+    <div class="cta-title">讓你的貓加入這場實驗 🐾</div>
+    <div class="cta-sub">上傳一張照片，選一組號碼<br/>一起寫下屬於你的貓咪的幸運故事</div>
+    <a href="index.html" class="cta-btn">立刻上傳我的貓咪 →</a>
+  </div>
+
+  <p style="text-align:center;font-size:12px;color:#AFA9EC;margin-top:20px">
+    LuckyCat 是一個完全免費的全球貓咪幸運統計計畫 🐱<br/>
+    由一個愛貓人士發起，歡迎你的貓咪加入
+  </p>
+</div>
+
+</body>
+</html>
