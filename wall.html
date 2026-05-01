@@ -152,7 +152,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, query, orderBy, limit, where }
+import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy, limit, where }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const app = initializeApp({
@@ -181,10 +181,11 @@ async function loadWall() {
       if (data.photoThumb) allDraws.push({id: d.id, ...data});
     });
 
-    // 統計數字
+    // 統計數字 - 用 cats 集合的實際數量
+    const catsSnap = await getDocs(collection(db, 'cats'));
     const countries = new Set(allDraws.map(d => d.countryCode).filter(Boolean));
     const winners   = allDraws.filter(d => (d.prizeLevel || 0) > 0).length;
-    document.getElementById('wall-count').textContent = allDraws.length.toLocaleString();
+    document.getElementById('wall-count').textContent = catsSnap.size.toLocaleString();
     document.getElementById('wall-countries').textContent = countries.size;
     document.getElementById('wall-winners').textContent = winners;
 

@@ -587,11 +587,14 @@ window._saveRecord = async function(catName, catId) {
 // ── 首頁資料 ──────────────────────────────────────────────
 async function loadHomeData() {
   try {
-    const snap = await getDoc(doc(db,'stats','global'));
-    const stats = snap.exists() ? snap.data() : {};
-    document.getElementById('stat-cats').textContent  = (stats.totalCats||0).toLocaleString();
-    document.getElementById('stat-draws').textContent = (stats.totalDraws||0).toLocaleString();
-  } catch {}
+    // 讀 cats 集合的實際數量（最準確）
+    const catsSnap = await getDocs(collection(db,'cats'));
+    document.getElementById('stat-cats').textContent = catsSnap.size.toLocaleString();
+    // 讀 draws 集合的數量
+    const statsSnap = await getDoc(doc(db,'stats','global'));
+    const stats = statsSnap.exists() ? statsSnap.data() : {};
+    document.getElementById('stat-draws').textContent = (stats.totalDraws || 0).toLocaleString();
+  } catch(e) { console.warn('loadHomeData error:', e); }
   try {
     const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(3));
     const snap = await getDocs(q);
