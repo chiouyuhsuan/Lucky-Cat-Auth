@@ -27,6 +27,10 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .nav-dropdown-item{padding:10px 14px;font-size:13px;color:#26215C;cursor:pointer;transition:background .15s}
 .nav-dropdown-item:hover{background:#F4F2FB}
 .nav-dropdown-divider{height:0.5px;background:#CECBF6}
+/* LANG SWITCHER */
+.lang-switcher{display:flex;align-items:center;gap:2px;background:#F4F2FB;border:0.5px solid #CECBF6;border-radius:20px;padding:3px;margin-right:8px}
+.lang-btn{padding:3px 8px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#888780;font-family:inherit;transition:all .15s}
+.lang-btn.active{background:#534AB7;color:#fff}
 .page{display:none;max-width:680px;margin:0 auto;padding:20px 16px 48px}
 .page.active{display:block}
 .btn{display:block;width:100%;padding:14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
@@ -134,14 +138,21 @@ input[type=file]{display:none}
     <span class="logo-text">LuckyCat</span>
   </a>
   <div class="nav-links">
-    <button class="nav-link active" id="nl-home" onclick="showPage('home')">首頁</button>
-    <button class="nav-link" id="nl-upload" onclick="handleUploadClick()">上傳</button>
-    <a class="nav-link" href="rank.html">排行榜</a>
-    <a class="nav-link" href="wall.html">貓咪牆</a>
-    <a class="nav-link" href="about.html">關於</a>
+    <button class="nav-link active" id="nl-home" onclick="showPage('home')" data-i18n="nav_home">首頁</button>
+    <button class="nav-link" id="nl-upload" onclick="handleUploadClick()" data-i18n="nav_upload">上傳</button>
+    <a class="nav-link" href="rank.html" data-i18n="nav_rank">排行榜</a>
+    <a class="nav-link" href="wall.html" data-i18n="nav_wall">貓咪牆</a>
+    <a class="nav-link" href="about.html" data-i18n="nav_about">關於</a>
   </div>
-  <div id="nav-right">
-    <button class="nav-cta" onclick="handleUploadClick()">開始選號</button>
+  <div style="display:flex;align-items:center;gap:6px">
+    <div class="lang-switcher">
+      <button class="lang-btn active" id="lang-zh" onclick="setLang('zh')">中</button>
+      <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" id="lang-ja" onclick="setLang('ja')">日</button>
+    </div>
+    <div id="nav-right">
+      <button class="nav-cta" onclick="handleUploadClick()" data-i18n="nav_cta">開始選號</button>
+    </div>
   </div>
 </nav>
 
@@ -149,8 +160,8 @@ input[type=file]{display:none}
 <div class="modal-overlay hidden" id="login-prompt-modal">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title">🐱 登入可以累積貓咪幸運值！</div>
-    <div class="modal-sub">登入後每次選號都會累積到你的貓咪檔案，追蹤歷史中獎紀錄、計算中獎率，讓你的貓成為全球最幸運的貓！</div>
+    <div class="modal-title" data-i18n="modal_login_title">🐱 登入可以累積貓咪幸運值！</div>
+    <div class="modal-sub" data-i18n="modal_login_sub">登入後每次選號都會累積到你的貓咪檔案，追蹤歷史中獎紀錄、計算中獎率，讓你的貓成為全球最幸運的貓！</div>
     <button class="social-btn" onclick="loginWithGoogle(); closeModal('login-prompt-modal')">
       <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.566 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
       以 Google 登入
@@ -167,24 +178,24 @@ input[type=file]{display:none}
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="hero">
-    <span class="hero-tag">全球幸運貓排行榜</span>
+    <span class="hero-tag" data-i18n="hero_tag">全球幸運貓排行榜</span>
     <img src="Malu loading.gif" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
-    <h1 style="font-size:26px;font-weight:500;color:#26215C;line-height:1.3;margin-bottom:8px">讓你的貓咪<br>幫你選號碼</h1>
-    <p style="font-size:14px;color:#534AB7;margin-bottom:20px">上傳完全免費 · 全球統計 · 即時排行</p>
-    <button class="hero-btn" onclick="handleUploadClick()">上傳我的貓咪</button>
+    <h1 style="font-size:26px;font-weight:500;color:#26215C;line-height:1.3;margin-bottom:8px" data-i18n="hero_title">讓你的貓咪<br>幫你選號碼</h1>
+    <p style="font-size:14px;color:#534AB7;margin-bottom:20px" data-i18n="hero_sub">上傳完全免費 · 全球統計 · 即時排行</p>
+    <button class="hero-btn" onclick="handleUploadClick()" data-i18n="hero_btn">上傳我的貓咪</button>
   </div>
   <div class="stat-grid">
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div></div>
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div></div>
+    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_cats_lbl">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div></div>
+    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_draws_lbl">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div></div>
   </div>
-  <div class="sec-title">最新幸運貓</div>
+  <div class="sec-title" data-i18n="home_latest">最新幸運貓</div>
   <div id="home-rank-list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
-  <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none;margin-top:8px">查看完整排行榜 →</a>
+  <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none;margin-top:8px"><span data-i18n="home_rank_link">查看完整排行榜 →</span></a>
 </div>
 
 <!-- EMAIL AUTH -->
 <div class="page" id="page-email-auth">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:16px">帳號登入 / 註冊</h2>
+  <h2 style="font-size:20px;font-weight:500;margin-bottom:16px" data-i18n="auth_title">帳號登入 / 註冊</h2>
   <div class="auth-tabs">
     <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">登入</button>
     <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">註冊</button>
@@ -217,8 +228,8 @@ input[type=file]{display:none}
 <div class="modal-overlay hidden" id="forgot-modal">
   <div class="modal-box">
     <div class="modal-handle"></div>
-    <div class="modal-title">🔑 重設密碼</div>
-    <div class="modal-sub">輸入你的 Email，我們會寄送重設密碼連結給你</div>
+    <div class="modal-title" data-i18n="forgot_title">🔑 重設密碼</div>
+    <div class="modal-sub" data-i18n="forgot_sub">輸入你的 Email，我們會寄送重設密碼連結給你</div>
     <input type="email" id="forgot-email" placeholder="Email"/>
     <div class="err-msg" id="forgot-err"></div>
     <div class="verify-bar" id="forgot-success" style="display:none;background:#EAF3DE;color:#27500A;padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px">✅ 重設連結已寄出，請檢查你的信箱</div>
@@ -229,7 +240,7 @@ input[type=file]{display:none}
 
 <!-- UPLOAD -->
 <div class="page" id="page-upload">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px">上傳你的貓咪</h2>
+  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px" data-i18n="upload_title">上傳你的貓咪</h2>
   <div class="loc-notice">
     <div style="width:8px;height:8px;background:#7F77DD;border-radius:50%;flex-shrink:0"></div>
     <span style="font-size:12px;color:#3C3489" id="loc-text">正在偵測位置...</span>
@@ -240,9 +251,9 @@ input[type=file]{display:none}
       <div class="upload-icon-circle">
         <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 5v12M8 10l5-5 5 5" stroke="#EEEDFE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h18" stroke="#EEEDFE" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
-      <p style="font-size:15px;font-weight:500;color:#3C3489;margin:0 0 4px">點擊上傳貓咪照片</p>
-      <p style="font-size:13px;color:#534AB7;margin:0 0 10px">JPG、PNG · 最大 10MB</p>
-      <span class="tag" style="background:#EAF3DE;color:#27500A">完全免費 · 無需付費</span>
+      <p style="font-size:15px;font-weight:500;color:#3C3489;margin:0 0 4px" data-i18n="upload_hint">點擊上傳貓咪照片</p>
+      <p style="font-size:13px;color:#534AB7;margin:0 0 10px" data-i18n="upload_hint2">JPG、PNG · 最大 10MB</p>
+      <span class="tag" style="background:#EAF3DE;color:#27500A" data-i18n="upload_free">完全免費 · 無需付費</span>
     </div>
     <div id="preview-frame" class="preview-frame" style="display:none">
       <img id="preview-img" alt="貓咪預覽"/>
@@ -250,7 +261,7 @@ input[type=file]{display:none}
     </div>
   </div>
   <div id="verify-bar" class="verify-bar"></div>
-  <div class="sec-title">選擇樂透類型</div>
+  <div class="sec-title" data-i18n="upload_lot">選擇樂透類型</div>
   <div id="lot-tw" class="lot-opt sel" onclick="selectLot('tw')">
     <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇹🇼</span><div><p style="font-size:14px;font-weight:500;margin:0">台灣大樂透</p><p style="font-size:12px;color:#534AB7;margin:0">週二、週五 · 6/49 + 特別號</p></div></div>
     <div id="r-tw" class="radio sel"><div style="width:8px;height:8px;border-radius:50%;background:#fff"></div></div>
@@ -271,15 +282,15 @@ input[type=file]{display:none}
   <div class="loading-page">
     <img src="Malu loading.gif" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
     <div style="display:flex;gap:7px;justify-content:center;margin:20px 0 10px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <p style="font-size:16px;font-weight:500;color:#3C3489">正在幫你搜尋幸運號碼</p>
-    <p style="font-size:13px;color:#7F77DD;margin-top:6px">胖橘貓已收到你的照片，全力奔跑中...</p>
+    <p style="font-size:16px;font-weight:500;color:#3C3489" data-i18n="loading_title">正在幫你搜尋幸運號碼</p>
+    <p style="font-size:13px;color:#7F77DD;margin-top:6px" data-i18n="loading_sub">胖橘貓已收到你的照片，全力奔跑中...</p>
     <p id="loading-lot-name" style="font-size:12px;color:#AFA9EC;margin-top:10px"></p>
   </div>
 </div>
 
 <!-- RESULT -->
 <div class="page" id="page-result">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px">你的幸運號碼</h2>
+  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px" data-i18n="result_title">你的幸運號碼</h2>
   <div class="share-card" id="share-card">
     <div class="share-card-bg"><div class="dots-pattern"></div></div>
     <div class="share-cat-img" id="share-cat-img"><span style="font-size:80px;opacity:.3">🐱</span></div>
@@ -298,7 +309,7 @@ input[type=file]{display:none}
 
 <!-- NAME（已登入後命名貓咪）-->
 <div class="page" id="page-name">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:16px">幫你的貓取個名字</h2>
+  <h2 style="font-size:20px;font-weight:500;margin-bottom:16px" data-i18n="name_title">幫你的貓取個名字</h2>
   <div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">
     <div id="name-preview-photo" style="width:52px;height:52px;border-radius:8px;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden">🐱</div>
     <div>
@@ -306,7 +317,7 @@ input[type=file]{display:none}
       <p id="name-preview-loc" style="font-size:12px;color:#888780;margin:0">📍 偵測中...</p>
     </div>
   </div>
-  <label style="font-size:13px;color:#888780;margin-bottom:6px;display:block">貓咪暱稱</label>
+  <label style="font-size:13px;color:#888780;margin-bottom:6px;display:block" data-i18n="name_label">貓咪暱稱</label>
   <input type="text" id="cat-name-input" placeholder="例如：Malu、胖虎、奶油..." maxlength="20" oninput="onNameInput(this.value)"/>
   <p style="font-size:12px;color:#AFA9EC;margin:0 0 16px">這個名字會顯示在全球排行榜上</p>
 
@@ -353,7 +364,7 @@ input[type=file]{display:none}
 
 <!-- PROFILE -->
 <div class="page" id="page-profile">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px">我的帳戶</h2>
+  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px" data-i18n="profile_title">我的帳戶</h2>
   <div id="profile-content"></div>
 </div>
 
@@ -781,6 +792,241 @@ window.loginWithGoogle = window._loginWithGoogle;
 </script>
 
 <script>
+// ── i18n 多國語系 ─────────────────────────────────────────
+const I18N = {
+  zh: {
+    nav_home:'首頁', nav_upload:'上傳', nav_rank:'排行榜',
+    nav_wall:'貓咪牆', nav_about:'關於', nav_cta:'開始選號',
+    nav_my:'我的貓咪紀錄', nav_logout:'登出',
+    hero_tag:'全球幸運貓排行榜',
+    hero_title:'讓你的貓咪<br>幫你選號碼',
+    hero_sub:'上傳完全免費 · 全球統計 · 即時排行',
+    hero_btn:'上傳我的貓咪',
+    stat_cats_lbl:'全球貓咪', stat_draws_lbl:'累計選號',
+    home_latest:'最新幸運貓', home_rank_link:'查看完整排行榜 →',
+    upload_title:'上傳你的貓咪',
+    upload_hint:'點擊上傳貓咪照片',
+    upload_hint2:'JPG、PNG · 最大 10MB',
+    upload_free:'完全免費 · 無需付費',
+    upload_change:'更換照片',
+    upload_lot:'選擇樂透類型',
+    upload_btn_default:'請先上傳貓咪照片',
+    upload_btn_ready:'產生幸運號碼',
+    verify_checking:'🐱 AI 辨識中，請稍候（首次載入約 5 秒）...',
+    verify_pass:'貓貓驗證通過！準備選號 🎉',
+    loading_title:'正在幫你搜尋幸運號碼',
+    loading_sub:'胖橘貓已收到你的照片，全力奔跑中...',
+    result_title:'你的幸運號碼',
+    result_join:'加入排行榜 + 追蹤開獎',
+    result_view_rank:'查看排行榜紀錄（不儲存本次）',
+    result_later:'稍後再說',
+    result_join_guest:'加入全球排行榜 + 追蹤開獎',
+    name_title:'幫你的貓取個名字',
+    name_label:'貓咪暱稱',
+    name_hint:'這個名字會顯示在全球排行榜上',
+    name_agree:'我同意將貓咪照片、地區和中獎紀錄用於全球排行榜統計。個人資料不對外揭露。',
+    name_confirm:'確認加入排行榜',
+    name_cancel:'取消',
+    same_cat_title:'🐱 你有一隻同名的貓咪，是這隻嗎？',
+    same_cat_yes:'是同一隻！累積紀錄',
+    same_cat_no:'不是，建新貓咪',
+    done_sub:'開獎後自動核對，若中獎將通知你',
+    done_home:'回首頁',
+    done_rank:'查看全球排行榜',
+    auth_title:'帳號登入 / 註冊',
+    auth_login:'登入', auth_register:'註冊',
+    auth_login_btn:'登入', auth_register_btn:'建立帳號',
+    auth_google:'以 Google 繼續',
+    auth_skip:'不用，直接抽號',
+    auth_forgot:'忘記密碼？',
+    modal_login_title:'🐱 登入可以累積貓咪幸運值！',
+    modal_login_sub:'登入後每次選號都會累積到你的貓咪檔案，追蹤歷史中獎紀錄、計算中獎率，讓你的貓成為全球最幸運的貓！',
+    modal_google:'以 Google 登入',
+    modal_email:'Email 註冊 / 登入',
+    modal_skip:'不用，直接抽號 →',
+    forgot_title:'🔑 重設密碼',
+    forgot_sub:'輸入你的 Email，我們會寄送重設密碼連結給你',
+    forgot_btn:'寄送重設連結',
+    forgot_cancel:'取消',
+    forgot_success:'✅ 重設連結已寄出，請檢查你的信箱',
+    profile_title:'我的帳戶',
+    profile_my_cats:'我的貓咪',
+    lot_tw_name:'台灣大樂透', lot_tw_draw:'週二、週五 · 6/49 + 特別號',
+    lot_us_name:'US Powerball', lot_us_draw:'週一、三、六 · 5/69 + Powerball',
+    lot_jp_name:'日本 ロト6', lot_jp_draw:'週一、週四 · 6/43 + ボーナス',
+    status_pending:'待開獎', status_no_win:'未中獎', status_win:'中獎',
+  },
+  en: {
+    nav_home:'Home', nav_upload:'Upload', nav_rank:'Leaderboard',
+    nav_wall:'Cat Wall', nav_about:'About', nav_cta:'Start',
+    nav_my:'My Cats', nav_logout:'Sign Out',
+    hero_tag:'Global Lucky Cat Leaderboard',
+    hero_title:'Let your cat<br>pick your lucky numbers',
+    hero_sub:'Free to upload · Global stats · Live rankings',
+    hero_btn:'Upload My Cat',
+    stat_cats_lbl:'Global Cats', stat_draws_lbl:'Total Draws',
+    home_latest:'Latest Lucky Cats', home_rank_link:'View Full Leaderboard →',
+    upload_title:'Upload Your Cat',
+    upload_hint:'Click to upload a cat photo',
+    upload_hint2:'JPG, PNG · Max 10MB',
+    upload_free:'Completely Free · No payment needed',
+    upload_change:'Change Photo',
+    upload_lot:'Choose Lottery Type',
+    upload_btn_default:'Please upload a cat photo first',
+    upload_btn_ready:'Generate Lucky Numbers',
+    verify_checking:'🐱 AI analyzing, please wait (first load ~5s)...',
+    verify_pass:'Cat verified! Ready to draw 🎉',
+    loading_title:'Searching for your lucky numbers',
+    loading_sub:'The chubby cat got your photo and is running at full speed...',
+    result_title:'Your Lucky Numbers',
+    result_join:'Join Leaderboard + Track Draw',
+    result_view_rank:'View leaderboard (don\'t save this draw)',
+    result_later:'Maybe later',
+    result_join_guest:'Join Global Leaderboard + Track Draw',
+    name_title:'Name Your Cat',
+    name_label:'Cat Nickname',
+    name_hint:'This name will appear on the global leaderboard',
+    name_agree:'I agree to use my cat\'s photo, region and prize records for global stats. Personal data will not be disclosed.',
+    name_confirm:'Confirm & Join Leaderboard',
+    name_cancel:'Cancel',
+    same_cat_title:'🐱 You have a cat with the same name — is this the one?',
+    same_cat_yes:'Yes! Accumulate records',
+    same_cat_no:'No, create a new cat',
+    done_sub:'Auto-checked after draw. You\'ll be notified if you win!',
+    done_home:'Back to Home',
+    done_rank:'View Global Leaderboard',
+    auth_title:'Sign In / Register',
+    auth_login:'Sign In', auth_register:'Register',
+    auth_login_btn:'Sign In', auth_register_btn:'Create Account',
+    auth_google:'Continue with Google',
+    auth_skip:'No thanks, just draw',
+    auth_forgot:'Forgot password?',
+    modal_login_title:'🐱 Sign in to track your cat\'s luck!',
+    modal_login_sub:'Sign in to accumulate records, track prize history, and calculate win rate. Help your cat become the world\'s luckiest!',
+    modal_google:'Sign in with Google',
+    modal_email:'Email Sign Up / Sign In',
+    modal_skip:'No thanks, just draw →',
+    forgot_title:'🔑 Reset Password',
+    forgot_sub:'Enter your email and we\'ll send you a reset link.',
+    forgot_btn:'Send Reset Link',
+    forgot_cancel:'Cancel',
+    forgot_success:'✅ Reset link sent! Check your inbox.',
+    profile_title:'My Account',
+    profile_my_cats:'My Cats',
+    lot_tw_name:'Taiwan Lotto', lot_tw_draw:'Tue & Fri · 6/49 + Special',
+    lot_us_name:'US Powerball', lot_us_draw:'Mon, Wed, Sat · 5/69 + Powerball',
+    lot_jp_name:'Japan Loto 6', lot_jp_draw:'Mon & Thu · 6/43 + Bonus',
+    status_pending:'Pending', status_no_win:'No Win', status_win:'Won',
+  },
+  ja: {
+    nav_home:'ホーム', nav_upload:'アップロード', nav_rank:'ランキング',
+    nav_wall:'猫ウォール', nav_about:'について', nav_cta:'スタート',
+    nav_my:'マイ猫記録', nav_logout:'ログアウト',
+    hero_tag:'グローバルラッキー猫ランキング',
+    hero_title:'あなたの猫に<br>ラッキーナンバーを選ばせよう',
+    hero_sub:'完全無料 · グローバル統計 · リアルタイムランキング',
+    hero_btn:'猫をアップロード',
+    stat_cats_lbl:'世界の猫', stat_draws_lbl:'総抽選数',
+    home_latest:'最新ラッキー猫', home_rank_link:'全ランキングを見る →',
+    upload_title:'猫をアップロード',
+    upload_hint:'クリックして猫の写真をアップロード',
+    upload_hint2:'JPG・PNG · 最大10MB',
+    upload_free:'完全無料 · お支払い不要',
+    upload_change:'写真を変更',
+    upload_lot:'宝くじの種類を選択',
+    upload_btn_default:'先に猫の写真をアップロードしてください',
+    upload_btn_ready:'ラッキーナンバーを生成',
+    verify_checking:'🐱 AI解析中、しばらくお待ちください（初回約5秒）...',
+    verify_pass:'猫の確認完了！抽選準備OK 🎉',
+    loading_title:'ラッキーナンバーを検索中',
+    loading_sub:'デブ猫があなたの写真を受け取り、全力疾走中...',
+    result_title:'ラッキーナンバー',
+    result_join:'ランキングに参加 + 抽選追跡',
+    result_view_rank:'ランキングを見る（保存しない）',
+    result_later:'後で',
+    result_join_guest:'グローバルランキングに参加 + 抽選追跡',
+    name_title:'猫に名前をつけよう',
+    name_label:'猫のニックネーム',
+    name_hint:'この名前はグローバルランキングに表示されます',
+    name_agree:'猫の写真・地域・当選記録をグローバルランキング統計に使用することに同意します。個人情報は公開されません。',
+    name_confirm:'ランキングに参加確定',
+    name_cancel:'キャンセル',
+    same_cat_title:'🐱 同じ名前の猫がいます。この猫ですか？',
+    same_cat_yes:'同じ猫！記録を累積する',
+    same_cat_no:'違います、新しい猫を作成',
+    done_sub:'抽選後に自動確認。当選した場合はお知らせします！',
+    done_home:'ホームに戻る',
+    done_rank:'グローバルランキングを見る',
+    auth_title:'ログイン / 登録',
+    auth_login:'ログイン', auth_register:'登録',
+    auth_login_btn:'ログイン', auth_register_btn:'アカウントを作成',
+    auth_google:'Googleで続ける',
+    auth_skip:'不要、直接抽選',
+    auth_forgot:'パスワードをお忘れですか？',
+    modal_login_title:'🐱 ログインして猫の運気を記録しよう！',
+    modal_login_sub:'ログインすると抽選が猫のプロフィールに累積され、当選履歴の追跡や当選率の計算ができます！',
+    modal_google:'Googleでログイン',
+    modal_email:'メール登録 / ログイン',
+    modal_skip:'不要、直接抽選 →',
+    forgot_title:'🔑 パスワードリセット',
+    forgot_sub:'メールアドレスを入力すると、リセットリンクをお送りします。',
+    forgot_btn:'リセットリンクを送信',
+    forgot_cancel:'キャンセル',
+    forgot_success:'✅ リセットリンクを送信しました！受信箱を確認してください。',
+    profile_title:'マイアカウント',
+    profile_my_cats:'マイ猫',
+    lot_tw_name:'台湾宝くじ', lot_tw_draw:'火・金 · 6/49 + 特別号',
+    lot_us_name:'USパワーボール', lot_us_draw:'月・水・土 · 5/69 + Powerball',
+    lot_jp_name:'ロト6', lot_jp_draw:'月・木 · 6/43 + ボーナス',
+    status_pending:'抽選待ち', status_no_win:'外れ', status_win:'当選',
+  }
+};
+
+let _curLang = localStorage.getItem('lang') || 'zh';
+
+function setLang(lang) {
+  _curLang = lang;
+  localStorage.setItem('lang', lang);
+  ['zh','en','ja'].forEach(function(l) {
+    var btn = document.getElementById('lang-' + l);
+    if (btn) btn.classList.toggle('active', l === lang);
+  });
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n');
+    if (I18N[lang] && I18N[lang][key] !== undefined) {
+      if (el.tagName === 'INPUT') el.placeholder = I18N[lang][key];
+      else el.innerHTML = I18N[lang][key];
+    }
+  });
+  document.querySelectorAll('[data-i18n-ph]').forEach(function(el) {
+    var key = el.getAttribute('data-i18n-ph');
+    if (I18N[lang] && I18N[lang][key]) el.placeholder = I18N[lang][key];
+  });
+  // 更新 LOTS 名稱
+  updateLotsDisplay();
+}
+
+function t(key) {
+  return (I18N[_curLang] && I18N[_curLang][key] !== undefined)
+    ? I18N[_curLang][key]
+    : (I18N['zh'][key] || key);
+}
+
+function updateLotsDisplay() {
+  var lotNames = {
+    tw: [t('lot_tw_name'), t('lot_tw_draw')],
+    us: [t('lot_us_name'), t('lot_us_draw')],
+    jp: [t('lot_jp_name'), t('lot_jp_draw')],
+  };
+  Object.keys(lotNames).forEach(function(k) {
+    var el = document.getElementById('lot-' + k);
+    if (!el) return;
+    var ps = el.querySelectorAll('p');
+    if (ps[0]) ps[0].textContent = lotNames[k][0];
+    if (ps[1]) ps[1].textContent = lotNames[k][1];
+  });
+}
+
 const LOTS = {
   tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五',color:'#7F77DD',main:{count:6,max:49},sp:{count:1,max:49}},
   us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26}},
@@ -1145,6 +1391,11 @@ function showToast(msg) {
   setTimeout(function() { t.classList.remove('show'); }, 2800);
 }
 window.showToast = showToast;
+
+// 初始化語言（頁面載入後套用）
+document.addEventListener('DOMContentLoaded', function() {
+  setLang(localStorage.getItem('lang') || 'zh');
+});
 
 function toggleCat(id) {
   var el = document.getElementById(id);
