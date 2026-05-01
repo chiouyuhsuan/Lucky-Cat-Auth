@@ -98,7 +98,6 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
     <a class="nav-link" href="index.html">首頁</a>
     <a class="nav-link" href="index.html">上傳</a>
     <a class="nav-link active" href="rank.html">排行榜</a>
-    <a class="nav-link" href="index.html" onclick="sessionStorage.setItem('goto','profile')">我的</a>
     <a class="nav-link" href="wall.html">貓咪牆</a>
     <a class="nav-link" href="about.html">關於</a>
   </div>
@@ -160,7 +159,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit }
+import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit, where }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 
 const cfg = {
@@ -198,7 +197,9 @@ window._draws = draws;
 const totalPrize = draws.reduce((s,d)=>s+(d.prizeAmount||0),0);
 const totalWins  = draws.filter(d=>d.prizeAmount>0).length;
 const countries  = [...new Set(draws.map(d=>d.countryCode).filter(Boolean))];
-document.getElementById('s-cats').textContent     = (stats.totalCats||draws.length||0).toLocaleString();
+// 讀 cats 集合的實際數量
+const catsCountSnap = await getDocs(collection(db,'cats'));
+document.getElementById('s-cats').textContent = catsCountSnap.size.toLocaleString();
 document.getElementById('s-prize').textContent    = '$'+(totalPrize>=1000000?(totalPrize/1000000).toFixed(1)+'M':totalPrize>=1000?(totalPrize/1000).toFixed(0)+'K':totalPrize||0);
 document.getElementById('s-countries').textContent= countries.length;
 document.getElementById('s-wins').textContent     = totalWins;
