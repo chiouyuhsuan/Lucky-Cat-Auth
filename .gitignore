@@ -1,0 +1,6 @@
+node_modules/
+*.log
+.firebase/
+__pycache__/
+*.pyc
+inspect_result.md

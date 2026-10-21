@@ -179,7 +179,7 @@ input[type=file]{display:none}
 <div class="page active" id="page-home">
   <div class="hero">
     <span class="hero-tag" data-i18n="hero_tag">全球幸運貓排行榜</span>
-    <img src="Malu loading.gif" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
+    <img src="images/malu-loading.webp" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
     <h1 style="font-size:26px;font-weight:500;color:#26215C;line-height:1.3;margin-bottom:8px" data-i18n="hero_title">讓你的貓咪<br>幫你選號碼</h1>
     <p style="font-size:14px;color:#534AB7;margin-bottom:20px" data-i18n="hero_sub">上傳完全免費 · 全球統計 · 即時排行</p>
     <button class="hero-btn" onclick="handleUploadClick()" data-i18n="hero_btn">上傳我的貓咪</button>
@@ -263,15 +263,15 @@ input[type=file]{display:none}
   <div id="verify-bar" class="verify-bar"></div>
   <div class="sec-title" data-i18n="upload_lot">選擇樂透類型</div>
   <div id="lot-tw" class="lot-opt sel" onclick="selectLot('tw')">
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇹🇼</span><div><p style="font-size:14px;font-weight:500;margin:0">台灣大樂透</p><p style="font-size:12px;color:#534AB7;margin:0">週二、週五 · 6/49 + 特別號</p></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇹🇼</span><div><p style="font-size:14px;font-weight:500;margin:0">台灣大樂透</p><p style="font-size:12px;color:#534AB7;margin:0">週二、週五 · 49 選 6</p></div></div>
     <div id="r-tw" class="radio sel"><div style="width:8px;height:8px;border-radius:50%;background:#fff"></div></div>
   </div>
   <div id="lot-us" class="lot-opt" onclick="selectLot('us')">
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇺🇸</span><div><p style="font-size:14px;font-weight:500;margin:0">US Powerball</p><p style="font-size:12px;color:#888780;margin:0">週一、三、六 · 5/69 + Powerball</p></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇺🇸</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">US Powerball</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:#888780;margin:0">週一、三、六 · 5/69 + Powerball</p></div></div>
     <div id="r-us" class="radio"></div>
   </div>
   <div id="lot-jp" class="lot-opt" onclick="selectLot('jp')">
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇯🇵</span><div><p style="font-size:14px;font-weight:500;margin:0">日本 ロト6</p><p style="font-size:12px;color:#888780;margin:0">週一、週四 · 6/43 + ボーナス</p></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇯🇵</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">日本 ロト6</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:#888780;margin:0">週一、週四 · 43 選 6</p></div></div>
     <div id="r-jp" class="radio"></div>
   </div>
   <button id="gen-btn" class="btn disabled" style="margin-top:10px" onclick="startGenerate()">請先上傳貓咪照片</button>
@@ -280,7 +280,7 @@ input[type=file]{display:none}
 <!-- LOADING -->
 <div class="page" id="page-loading">
   <div class="loading-page">
-    <img src="Malu loading.gif" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
+    <img src="images/malu-loading.webp" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
     <div style="display:flex;gap:7px;justify-content:center;margin:20px 0 10px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
     <p style="font-size:16px;font-weight:500;color:#3C3489" data-i18n="loading_title">正在幫你搜尋幸運號碼</p>
     <p style="font-size:13px;color:#7F77DD;margin-top:6px" data-i18n="loading_sub">胖橘貓已收到你的照片，全力奔跑中...</p>
@@ -350,9 +350,9 @@ input[type=file]{display:none}
   <div style="text-align:center;padding:28px 0">
     <div style="width:76px;height:76px;border-radius:50%;background:#EAF3DE;border:2px solid #97C459;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><svg width="34" height="34" viewBox="0 0 34 34" fill="none"><path d="M6 17l8 8 14-14" stroke="#3B6D11" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <p id="done-title" style="font-size:20px;font-weight:500;color:#26215C;margin:0 0 6px"></p>
-    <p style="font-size:13px;color:#888780;margin:0 0 3px">開獎後自動核對，若中獎將通知你</p>
+    <p id="done-sub" style="font-size:13px;color:#888780;margin:0 0 3px">開獎後自動對獎</p>
     <p id="done-country" style="font-size:13px;color:#534AB7;margin:0 0 22px"></p>
-    <img src="Malu loading.gif" style="width:120px;height:90px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto 20px;opacity:.9" onerror="this.style.display='none'"/>
+    <img src="images/malu-loading.webp" style="width:120px;height:90px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto 20px;opacity:.9" onerror="this.style.display='none'"/>
     <div style="background:#F8F6FF;border-radius:14px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #CECBF6;text-align:left">
       <p id="done-lot-label" style="font-size:12px;color:#534AB7;font-weight:500;margin:0 0 10px"></p>
       <div id="done-balls" style="display:flex;gap:8px;flex-wrap:wrap"></div>
@@ -370,31 +370,23 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
+<script src="js/safe.js"></script>
+<script src="js/lottery.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+import { auth, db } from "./js/firebase.js";
+import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
          createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
-         query, orderBy, limit, serverTimestamp, updateDoc, increment, where }
+import { collection, getDocs, doc, query, orderBy, limit, serverTimestamp,
+         increment, where, writeBatch, getCountFromServer }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAP90Ihnh_ekNcchfPxdX-VuKdGmNDrktE",
-  authDomain: "pangfu-pangji.firebaseapp.com",
-  projectId: "pangfu-pangji",
-  storageBucket: "pangfu-pangji.firebasestorage.app",
-  messagingSenderId: "966100033494",
-  appId: "1:966100033494:web:b03e4664570ffe9a24ce77"
-};
-
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const { esc, img, int, ball } = window.Safe;
 
 window._state = {
-  user: null, photoDataUrl: null, hasPhoto: false,
-  curLot: 'tw', currentNums: null,
+  user: null, hasPhoto: false,
+  photoCard: null,    // 圖卡用大圖（長邊 1080px）
+  photoThumb: null,   // 列表用縮圖（長邊 320px）
+  curLot: 'tw', currentNums: null, pickedAt: null,
   userLocation: { country:'未知', city:'未知', countryCode:'' },
 };
 
@@ -426,12 +418,13 @@ onAuthStateChanged(auth, user => {
   const navRight = document.getElementById('nav-right');
   if (user) {
     const name = user.displayName || (user.email ? user.email.split('@')[0] : '用戶');
-    const photo = user.photoURL
-      ? '<img class="nav-user-photo" src="' + user.photoURL + '" onerror="this.style.display=\'none\'"/>'
-      : '<div class="nav-user-avatar">' + name.charAt(0).toUpperCase() + '</div>';
+    const photoUrl = img(user.photoURL);
+    const photo = photoUrl
+      ? '<img class="nav-user-photo" src="' + photoUrl + '" onerror="this.style.display=\'none\'"/>'
+      : '<div class="nav-user-avatar">' + esc(name.charAt(0).toUpperCase()) + '</div>';
     navRight.innerHTML = '<div class="nav-user-menu" id="nav-user-menu" onclick="window.toggleUserMenu()">'
       + photo
-      + '<span class="nav-user-name">' + name + '</span>'
+      + '<span class="nav-user-name">' + esc(name) + '</span>'
       + '<span style="font-size:10px;color:#888780;margin-left:2px">▾</span>'
       + '<div class="nav-dropdown" id="nav-dropdown">'
       + '<div class="nav-dropdown-item" onclick="event.stopPropagation();window.showPage(\'profile\')">🐱 我的貓咪紀錄</div>'
@@ -535,76 +528,66 @@ window._findSameCat = async function(catName) {
   return null;
 };
 
-// ── 建立或更新貓咪主檔 ────────────────────────────────────
-window._upsertCat = async function(catId, catName, isNew) {
-  const { user, photoDataUrl, userLocation } = window._state;
-  if (!user) return null;
-  try {
-    if (isNew || !catId) {
-      // 建新貓
-      const ref = await addDoc(collection(db,'cats'), {
-        uid: user.uid, catName,
-        photoThumb: photoDataUrl || null,
-        country: userLocation.country, countryCode: userLocation.countryCode,
-        city: userLocation.city,
-        totalDraws: 1, totalWins: 0, totalPrize: 0,
-        createdAt: serverTimestamp(), lastDrawAt: serverTimestamp(),
-      });
-      return ref.id;
-    } else {
-      // 更新既有貓（換照片 + 累積抽號次數）
-      await updateDoc(doc(db,'cats',catId), {
-        photoThumb: photoDataUrl || null,
-        totalDraws: increment(1),
-        lastDrawAt: serverTimestamp(),
-      });
-      return catId;
-    }
-  } catch(e) { console.warn('upsertCat error:', e); return null; }
-};
+// ── 儲存一次選號 ──────────────────────────────────────────
+// 貓咪主檔、選號紀錄、大圖用同一個 batch 寫入：要嘛全部成功，要嘛全部不寫
+// existingCatId：沿用既有的貓；null 代表建立新貓
+// 回傳 { drawId, catId, targetDrawDate } 或丟出錯誤
+window._saveDraw = async function(catName, existingCatId) {
+  const { user, currentNums, curLot, photoCard, photoThumb, userLocation, pickedAt } = window._state;
+  if (!user) throw new Error('尚未登入');
+  if (!currentNums) throw new Error('沒有號碼');
+  const lot = window.Lottery.LOTS[curLot];
+  // 開獎日依「按下產生號碼」的時間計算，畫面與資料一致
+  const targetDrawDate = window.Lottery.targetDrawDate(curLot, pickedAt);
 
-// ── 儲存選號到 Firestore ──────────────────────────────────
-window._saveRecord = async function(catName, catId) {
-  const { user, currentNums, curLot, photoDataUrl, userLocation } = window._state;
-  if (!user || !currentNums) return false;
-  const LOTS = {
-    tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五'},
-    us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六'},
-    jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四'},
-  };
-  const lot = LOTS[curLot];
-  const today = new Date();
-  const dateStr = today.getFullYear() + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + String(today.getDate()).padStart(2,'0');
-  try {
-    await addDoc(collection(db,'draws'), {
-      uid: user.uid, catId: catId || null,
-      catName, lotType: curLot, lotName: lot.name, lotFlag: lot.flag,
-      numbers: currentNums.main, special: currentNums.special,
-      country: userLocation.country, countryCode: userLocation.countryCode,
-      city: userLocation.city, date: dateStr,
-      photoThumb: photoDataUrl || null,
-      createdAt: serverTimestamp(), prizeLevel: 0, prizeAmount: 0,
+  const batch   = writeBatch(db);
+  const drawRef = doc(collection(db, 'draws'));
+  const catRef  = existingCatId ? doc(db, 'cats', existingCatId) : doc(collection(db, 'cats'));
+
+  if (existingCatId) {
+    batch.update(catRef, {
+      photoThumb, totalDraws: increment(1), lastDrawAt: serverTimestamp(),
     });
-    try {
-      await updateDoc(doc(db,'stats','global'), { totalDraws: increment(1) });
-    } catch {
-      await setDoc(doc(db,'stats','global'), { totalDraws:1 });
-    }
-    window.showToast && window.showToast('✓ 已儲存到排行榜！');
-    return true;
-  } catch(e) { window.showToast && window.showToast('儲存失敗：' + e.message); return false; }
+  } else {
+    batch.set(catRef, {
+      uid: user.uid, catName, photoThumb,
+      country: userLocation.country, countryCode: userLocation.countryCode, city: userLocation.city,
+      totalDraws: 1, totalWins: 0, totalPrize: 0,
+      createdAt: serverTimestamp(), lastDrawAt: serverTimestamp(),
+    });
+  }
+
+  batch.set(drawRef, {
+    schema: 2,
+    uid: user.uid, catId: catRef.id, catName,
+    lotType: curLot, lotName: window.t('lot_' + curLot + '_name'), lotFlag: lot.flag,
+    numbers: currentNums.main, special: currentNums.special,
+    targetDrawDate,                         // 大樂透：'YYYY-MM-DD'；美日：null（不對獎）
+    tracked: lot.tracked,                   // 是否自動對獎、計入中獎率
+    purchased: false,                       // 「我買了」，第 4 段開放修改
+    country: userLocation.country, countryCode: userLocation.countryCode, city: userLocation.city,
+    date: window.Lottery.todayDot(pickedAt),
+    photoThumb,
+    createdAt: serverTimestamp(), prizeLevel: 0, prizeAmount: 0,
+  });
+
+  // 圖卡用大圖另外存，列表只讀縮圖
+  batch.set(doc(db, 'photos', drawRef.id), { uid: user.uid, data: photoCard });
+
+  await batch.commit();
+  return { drawId: drawRef.id, catId: catRef.id, targetDrawDate };
 };
 
 // ── 首頁資料 ──────────────────────────────────────────────
 async function loadHomeData() {
   try {
-    // 讀 cats 集合的實際數量（最準確）
-    const catsSnap = await getDocs(collection(db,'cats'));
-    document.getElementById('stat-cats').textContent = catsSnap.size.toLocaleString();
-    // 讀 draws 集合的數量
-    const statsSnap = await getDoc(doc(db,'stats','global'));
-    const stats = statsSnap.exists() ? statsSnap.data() : {};
-    document.getElementById('stat-draws').textContent = (stats.totalDraws || 0).toLocaleString();
+    // 直接向資料庫要筆數，不再依賴容易對不上的 stats/global
+    const [cats, draws] = await Promise.all([
+      getCountFromServer(collection(db, 'cats')),
+      getCountFromServer(collection(db, 'draws')),
+    ]);
+    document.getElementById('stat-cats').textContent  = cats.data().count.toLocaleString();
+    document.getElementById('stat-draws').textContent = draws.data().count.toLocaleString();
   } catch(e) { console.warn('loadHomeData error:', e); }
   try {
     const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(3));
@@ -618,14 +601,15 @@ async function loadHomeData() {
     }
     const rankColors = ['#BA7517','#888780','#993C1D'];
     el.innerHTML = items.map((item,i) => {
-      const photo = item.photoThumb ? '<img src="' + item.photoThumb + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱';
+      const src = img(item.photoThumb);
+      const photo = src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱';
       const loc = [item.city, item.country].filter(Boolean).join(', ');
       return '<div class="rank-item">'
         + '<span style="font-size:13px;font-weight:500;color:' + (rankColors[i]||'#AFA9EC') + ';min-width:20px">' + (i+1) + '</span>'
         + '<div class="rank-avatar">' + photo + '</div>'
-        + '<div style="flex:1"><p style="font-size:14px;font-weight:500;margin:0">' + (item.catName||'') + '</p>'
-        + '<p style="font-size:12px;color:#888780;margin:0">' + loc + ' · ' + (item.lotName||'') + '</p></div>'
-        + '<span class="tag" style="background:#FAEEDA;color:#633806">' + (item.date||'') + '</span>'
+        + '<div style="flex:1"><p style="font-size:14px;font-weight:500;margin:0">' + esc(item.catName) + '</p>'
+        + '<p style="font-size:12px;color:#888780;margin:0">' + esc(loc) + ' · ' + esc(item.lotName) + '</p></div>'
+        + '<span class="tag" style="background:#FAEEDA;color:#633806">' + esc(item.date) + '</span>'
         + '</div>';
     }).join('');
   } catch {}
@@ -647,9 +631,9 @@ window._renderProfile = async function() {
   const user = window._state.user;
   const displayName = user.displayName || user.email || '用戶';
   el.innerHTML = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
-    + (user.photoURL ? '<img src="' + user.photoURL + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>')
-    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + displayName + '</p>'
-    + '<p style="font-size:12px;color:#888780;margin:0">' + (user.email||'') + '</p></div></div>'
+    + (img(user.photoURL) ? '<img src="' + img(user.photoURL) + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>')
+    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + esc(displayName) + '</p>'
+    + '<p style="font-size:12px;color:#888780;margin:0">' + esc(user.email) + '</p></div></div>'
     + '<div class="sec-title">我的貓咪</div>'
     + '<div id="my-cats-list"><div style="text-align:center;padding:16px;color:#888780;font-size:13px">載入中...</div></div>';
 
@@ -733,29 +717,30 @@ window._renderProfile = async function() {
       const cat = item.cat;
       const drawsHtml = item.draws.map(function(draw) {
         const nums = (draw.numbers||[]).map(function(n){
-          return '<div class="ball show" style="width:30px;height:30px;font-size:11px">'+String(n).padStart(2,'0')+'</div>';
+          return '<div class="ball show" style="width:30px;height:30px;font-size:11px">'+ball(n)+'</div>';
         }).join('');
         const special = (draw.special||[]).map(function(n){
-          return '<div class="ball sp show" style="width:30px;height:30px;font-size:11px">'+String(n).padStart(2,'0')+'</div>';
+          return '<div class="ball sp show" style="width:30px;height:30px;font-size:11px">'+ball(n)+'</div>';
         }).join('');
         const checked = !!draw.checkedAt;
-        const won = (draw.prizeLevel||0) > 0;
+        const won = int(draw.prizeLevel) > 0;
         const status = won
-          ? '<span class="tag" style="background:#EAF3DE;color:#27500A;font-size:10px">中獎'+draw.prizeLevel+'等</span>'
+          ? '<span class="tag" style="background:#EAF3DE;color:#27500A;font-size:10px">中獎'+int(draw.prizeLevel)+'等</span>'
           : checked
             ? '<span class="tag" style="background:#FCEBEB;color:#791F1F;font-size:10px">未中獎</span>'
             : '<span class="tag" style="background:#FAEEDA;color:#633806;font-size:10px">待開獎</span>';
         return '<div style="padding:10px 0;border-bottom:0.5px solid #F4F2FB">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-          + '<span style="font-size:12px;color:#534AB7">' + (draw.lotFlag||'') + ' ' + (draw.date||'') + '</span>'
+          + '<span style="font-size:12px;color:#534AB7">' + esc(draw.lotFlag) + ' ' + esc(draw.date) + '</span>'
           + status + '</div>'
           + '<div style="display:flex;gap:5px;flex-wrap:wrap">' + nums + special + '</div>'
-          + (won ? '<p style="font-size:11px;color:#27500A;margin:5px 0 0">獎金 $' + (draw.prizeAmount||0).toLocaleString() + '</p>' : '')
+          + (won ? '<p style="font-size:11px;color:#27500A;margin:5px 0 0">獎金 $' + int(draw.prizeAmount).toLocaleString() + '</p>' : '')
           + '</div>';
       }).join('');
 
-      const photo = cat.photoThumb
-        ? '<img src="'+cat.photoThumb+'" style="width:100%;height:100%;object-fit:cover"/>'
+      const catSrc = img(cat.photoThumb);
+      const photo = catSrc
+        ? '<img src="'+catSrc+'" style="width:100%;height:100%;object-fit:cover"/>'
         : '🐱';
       const winRateColor = item.winRate > 0 ? '#27500A' : '#888780';
 
@@ -764,7 +749,7 @@ window._renderProfile = async function() {
         + '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="toggleCat(\'cat-draws-'+idx+'\')">'
         + '<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;border:1.5px solid #CECBF6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">' + photo + '</div>'
         + '<div style="flex:1">'
-        + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + cat.catName + '</p>'
+        + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + esc(cat.catName) + '</p>'
         + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
         + '<span style="font-size:12px;color:#888780">抽了 <b style="color:#26215C">' + item.totalDraws + '</b> 次</span>'
         + '<span style="font-size:12px;color:#888780">中獎 <b style="color:#27500A">' + item.totalWins + '</b> 次</span>'
@@ -830,7 +815,7 @@ const I18N = {
     same_cat_title:'🐱 你有一隻同名的貓咪，是這隻嗎？',
     same_cat_yes:'是同一隻！累積紀錄',
     same_cat_no:'不是，建新貓咪',
-    done_sub:'開獎後自動核對，若中獎將通知你',
+    done_sub:'開獎後自動對獎，結果會更新在「我的貓咪紀錄」',
     done_home:'回首頁',
     done_rank:'查看全球排行榜',
     auth_title:'帳號登入 / 註冊',
@@ -851,9 +836,15 @@ const I18N = {
     forgot_success:'✅ 重設連結已寄出，請檢查你的信箱',
     profile_title:'我的帳戶',
     profile_my_cats:'我的貓咪',
-    lot_tw_name:'台灣大樂透', lot_tw_draw:'週二、週五 · 6/49 + 特別號',
+    lot_tw_name:'台灣大樂透', lot_tw_draw:'週二、週五 · 49 選 6',
     lot_us_name:'US Powerball', lot_us_draw:'週一、三、六 · 5/69 + Powerball',
-    lot_jp_name:'日本 ロト6', lot_jp_draw:'週一、週四 · 6/43 + ボーナス',
+    lot_jp_name:'日本 ロト6', lot_jp_draw:'週一、週四 · 43 選 6',
+    untracked_tag:'僅娛樂・不自動對獎',
+    draw_on:'{md}（{wd}）開獎',
+    wd_0:'日', wd_1:'一', wd_2:'二', wd_3:'三', wd_4:'四', wd_5:'五', wd_6:'六',
+    saving:'儲存中...', save_failed:'儲存失敗，請再試一次', saved_ok:'✓ 已儲存！',
+    done_title:'{name} 已加入排行榜！', done_country:'現在代表 {country} 參賽',
+    done_sub_untracked:'這組號碼僅供娛樂，不會自動對獎',
     status_pending:'待開獎', status_no_win:'未中獎', status_win:'中獎',
   },
   en: {
@@ -892,7 +883,7 @@ const I18N = {
     same_cat_title:'🐱 You have a cat with the same name — is this the one?',
     same_cat_yes:'Yes! Accumulate records',
     same_cat_no:'No, create a new cat',
-    done_sub:'Auto-checked after draw. You\'ll be notified if you win!',
+    done_sub:'Auto-checked after the draw. See results in My Cats.',
     done_home:'Back to Home',
     done_rank:'View Global Leaderboard',
     auth_title:'Sign In / Register',
@@ -913,9 +904,15 @@ const I18N = {
     forgot_success:'✅ Reset link sent! Check your inbox.',
     profile_title:'My Account',
     profile_my_cats:'My Cats',
-    lot_tw_name:'Taiwan Lotto', lot_tw_draw:'Tue & Fri · 6/49 + Special',
+    lot_tw_name:'Taiwan Lotto', lot_tw_draw:'Tue & Fri · Pick 6 of 49',
     lot_us_name:'US Powerball', lot_us_draw:'Mon, Wed, Sat · 5/69 + Powerball',
-    lot_jp_name:'Japan Loto 6', lot_jp_draw:'Mon & Thu · 6/43 + Bonus',
+    lot_jp_name:'Japan Loto 6', lot_jp_draw:'Mon & Thu · Pick 6 of 43',
+    untracked_tag:'Just for fun · not auto-checked',
+    draw_on:'Draw on {wd} {md}',
+    wd_0:'Sun', wd_1:'Mon', wd_2:'Tue', wd_3:'Wed', wd_4:'Thu', wd_5:'Fri', wd_6:'Sat',
+    saving:'Saving...', save_failed:'Save failed, please try again', saved_ok:'✓ Saved!',
+    done_title:'{name} joined the leaderboard!', done_country:'Now representing {country}',
+    done_sub_untracked:'Just for fun — these numbers are not auto-checked',
     status_pending:'Pending', status_no_win:'No Win', status_win:'Won',
   },
   ja: {
@@ -954,7 +951,7 @@ const I18N = {
     same_cat_title:'🐱 同じ名前の猫がいます。この猫ですか？',
     same_cat_yes:'同じ猫！記録を累積する',
     same_cat_no:'違います、新しい猫を作成',
-    done_sub:'抽選後に自動確認。当選した場合はお知らせします！',
+    done_sub:'抽選後に自動照合し、結果はマイ猫記録に表示されます',
     done_home:'ホームに戻る',
     done_rank:'グローバルランキングを見る',
     auth_title:'ログイン / 登録',
@@ -975,9 +972,15 @@ const I18N = {
     forgot_success:'✅ リセットリンクを送信しました！受信箱を確認してください。',
     profile_title:'マイアカウント',
     profile_my_cats:'マイ猫',
-    lot_tw_name:'台湾宝くじ', lot_tw_draw:'火・金 · 6/49 + 特別号',
+    lot_tw_name:'台湾宝くじ', lot_tw_draw:'火・金 · 49から6つ',
     lot_us_name:'USパワーボール', lot_us_draw:'月・水・土 · 5/69 + Powerball',
-    lot_jp_name:'ロト6', lot_jp_draw:'月・木 · 6/43 + ボーナス',
+    lot_jp_name:'ロト6', lot_jp_draw:'月・木 · 43から6つ',
+    untracked_tag:'お楽しみ用・自動照合なし',
+    draw_on:'{md}（{wd}）抽選',
+    wd_0:'日', wd_1:'月', wd_2:'火', wd_3:'水', wd_4:'木', wd_5:'金', wd_6:'土',
+    saving:'保存中...', save_failed:'保存に失敗しました。もう一度お試しください', saved_ok:'✓ 保存しました！',
+    done_title:'{name} がランキングに参加しました！', done_country:'{country} 代表として参戦中',
+    done_sub_untracked:'お楽しみ用の番号のため、自動照合は行いません',
     status_pending:'抽選待ち', status_no_win:'外れ', status_win:'当選',
   }
 };
@@ -1027,12 +1030,19 @@ function updateLotsDisplay() {
   });
 }
 
-const LOTS = {
-  tw:{name:'台灣大樂透',flag:'🇹🇼',draw:'週二、週五',color:'#7F77DD',main:{count:6,max:49},sp:{count:1,max:49}},
-  us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26}},
-  jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四',color:'#1D9E75',main:{count:6,max:43},sp:{count:1,max:43}},
-};
-const GEMINI_KEY = 'AIzaSyA8Qprh1LlW5dXwC_Vq0YIR3V3Zz7lvMx0';
+// 樂透顯示資訊：規則來自 js/lottery.js，名稱跟著目前語言
+function lotInfo(key) {
+  var l = Lottery.LOTS[key];
+  return { key: key, flag: l.flag, tracked: l.tracked,
+           name: t('lot_' + key + '_name'), draw: t('lot_' + key + '_draw') };
+}
+
+// 開獎日顯示文字，例如「10/24（五）開獎」
+function drawDateText(iso) {
+  var d = Lottery.dateLabel(iso);
+  if (!d) return '';
+  return t('draw_on').replace('{md}', d.md).replace('{wd}', t('wd_' + d.wd));
+}
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1177,9 +1187,10 @@ function selectLot(key) {
 function setVerifyBar(state, msg) {
   const bar = document.getElementById('verify-bar');
   bar.className = 'verify-bar ' + state;
-  if (state === 'checking') bar.innerHTML = '<div class="verify-spin"></div><span>' + msg + '</span>';
-  else if (state === 'pass') bar.innerHTML = '<span>✅</span><span>' + msg + '</span>';
-  else if (state === 'fail') bar.innerHTML = '<span>❌</span><span>' + msg + '</span>';
+  var m = Safe.esc(msg);
+  if (state === 'checking') bar.innerHTML = '<div class="verify-spin"></div><span>' + m + '</span>';
+  else if (state === 'pass') bar.innerHTML = '<span>✅</span><span>' + m + '</span>';
+  else if (state === 'fail') bar.innerHTML = '<span>❌</span><span>' + m + '</span>';
   else bar.style.display = 'none';
 }
 
@@ -1223,6 +1234,21 @@ async function verifyWithTFJS(img) {
   }
 }
 
+// 等比縮小到長邊 maxSide，輸出 JPEG；若超過 maxChars 就逐步降低品質
+// （Firestore 單筆上限 1MB，Base64 會比原檔大約三分之一）
+function resizePhoto(img, maxSide, quality, maxChars) {
+  var w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+  var scale = Math.min(1, maxSide / Math.max(w, h));
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
+  var ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, canvas.width, canvas.height);  // 透明 PNG 轉 JPEG 時避免變黑底
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  var q = quality, out = canvas.toDataURL('image/jpeg', q);
+  while (out.length > maxChars && q > 0.4) { q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
+  return out;
+}
+
 async function handleFile(input) {
   const file = input.files[0];
   if (!file) return;
@@ -1246,14 +1272,9 @@ async function handleFile(input) {
   reader.onload = async function(e) {
     var img = new Image();
     img.onload = async function() {
-      var canvas = document.createElement('canvas');
-      var MAX = 400; var w = img.width; var h = img.height;
-      if (w > h) { if (w > MAX) { h = h * MAX / w; w = MAX; } }
-      else       { if (h > MAX) { w = w * MAX / h; h = MAX; } }
-      canvas.width = w; canvas.height = h;
-      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-      var dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-      if (window._state) window._state.photoDataUrl = dataUrl;
+      // 大圖給分享圖卡用；縮圖給列表用
+      window._state.photoCard  = resizePhoto(img, 1080, 0.85, 700000);
+      window._state.photoThumb = resizePhoto(img, 320, 0.75, 60000);
 
       var result = await verifyWithTFJS(img);
       if (!result.is_pet) {
@@ -1271,33 +1292,23 @@ async function handleFile(input) {
   reader.readAsDataURL(file);
 }
 
-function pickNums(lot) {
-  var m = [];
-  while (m.length < lot.main.count) { var n = Math.floor(Math.random() * lot.main.max) + 1; if (!m.includes(n)) m.push(n); }
-  m.sort(function(a,b){return a-b;});
-  var s = [];
-  while (s.length < lot.sp.count) { var n = Math.floor(Math.random() * lot.sp.max) + 1; if (!m.includes(n) && !s.includes(n)) s.push(n); }
-  return {main: m, special: s};
-}
-
 function startGenerate() {
   if (!window._state || !window._state.hasPhoto) return;
-  var lot = LOTS[window._state.curLot];
+  var lot = lotInfo(window._state.curLot);
   document.getElementById('loading-lot-name').textContent = lot.flag + ' ' + lot.name;
   showPage('loading');
   setTimeout(function() {
-    var nums = pickNums(lot);
-    if (window._state) window._state.currentNums = nums;
-    renderShareCard(nums);
+    window._state.pickedAt = new Date();
+    window._state.currentNums = Lottery.pick(window._state.curLot);
+    renderShareCard(window._state.currentNums);
     showPage('result');
   }, 2600);
 }
 
 function renderShareCard(nums) {
-  var lot = LOTS[window._state ? window._state.curLot : 'tw'];
-  var today = new Date();
-  var dateStr = today.getFullYear() + '.' + String(today.getMonth()+1).padStart(2,'0') + '.' + String(today.getDate()).padStart(2,'0');
-  document.getElementById('share-date').textContent = dateStr;
+  var lot = lotInfo(window._state.curLot);
+  var target = Lottery.targetDrawDate(lot.key, window._state.pickedAt);
+  document.getElementById('share-date').textContent = target ? drawDateText(target) : Lottery.todayDot(window._state.pickedAt);
   document.getElementById('share-won-txt').textContent = lot.flag + ' ' + lot.name;
   var bar = document.getElementById('share-numbers-bar'); bar.innerHTML = '';
   nums.main.forEach(function(n) { var d = document.createElement('div'); d.className = 'share-ball'; d.textContent = String(n).padStart(2,'0'); bar.appendChild(d); });
@@ -1333,8 +1344,9 @@ function showSameCatBlock(cat) {
   var photo = document.getElementById('same-cat-photo');
   var nameTxt = document.getElementById('same-cat-name-txt');
   var stats = document.getElementById('same-cat-stats');
-  if (cat.photoThumb) {
-    photo.innerHTML = '<img src="' + cat.photoThumb + '" style="width:100%;height:100%;object-fit:cover"/>';
+  var src = Safe.img(cat.photoThumb);
+  if (src) {
+    photo.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>';
   } else {
     photo.innerHTML = '🐱';
   }
@@ -1361,27 +1373,35 @@ async function confirmAndSave() {
   var name = document.getElementById('cat-name-input').value.trim();
   if (!name) return;
   var btn = document.getElementById('confirm-btn');
-  btn.textContent = '儲存中...'; btn.classList.add('disabled');
+  if (btn.classList.contains('disabled')) return;   // 防止連點存兩次
+  btn.textContent = t('saving'); btn.classList.add('disabled');
 
-  // 決定 catId：用同一隻貓 or 建新貓
-  var catId = null;
-  if (_useExistingCat && _sameCatData) {
-    // 沿用舊 catId，更新照片
-    catId = await window._upsertCat(_sameCatData.id, name, false);
-  } else {
-    // 建立新貓
-    catId = await window._upsertCat(null, name, true);
+  var saved;
+  try {
+    saved = await window._saveDraw(name, (_useExistingCat && _sameCatData) ? _sameCatData.id : null);
+  } catch (e) {
+    console.error('saveDraw error:', e);
+    showToast(t('save_failed'));
+    btn.textContent = t('name_confirm'); btn.classList.remove('disabled');
+    return;
   }
-  await window._saveRecord(name, catId);
-  var lot = LOTS[window._state.curLot];
-  var loc = window._state.userLocation;
-  document.getElementById('done-title').textContent = name + ' 已加入排行榜！';
-  document.getElementById('done-country').textContent = '現在代表 ' + loc.country + ' 參賽';
-  document.getElementById('done-lot-label').textContent = lot.flag + ' ' + lot.name + ' · ' + lot.draw + ' 開獎';
-  var db2 = document.getElementById('done-balls'); db2.innerHTML = '';
+
+  var lot  = lotInfo(window._state.curLot);
+  var loc  = window._state.userLocation;
   var nums = window._state.currentNums;
+  document.getElementById('done-title').textContent = t('done_title').replace('{name}', name);
+  document.getElementById('done-country').textContent = t('done_country').replace('{country}', loc.country);
+  document.getElementById('done-sub').textContent = lot.tracked ? t('done_sub') : t('done_sub_untracked');
+  document.getElementById('done-lot-label').textContent = lot.flag + ' ' + lot.name + ' · '
+    + (saved.targetDrawDate ? drawDateText(saved.targetDrawDate) : t('untracked_tag'));
+  var db2 = document.getElementById('done-balls'); db2.innerHTML = '';
   nums.main.forEach(function(n) { var d = document.createElement('div'); d.className = 'ball show'; d.textContent = String(n).padStart(2,'0'); db2.appendChild(d); });
   nums.special.forEach(function(n) { var d = document.createElement('div'); d.className = 'ball sp show'; d.textContent = String(n).padStart(2,'0'); db2.appendChild(d); });
+
+  // 這組號碼已存，清掉避免按上一頁再存一次
+  window._state.currentNums = null;
+  btn.textContent = t('name_confirm');
+  showToast(t('saved_ok'));
   showPage('done');
 }
 

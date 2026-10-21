@@ -1,0 +1,32 @@
+name: 資料庫唯讀檢查
+
+# 只讀取統計，不修改資料。結果貼在 PR #1 留言。
+on:
+  push:
+    branches: [fix/lottery-rules]
+    paths:
+      - 'scripts/inspect_db.py'
+      - '.github/workflows/inspect_db.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install firebase-admin
+      - name: 檢查資料庫
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: python scripts/inspect_db.py
+      - name: 貼到 PR 留言
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment 1 --repo ${{ github.repository }} --body-file inspect_result.md

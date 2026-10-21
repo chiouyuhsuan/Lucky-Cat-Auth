@@ -1,0 +1,18 @@
+// 2026-10-21 從線上讀回的備份：2026-07-28 發布的版本（ruleset 5fb6fd9c-7b7c-4291-8a34-4c9d183564a1）
+// 問題：任何登入者可讀寫刪除所有資料；未登入者無法讀取排行榜與貓咪牆
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 貓咪 / 排行榜 / 統計：公開可讀，只有登入者能寫
+    match /cats/{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // 其他集合：只有登入本人能讀寫
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}

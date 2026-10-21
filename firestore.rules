@@ -1,0 +1,160 @@
+rules_version = '2';
+
+// LuckyCat Firestore 安全規則
+// 原則：
+//   1. 所有人都能讀（排行榜、貓咪牆是公開的）
+//   2. 只有登入者能新增資料，而且只能用自己的 uid
+//   3. 中獎相關欄位（prizeLevel / prizeAmount / checkedAt / totalWins / totalPrize）
+//      前端一律不能改，只有 GitHub Actions 用 Admin SDK 寫入（Admin SDK 不受規則限制）
+//   4. 前端不能刪除任何資料
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnerOfNew() {
+      return signedIn() && request.resource.data.uid == request.auth.uid;
+    }
+
+    function isOwner() {
+      return signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // 照片：null，或 900KB 以內的 data:image 字串（Firestore 單筆上限 1MB）
+    function validPhoto(p) {
+      return p == null || (p is string && p.size() < 900000 && p.matches('^data:image/(png|jpe?g|webp);base64,.*'));
+    }
+
+    function validName(n) {
+      return n is string && n.size() >= 1 && n.size() <= 20;
+    }
+
+    function validText(t) {
+      return t is string && t.size() <= 100;
+    }
+
+    // ── 貓咪主檔 ─────────────────────────────────────────
+    match /cats/{catId} {
+      allow read: if true;
+
+      allow create: if isOwnerOfNew()
+        && request.resource.data.keys().hasOnly([
+             'uid', 'catName', 'photoThumb', 'country', 'countryCode', 'city',
+             'totalDraws', 'totalWins', 'totalPrize', 'createdAt', 'lastDrawAt'])
+        && validName(request.resource.data.catName)
+        && validPhoto(request.resource.data.photoThumb)
+        && validText(request.resource.data.country)
+        && validText(request.resource.data.countryCode)
+        && validText(request.resource.data.city)
+        && request.resource.data.totalDraws == 1
+        && request.resource.data.totalWins == 0
+        && request.resource.data.totalPrize == 0
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.lastDrawAt == request.time;
+
+      // 擁有者只能換照片、抽號次數 +1、更新最後抽號時間
+      allow update: if isOwner()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['photoThumb', 'totalDraws', 'lastDrawAt'])
+        && validPhoto(request.resource.data.photoThumb)
+        && request.resource.data.totalDraws == resource.data.totalDraws + 1
+        && request.resource.data.lastDrawAt == request.time;
+
+      allow delete: if false;
+    }
+
+    // ── 選號紀錄 ─────────────────────────────────────────
+    function ballOk(n, i, max) {
+      return n[i] is int && n[i] >= 1 && n[i] <= max;
+    }
+    function sixOk(n, max) {
+      return n.size() == 6 && n.toSet().size() == 6
+        && ballOk(n, 0, max) && ballOk(n, 1, max) && ballOk(n, 2, max)
+        && ballOk(n, 3, max) && ballOk(n, 4, max) && ballOk(n, 5, max);
+    }
+    function fiveOk(n, max) {
+      return n.size() == 5 && n.toSet().size() == 5
+        && ballOk(n, 0, max) && ballOk(n, 1, max) && ballOk(n, 2, max)
+        && ballOk(n, 3, max) && ballOk(n, 4, max);
+    }
+    // 各樂透的號碼規則：大樂透 49 選 6、Loto6 43 選 6（都沒有自選特別號）、Powerball 69 選 5 + 26 選 1
+    function numbersOk(d) {
+      return (d.lotType == 'tw' && sixOk(d.numbers, 49) && d.special.size() == 0
+                && d.tracked == true && d.targetDrawDate is string
+                && d.targetDrawDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
+          || (d.lotType == 'jp' && sixOk(d.numbers, 43) && d.special.size() == 0
+                && d.tracked == false && d.targetDrawDate == null)
+          || (d.lotType == 'us' && fiveOk(d.numbers, 69) && d.special.size() == 1
+                && ballOk(d.special, 0, 26) && d.tracked == false && d.targetDrawDate == null);
+    }
+
+    match /draws/{drawId} {
+      allow read: if true;
+
+      allow create: if isOwnerOfNew()
+        && request.resource.data.keys().hasOnly([
+             'schema', 'uid', 'catId', 'catName', 'lotType', 'lotName', 'lotFlag',
+             'numbers', 'special', 'targetDrawDate', 'tracked', 'purchased',
+             'country', 'countryCode', 'city', 'date',
+             'photoThumb', 'createdAt', 'prizeLevel', 'prizeAmount'])
+        && request.resource.data.schema == 2
+        && validName(request.resource.data.catName)
+        && validPhoto(request.resource.data.photoThumb)
+        && request.resource.data.numbers is list
+        && request.resource.data.special is list
+        && numbersOk(request.resource.data)
+        && request.resource.data.purchased == false
+        && validText(request.resource.data.lotName)
+        && validText(request.resource.data.lotFlag)
+        && validText(request.resource.data.country)
+        && validText(request.resource.data.countryCode)
+        && validText(request.resource.data.city)
+        && validText(request.resource.data.date)
+        // 選號一定要掛在自己的貓底下（同一個 batch 裡建立或更新的貓也算）
+        && request.resource.data.catId is string
+        && getAfter(/databases/$(database)/documents/cats/$(request.resource.data.catId)).data.uid == request.auth.uid
+        && request.resource.data.prizeLevel == 0
+        && request.resource.data.prizeAmount == 0
+        && request.resource.data.createdAt == request.time;
+
+      // 對獎結果只能由後端寫入；「我買了」在第 4 段開放
+      allow update, delete: if false;
+    }
+
+    // ── 圖卡用大圖 ───────────────────────────────────────
+    // 文件 ID 與選號紀錄相同；只能和自己的選號在同一個 batch 一起建立
+    match /photos/{drawId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'data'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.data is string
+        && request.resource.data.data.size() < 900000
+        && request.resource.data.data.matches('^data:image/jpeg;base64,.*')
+        && getAfter(/databases/$(database)/documents/draws/$(drawId)).data.uid == request.auth.uid
+        && !exists(/databases/$(database)/documents/draws/$(drawId));
+      allow update, delete: if false;
+    }
+
+    // ── 全站統計（已停用）────────────────────────────────
+    // 首頁改用即時計數，前端不再寫入這份文件
+    match /stats/{doc} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ── 開獎結果（後端寫入）─────────────────────────────
+    match /draws_results/{resultId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // 其他集合一律拒絕
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,74 @@
+name: 台灣大樂透自動對獎
+
+# 每天跑兩次（台灣時間 21:45、隔天 09:45）：
+#   - 春節等特殊期間台彩會連續多天開獎，每天跑才不會漏
+#   - 早上那次補抓前一晚較晚公布的獎金
+# 重複執行是安全的，已對過獎的不會重算。
+on:
+  schedule:
+    - cron: '45 13 * * *'   # 台灣 21:45
+    - cron: '45 1 * * *'    # 台灣 09:45
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: '只試跑、不寫入資料庫'
+        type: boolean
+        default: false
+  # 修改對獎程式時，自動用正式資料試跑一次（不寫入），結果貼到 PR
+  push:
+    branches-ignore: [main]
+    paths:
+      - 'scripts/lottery_job.py'
+      - 'scripts/lottery_rules.py'
+      - '.github/workflows/lottery.yml'
+
+permissions:
+  contents: read
+  actions: write          # 防止排程因 60 天無活動被停用
+  pull-requests: write    # 試跑結果貼到 PR
+
+concurrency:
+  group: lottery
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install firebase-admin requests
+
+      - name: 單元測試（對獎規則）
+        run: python -m unittest discover -s tests -p "test_*.py"
+
+      - name: 執行對獎
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          DRY: ${{ github.event_name == 'push' || inputs.dry_run == true }}
+          LEGACY: ${{ github.event_name == 'push' }}
+        run: |
+          ARGS=""
+          if [ "$DRY" = "true" ]; then ARGS="--dry-run"; fi
+          if [ "$LEGACY" = "true" ]; then ARGS="$ARGS --include-legacy"; fi
+          python scripts/lottery_job.py $ARGS
+          cat lottery_summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 試跑結果貼到 PR
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR=$(gh pr list --repo ${{ github.repository }} --head "${GITHUB_REF_NAME}" --json number --jq '.[0].number')
+          if [ -n "$PR" ]; then gh pr comment "$PR" --repo ${{ github.repository }} --body-file lottery_summary.md; fi
+
+      # GitHub 會停用 60 天沒有活動的 repo 的排程（之前 7 月就是這樣停掉的）。
+      # 每次排程執行時重新啟用自己，重置這個計時。
+      - name: 保持排程啟用
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/lottery.yml/enable"
