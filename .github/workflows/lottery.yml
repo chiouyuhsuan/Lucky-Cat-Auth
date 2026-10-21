@@ -14,6 +14,10 @@ on:
         description: '只試跑、不寫入資料庫'
         type: boolean
         default: false
+      fix_legacy:
+        description: '只修正指定的舊紀錄（選號 ID，逗號分隔）'
+        type: string
+        default: ''
   # 修改對獎程式時，自動用正式資料試跑一次（不寫入），結果貼到 PR
   push:
     branches-ignore: [main]
@@ -50,12 +54,20 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           DRY: ${{ github.event_name == 'push' || inputs.dry_run == true }}
           LEGACY: ${{ github.event_name == 'push' }}
+          FIX_LEGACY: ${{ inputs.fix_legacy }}
         run: |
           ARGS=""
+          if [ -n "$FIX_LEGACY" ]; then ARGS="--fix-legacy $FIX_LEGACY"; fi
           if [ "$DRY" = "true" ]; then ARGS="--dry-run"; fi
           if [ "$LEGACY" = "true" ]; then ARGS="$ARGS --include-legacy"; fi
           python scripts/lottery_job.py $ARGS
           cat lottery_summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 指定修正的結果留存在 PR #1
+        if: inputs.fix_legacy != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment 1 --repo ${{ github.repository }} --body-file lottery_summary.md
 
       - name: 試跑結果貼到 PR
         if: github.event_name == 'push'
