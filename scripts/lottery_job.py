@@ -206,10 +206,26 @@ def main():
             out.append(f'| `{draw_id[:6]}`{mark} | {to_tw(d["createdAt"]):%m/%d %H:%M} | {old} | {new} |')
 
     # 5. 重算每隻貓的統計（只算台灣大樂透，舊紀錄沿用其現有結果直到第 7 段重算）
+    cats = [(c.id, c.reference, c.to_dict()) for c in db.collection('cats').stream()]
+    # 舊選號有些沒有 catId，用「同一使用者＋同一貓名」對應（與個人頁的做法相同）；對應到多隻就放棄
+    by_name = defaultdict(list)
+    for cid, _, c in cats:
+        by_name[(c.get('uid'), c.get('catName'))].append(cid)
+
+    def cat_of(d):
+        if d.get('catId'):
+            return d['catId']
+        ids = by_name.get((d.get('uid'), d.get('catName'))) or []
+        return ids[0] if len(ids) == 1 else None
+
     per_cat = defaultdict(lambda: {'twDraws': 0, 'checked': 0, 'wins': 0, 'prize': 0, 'bestLevel': 0})
+    unlinked = 0
     for _, _, d in all_draws:
-        cid = d.get('catId')
-        if not cid or d.get('lotType') != 'tw' or d.get('tracked') is False:
+        if d.get('lotType') != 'tw' or d.get('tracked') is False:
+            continue
+        cid = cat_of(d)
+        if not cid:
+            unlinked += 1
             continue
         s = per_cat[cid]
         s['twDraws'] += 1
@@ -222,17 +238,17 @@ def main():
                 s['bestLevel'] = lv if not s['bestLevel'] else min(s['bestLevel'], lv)
 
     changed = []
-    for cat in db.collection('cats').stream():
-        c = cat.to_dict()
-        s = per_cat.get(cat.id, {'twDraws': 0, 'checked': 0, 'wins': 0, 'prize': 0, 'bestLevel': 0})
+    for cid, ref, c in cats:
+        s = per_cat.get(cid, {'twDraws': 0, 'checked': 0, 'wins': 0, 'prize': 0, 'bestLevel': 0})
         s = dict(s, winRate=round(s['wins'] / s['checked'], 4) if s['checked'] else 0)
         if c.get('stats') == s and c.get('totalWins') == s['wins'] and c.get('totalPrize') == s['prize']:
             continue
-        changed.append((cat.id, c, s))
+        changed.append((cid, c, s))
         if not dry:
-            cat.reference.update({'stats': s, 'totalWins': s['wins'], 'totalPrize': s['prize'],
-                                  'lastCheckedAt': firestore.SERVER_TIMESTAMP})
-    out += ['', '### 貓咪統計', f'- 需要更新 {len(changed)} 隻']
+            ref.update({'stats': s, 'totalWins': s['wins'], 'totalPrize': s['prize'],
+                        'lastCheckedAt': firestore.SERVER_TIMESTAMP})
+    out += ['', '### 貓咪統計', f'- 需要更新 {len(changed)} 隻'
+            + (f'；{unlinked} 筆大樂透選號對應不到貓（第 7 段處理）' if unlinked else '')]
     for cid, c, s in changed:
         out.append(f'- `{cid[:6]}`：中獎 {c.get("totalWins", 0)}→{s["wins"]}、獎金 {c.get("totalPrize", 0)}→{s["prize"]}、'
                    f'大樂透 {s["twDraws"]} 筆（已對 {s["checked"]}）')
