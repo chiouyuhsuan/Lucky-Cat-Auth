@@ -58,7 +58,7 @@ jobs:
         run: |
           ARGS=""
           if [ -n "$FIX_LEGACY" ]; then ARGS="--fix-legacy $FIX_LEGACY"; fi
-          if [ "$DRY" = "true" ]; then ARGS="--dry-run"; fi
+          if [ "$DRY" = "true" ]; then ARGS="$ARGS --dry-run"; fi
           if [ "$LEGACY" = "true" ]; then ARGS="$ARGS --include-legacy"; fi
           python scripts/lottery_job.py $ARGS
           cat lottery_summary.md >> "$GITHUB_STEP_SUMMARY"
