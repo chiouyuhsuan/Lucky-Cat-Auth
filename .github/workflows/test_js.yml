@@ -1,0 +1,18 @@
+name: 前端單元測試
+
+on:
+  pull_request:
+    paths: ['js/**', 'tests/lottery.test.mjs', '.github/workflows/test_js.yml']
+  push:
+    branches: [main]
+    paths: ['js/**', 'tests/lottery.test.mjs']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm run test:js

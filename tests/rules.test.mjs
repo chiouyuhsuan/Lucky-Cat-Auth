@@ -97,7 +97,23 @@ await t('不能掛在不存在的貓底下', () => assertFails(saveBatch(alice, 
 await t('舊格式（沒有 schema）不能再寫入', () => assertFails(saveBatch(alice, (({schema, ...r}) => r)(newDraw('alice')))));
 await setDoc(doc(alice, 'draws/fixed'), newDraw('alice'));
 await t('擁有者不能改成中獎', () => assertFails(updateDoc(doc(alice, 'draws/fixed'), { prizeLevel: 1 })));
-await t('擁有者暫時不能改已購買（第 4 段開放）', () => assertFails(updateDoc(doc(alice, 'draws/fixed'), { purchased: true })));
+console.log('我買了');
+await setDoc(doc(alice, 'draws/future'), newDraw('alice', { targetDrawDate: '2099-12-31' }));
+await setDoc(doc(alice, 'draws/past'), newDraw('alice', { targetDrawDate: '2020-01-03' }));
+await t('開獎前可標記已買', () => assertSucceeds(updateDoc(doc(alice, 'draws/future'), { purchased: true, purchasedAt: serverTimestamp() })));
+await t('開獎前可取消已買', () => assertSucceeds(updateDoc(doc(alice, 'draws/future'), { purchased: false, purchasedAt: serverTimestamp() })));
+await t('開獎日 20:00 之後不能改', () => assertFails(updateDoc(doc(alice, 'draws/past'), { purchased: true, purchasedAt: serverTimestamp() })));
+await t('別人不能幫我標記', () => assertFails(updateDoc(doc(bob, 'draws/future'), { purchased: true, purchasedAt: serverTimestamp() })));
+await t('不能順便改號碼', () => assertFails(updateDoc(doc(alice, 'draws/future'), { purchased: true, purchasedAt: serverTimestamp(), numbers: [1,2,3,4,5,7] })));
+await t('不能順便改中獎', () => assertFails(updateDoc(doc(alice, 'draws/future'), { purchased: true, purchasedAt: serverTimestamp(), prizeLevel: 1 })));
+await t('purchased 必須是 true/false', () => assertFails(updateDoc(doc(alice, 'draws/future'), { purchased: 'yes', purchasedAt: serverTimestamp() })));
+await t('purchasedAt 必須是伺服器時間', () => assertFails(updateDoc(doc(alice, 'draws/future'), { purchased: true, purchasedAt: new Date('2099-01-01') })));
+await env.withSecurityRulesDisabled(c => setDoc(doc(c.firestore(), 'draws/checked'), { ...newDraw('alice', { targetDrawDate: '2099-12-31' }), createdAt: 1, checkedAt: 1 }));
+await t('已對獎的不能改', () => assertFails(updateDoc(doc(alice, 'draws/checked'), { purchased: true, purchasedAt: serverTimestamp() })));
+await setDoc(doc(alice, 'draws/jp'), newDraw('alice', { lotType: 'jp', tracked: false, targetDrawDate: null }));
+await t('不對獎的美日樂透不能標記', () => assertFails(updateDoc(doc(alice, 'draws/jp'), { purchased: true, purchasedAt: serverTimestamp() })));
+await env.withSecurityRulesDisabled(c => setDoc(doc(c.firestore(), 'draws/legacy'), { uid: 'alice', lotType: 'tw', numbers: [1,2,3,4,5,6], special: [7], createdAt: 1 }));
+await t('舊格式紀錄不能標記', () => assertFails(updateDoc(doc(alice, 'draws/legacy'), { purchased: true, purchasedAt: serverTimestamp() })));
 await t('不能刪選號', () => assertFails(deleteDoc(doc(alice, 'draws/fixed'))));
 await t('任何人可讀選號', () => assertSucceeds(getDoc(doc(guest, 'draws/fixed'))));
 
