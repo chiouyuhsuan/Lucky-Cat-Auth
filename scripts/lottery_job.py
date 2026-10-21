@@ -217,6 +217,8 @@ def main():
                 out.append(f'- `{i}`：已經對過獎，略過（整批重算在第 7 段處理）'); continue
             before = {k: (str(v) if hasattr(v, 'timestamp') else v)
                       for k, v in sorted(d.items()) if k != 'photoThumb'}
+            if before.get('uid'):   # repo 公開，使用者編號只留末 4 碼
+                before['uid'] = '…' + str(before['uid'])[-4:]
             out += [f'- `{i}` 修改前完整內容（照片除外）：', '```json',
                     json.dumps(before, ensure_ascii=False, default=str, indent=1), '```']
             ok.append((i, r, d))
