@@ -1,0 +1,32 @@
+name: 暫時：探查台彩 API 欄位
+
+on:
+  push:
+    branches: [fix/lottery-rules]
+    paths: ['.github/workflows/probe_api.yml']
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 呼叫官方 API
+        run: |
+          B=https://api.taiwanlottery.com/TLCAPIWeB/Lottery
+          {
+            echo '## 台彩 API 探查（暫時性，第 3 段用）'
+            for u in "Lotto649Result?period&month=2026-10&pageNum=1&pageSize=50" \
+                     "Lotto649Result?period=115000098&month&pageNum=1&pageSize=1" \
+                     "Lotto649Result?period&month=2026-02&pageNum=1&pageSize=50"; do
+              echo; echo "### $u"; echo '```json'
+              curl -sS --max-time 30 -H 'User-Agent: Mozilla/5.0' "$B/$u" | python3 -c "import sys,json; d=json.load(sys.stdin); print(json.dumps(d,ensure_ascii=False,indent=1)[:6000])" || echo FAILED
+              echo '```'
+            done
+          } > out.md
+      - name: 貼到 PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment 1 --repo ${{ github.repository }} --body-file out.md
