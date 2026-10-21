@@ -1,0 +1,53 @@
+name: 暫時：讀取線上安全規則
+
+on:
+  push:
+    branches: [fix/lottery-rules]
+    paths: ['.github/workflows/probe_rules.yml']
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install google-auth requests
+      - name: 讀取目前發布中的 Firestore 規則與權限
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          python - <<'PY'
+          import os, json, requests
+          from google.oauth2 import service_account
+          from google.auth.transport.requests import Request
+          info = json.loads(os.environ['FIREBASE_SERVICE_ACCOUNT'])
+          cred = service_account.Credentials.from_service_account_info(info, scopes=['https://www.googleapis.com/auth/cloud-platform'])
+          cred.refresh(Request())
+          H = {'Authorization': 'Bearer ' + cred.token}
+          pid = info['project_id']
+          out = ['## 線上安全規則（備份）', f'專案：`{pid}`', '']
+          r = requests.get(f'https://firebaserules.googleapis.com/v1/projects/{pid}/releases/cloud.firestore', headers=H)
+          out.append(f'- 讀取發布紀錄：HTTP {r.status_code}')
+          if r.ok:
+              rel = r.json()
+              out.append(f'- 目前規則版本：`{rel["rulesetName"].split("/")[-1]}`，更新時間 {rel.get("updateTime")}')
+              rs = requests.get(f'https://firebaserules.googleapis.com/v1/{rel["rulesetName"]}', headers=H).json()
+              src = rs['source']['files'][0]['content']
+              out += ['', '```', src, '```']
+          else:
+              out.append('```\n' + r.text[:800] + '\n```')
+          # 測試權限（不會改任何東西）
+          perms = ['firebaserules.rulesets.create', 'firebaserules.releases.update', 'firebaserules.releases.create']
+          t = requests.post(f'https://cloudresourcemanager.googleapis.com/v1/projects/{pid}:testIamPermissions', headers=H, json={'permissions': perms})
+          out += ['', f'- 發布規則所需權限：HTTP {t.status_code} → 擁有 {t.json().get("permissions") if t.ok else t.text[:300]}']
+          open('out.md', 'w').write('\n'.join(out))
+          PY
+      - name: 貼到 PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh pr comment 1 --repo ${{ github.repository }} --body-file out.md
