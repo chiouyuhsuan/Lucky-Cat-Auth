@@ -370,27 +370,16 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
+<script src="js/safe.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
+import { auth, db } from "./js/firebase.js";
+import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
          createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, collection, addDoc, getDocs, doc, setDoc, getDoc,
+import { collection, addDoc, getDocs, doc, setDoc, getDoc,
          query, orderBy, limit, serverTimestamp, updateDoc, increment, where }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAP90Ihnh_ekNcchfPxdX-VuKdGmNDrktE",
-  authDomain: "pangfu-pangji.firebaseapp.com",
-  projectId: "pangfu-pangji",
-  storageBucket: "pangfu-pangji.firebasestorage.app",
-  messagingSenderId: "966100033494",
-  appId: "1:966100033494:web:b03e4664570ffe9a24ce77"
-};
-
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const { esc, img, int, ball } = window.Safe;
 
 window._state = {
   user: null, photoDataUrl: null, hasPhoto: false,
@@ -426,12 +415,13 @@ onAuthStateChanged(auth, user => {
   const navRight = document.getElementById('nav-right');
   if (user) {
     const name = user.displayName || (user.email ? user.email.split('@')[0] : '用戶');
-    const photo = user.photoURL
-      ? '<img class="nav-user-photo" src="' + user.photoURL + '" onerror="this.style.display=\'none\'"/>'
-      : '<div class="nav-user-avatar">' + name.charAt(0).toUpperCase() + '</div>';
+    const photoUrl = img(user.photoURL);
+    const photo = photoUrl
+      ? '<img class="nav-user-photo" src="' + photoUrl + '" onerror="this.style.display=\'none\'"/>'
+      : '<div class="nav-user-avatar">' + esc(name.charAt(0).toUpperCase()) + '</div>';
     navRight.innerHTML = '<div class="nav-user-menu" id="nav-user-menu" onclick="window.toggleUserMenu()">'
       + photo
-      + '<span class="nav-user-name">' + name + '</span>'
+      + '<span class="nav-user-name">' + esc(name) + '</span>'
       + '<span style="font-size:10px;color:#888780;margin-left:2px">▾</span>'
       + '<div class="nav-dropdown" id="nav-dropdown">'
       + '<div class="nav-dropdown-item" onclick="event.stopPropagation();window.showPage(\'profile\')">🐱 我的貓咪紀錄</div>'
@@ -618,14 +608,15 @@ async function loadHomeData() {
     }
     const rankColors = ['#BA7517','#888780','#993C1D'];
     el.innerHTML = items.map((item,i) => {
-      const photo = item.photoThumb ? '<img src="' + item.photoThumb + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱';
+      const src = img(item.photoThumb);
+      const photo = src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱';
       const loc = [item.city, item.country].filter(Boolean).join(', ');
       return '<div class="rank-item">'
         + '<span style="font-size:13px;font-weight:500;color:' + (rankColors[i]||'#AFA9EC') + ';min-width:20px">' + (i+1) + '</span>'
         + '<div class="rank-avatar">' + photo + '</div>'
-        + '<div style="flex:1"><p style="font-size:14px;font-weight:500;margin:0">' + (item.catName||'') + '</p>'
-        + '<p style="font-size:12px;color:#888780;margin:0">' + loc + ' · ' + (item.lotName||'') + '</p></div>'
-        + '<span class="tag" style="background:#FAEEDA;color:#633806">' + (item.date||'') + '</span>'
+        + '<div style="flex:1"><p style="font-size:14px;font-weight:500;margin:0">' + esc(item.catName) + '</p>'
+        + '<p style="font-size:12px;color:#888780;margin:0">' + esc(loc) + ' · ' + esc(item.lotName) + '</p></div>'
+        + '<span class="tag" style="background:#FAEEDA;color:#633806">' + esc(item.date) + '</span>'
         + '</div>';
     }).join('');
   } catch {}
@@ -647,9 +638,9 @@ window._renderProfile = async function() {
   const user = window._state.user;
   const displayName = user.displayName || user.email || '用戶';
   el.innerHTML = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
-    + (user.photoURL ? '<img src="' + user.photoURL + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>')
-    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + displayName + '</p>'
-    + '<p style="font-size:12px;color:#888780;margin:0">' + (user.email||'') + '</p></div></div>'
+    + (img(user.photoURL) ? '<img src="' + img(user.photoURL) + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>')
+    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + esc(displayName) + '</p>'
+    + '<p style="font-size:12px;color:#888780;margin:0">' + esc(user.email) + '</p></div></div>'
     + '<div class="sec-title">我的貓咪</div>'
     + '<div id="my-cats-list"><div style="text-align:center;padding:16px;color:#888780;font-size:13px">載入中...</div></div>';
 
@@ -733,29 +724,30 @@ window._renderProfile = async function() {
       const cat = item.cat;
       const drawsHtml = item.draws.map(function(draw) {
         const nums = (draw.numbers||[]).map(function(n){
-          return '<div class="ball show" style="width:30px;height:30px;font-size:11px">'+String(n).padStart(2,'0')+'</div>';
+          return '<div class="ball show" style="width:30px;height:30px;font-size:11px">'+ball(n)+'</div>';
         }).join('');
         const special = (draw.special||[]).map(function(n){
-          return '<div class="ball sp show" style="width:30px;height:30px;font-size:11px">'+String(n).padStart(2,'0')+'</div>';
+          return '<div class="ball sp show" style="width:30px;height:30px;font-size:11px">'+ball(n)+'</div>';
         }).join('');
         const checked = !!draw.checkedAt;
-        const won = (draw.prizeLevel||0) > 0;
+        const won = int(draw.prizeLevel) > 0;
         const status = won
-          ? '<span class="tag" style="background:#EAF3DE;color:#27500A;font-size:10px">中獎'+draw.prizeLevel+'等</span>'
+          ? '<span class="tag" style="background:#EAF3DE;color:#27500A;font-size:10px">中獎'+int(draw.prizeLevel)+'等</span>'
           : checked
             ? '<span class="tag" style="background:#FCEBEB;color:#791F1F;font-size:10px">未中獎</span>'
             : '<span class="tag" style="background:#FAEEDA;color:#633806;font-size:10px">待開獎</span>';
         return '<div style="padding:10px 0;border-bottom:0.5px solid #F4F2FB">'
           + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-          + '<span style="font-size:12px;color:#534AB7">' + (draw.lotFlag||'') + ' ' + (draw.date||'') + '</span>'
+          + '<span style="font-size:12px;color:#534AB7">' + esc(draw.lotFlag) + ' ' + esc(draw.date) + '</span>'
           + status + '</div>'
           + '<div style="display:flex;gap:5px;flex-wrap:wrap">' + nums + special + '</div>'
-          + (won ? '<p style="font-size:11px;color:#27500A;margin:5px 0 0">獎金 $' + (draw.prizeAmount||0).toLocaleString() + '</p>' : '')
+          + (won ? '<p style="font-size:11px;color:#27500A;margin:5px 0 0">獎金 $' + int(draw.prizeAmount).toLocaleString() + '</p>' : '')
           + '</div>';
       }).join('');
 
-      const photo = cat.photoThumb
-        ? '<img src="'+cat.photoThumb+'" style="width:100%;height:100%;object-fit:cover"/>'
+      const catSrc = img(cat.photoThumb);
+      const photo = catSrc
+        ? '<img src="'+catSrc+'" style="width:100%;height:100%;object-fit:cover"/>'
         : '🐱';
       const winRateColor = item.winRate > 0 ? '#27500A' : '#888780';
 
@@ -764,7 +756,7 @@ window._renderProfile = async function() {
         + '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="toggleCat(\'cat-draws-'+idx+'\')">'
         + '<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;border:1.5px solid #CECBF6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">' + photo + '</div>'
         + '<div style="flex:1">'
-        + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + cat.catName + '</p>'
+        + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + esc(cat.catName) + '</p>'
         + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
         + '<span style="font-size:12px;color:#888780">抽了 <b style="color:#26215C">' + item.totalDraws + '</b> 次</span>'
         + '<span style="font-size:12px;color:#888780">中獎 <b style="color:#27500A">' + item.totalWins + '</b> 次</span>'
@@ -1032,7 +1024,6 @@ const LOTS = {
   us:{name:'US Powerball',flag:'🇺🇸',draw:'週一、三、六',color:'#D85A30',main:{count:5,max:69},sp:{count:1,max:26}},
   jp:{name:'日本 ロト6',flag:'🇯🇵',draw:'週一、週四',color:'#1D9E75',main:{count:6,max:43},sp:{count:1,max:43}},
 };
-const GEMINI_KEY = 'AIzaSyA8Qprh1LlW5dXwC_Vq0YIR3V3Zz7lvMx0';
 
 function showPage(name) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -1177,9 +1168,10 @@ function selectLot(key) {
 function setVerifyBar(state, msg) {
   const bar = document.getElementById('verify-bar');
   bar.className = 'verify-bar ' + state;
-  if (state === 'checking') bar.innerHTML = '<div class="verify-spin"></div><span>' + msg + '</span>';
-  else if (state === 'pass') bar.innerHTML = '<span>✅</span><span>' + msg + '</span>';
-  else if (state === 'fail') bar.innerHTML = '<span>❌</span><span>' + msg + '</span>';
+  var m = Safe.esc(msg);
+  if (state === 'checking') bar.innerHTML = '<div class="verify-spin"></div><span>' + m + '</span>';
+  else if (state === 'pass') bar.innerHTML = '<span>✅</span><span>' + m + '</span>';
+  else if (state === 'fail') bar.innerHTML = '<span>❌</span><span>' + m + '</span>';
   else bar.style.display = 'none';
 }
 
@@ -1333,8 +1325,9 @@ function showSameCatBlock(cat) {
   var photo = document.getElementById('same-cat-photo');
   var nameTxt = document.getElementById('same-cat-name-txt');
   var stats = document.getElementById('same-cat-stats');
-  if (cat.photoThumb) {
-    photo.innerHTML = '<img src="' + cat.photoThumb + '" style="width:100%;height:100%;object-fit:cover"/>';
+  var src = Safe.img(cat.photoThumb);
+  if (src) {
+    photo.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>';
   } else {
     photo.innerHTML = '🐱';
   }

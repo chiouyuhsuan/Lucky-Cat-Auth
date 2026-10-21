@@ -150,20 +150,12 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
   </div>
 </div>
 
+<script src="js/safe.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getFirestore, collection, getDocs, getDoc, doc, query, orderBy, limit, where }
+import { db } from "./js/firebase.js";
+import { collection, getDocs, getDoc, doc, query, orderBy, limit, where }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-const app = initializeApp({
-  apiKey:"AIzaSyAP90Ihnh_ekNcchfPxdX-VuKdGmNDrktE",
-  authDomain:"pangfu-pangji.firebaseapp.com",
-  projectId:"pangfu-pangji",
-  storageBucket:"pangfu-pangji.firebasestorage.app",
-  messagingSenderId:"966100033494",
-  appId:"1:966100033494:web:b03e4664570ffe9a24ce77"
-});
-const db = getFirestore(app);
+const { esc, img, int } = window.Safe;
 
 let allDraws = [];
 let currentFilter = 'all';
@@ -178,7 +170,7 @@ async function loadWall() {
     allDraws = [];
     snap.forEach(d => {
       const data = d.to_dict ? d.to_dict() : d.data();
-      if (data.photoThumb) allDraws.push({id: d.id, ...data});
+      if (img(data.photoThumb)) allDraws.push({id: d.id, ...data});
     });
 
     // 統計數字 - 用 cats 集合的實際數量
@@ -204,23 +196,29 @@ function renderWall(draws) {
   }
 
   wall.innerHTML = draws.map((item, idx) => {
-    const won     = (item.prizeLevel || 0) > 0;
+    const won     = int(item.prizeLevel) > 0;
     const loc     = [item.city, item.country].filter(Boolean).join(', ');
     const prize   = won
-      ? '<span class="cat-prize won">🏆 中獎 ' + item.prizeLevel + '等</span>'
+      ? '<span class="cat-prize won">🏆 中獎 ' + int(item.prizeLevel) + '等</span>'
       : item.checkedAt
         ? ''
         : '<span class="cat-prize pending">⏳ 待開獎</span>';
     const delay   = (idx % 20) * 0.05;
 
-    return '<div class="cat-card" style="animation-delay:' + delay + 's" onclick="window.openLightbox(' + JSON.stringify(JSON.stringify(item)) + ')">'
-      + '<img src="' + item.photoThumb + '" alt="' + (item.catName || '') + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'">'
+    // 點擊時用資料陣列的索引找回該筆，不再把整筆資料塞進 onclick 屬性
+    return '<div class="cat-card" style="animation-delay:' + delay + 's" data-idx="' + idx + '">'
+      + '<img src="' + img(item.photoThumb) + '" alt="' + esc(item.catName) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'">'
       + '<div class="cat-overlay">'
-      + '<div class="cat-name">' + (item.catName || '貓咪') + '</div>'
-      + '<div class="cat-loc">' + loc + '</div>'
+      + '<div class="cat-name">' + esc(item.catName || '貓咪') + '</div>'
+      + '<div class="cat-loc">' + esc(loc) + '</div>'
       + prize
       + '</div></div>';
   }).join('');
+  wall.querySelectorAll('.cat-card').forEach(function (card) {
+    card.addEventListener('click', function () {
+      window.openLightbox(draws[int(card.dataset.idx)]);
+    });
+  });
 }
 
 window._allDraws = () => allDraws;
@@ -244,13 +242,13 @@ function setFilter(f) {
   if (window._renderWall) window._renderWall(filtered);
 }
 
-function openLightbox(jsonStr) {
-  const item = JSON.parse(jsonStr);
-  document.getElementById('lightbox-img').src = item.photoThumb || '';
+function openLightbox(item) {
+  if (!item) return;
+  document.getElementById('lightbox-img').src = Safe.img(item.photoThumb);
   document.getElementById('lightbox-name').textContent = item.catName || '貓咪';
   const loc = [item.city, item.country].filter(Boolean).join('・');
-  const prize = (item.prizeLevel || 0) > 0
-    ? '  🏆 中獎 ' + item.prizeLevel + '等'
+  const prize = Safe.int(item.prizeLevel) > 0
+    ? '  🏆 中獎 ' + Safe.int(item.prizeLevel) + '等'
     : item.checkedAt ? '  未中獎' : '  ⏳ 待開獎';
   document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize;
   document.getElementById('lightbox').classList.add('show');

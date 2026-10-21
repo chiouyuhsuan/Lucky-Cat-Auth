@@ -156,23 +156,13 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
+<script src="js/safe.js"></script>
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { getFirestore, collection, getDocs, doc, getDoc, query, orderBy, limit, where }
+import { auth, db } from "./js/firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
+import { collection, getDocs, doc, getDoc, query, orderBy, limit, where }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-
-const cfg = {
-  apiKey:"AIzaSyAP90Ihnh_ekNcchfPxdX-VuKdGmNDrktE",
-  authDomain:"pangfu-pangji.firebaseapp.com",
-  projectId:"pangfu-pangji",
-  storageBucket:"pangfu-pangji.firebasestorage.app",
-  messagingSenderId:"966100033494",
-  appId:"1:966100033494:web:b03e4664570ffe9a24ce77"
-};
-const app = initializeApp(cfg);
-const auth = getAuth(app);
-const db   = getFirestore(app);
+const { esc, img, int, ball } = window.Safe;
 let me = null;
 onAuthStateChanged(auth, u => { me = u; window._me = u; rerender(); });
 
@@ -244,7 +234,7 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 // Aggregate per country
 const ccDraws={}, ccWins={}, ccPrize={}, ccNames={};
 draws.forEach(d => {
-  const cc = d.countryCode; if(!cc) return;
+  const cc = window.Safe.cc(d.countryCode); if(!cc) return;
   ccDraws[cc]  = (ccDraws[cc]||0)+1;
   ccNames[cc]  = d.country||cc;
   if(d.prizeAmount>0){
@@ -276,7 +266,7 @@ Object.keys(ccDraws).forEach(cc => {
   }).addTo(map);
 
   circle.bindTooltip(
-    `<strong>${fe} ${ccNames[cc]||cc}</strong><br>${count} 隻貓咪 · ${wins} 次中獎${prizeStr}`,
+    `<strong>${fe} ${esc(ccNames[cc]||cc)}</strong><br>${count} 隻貓咪 · ${wins} 次中獎${prizeStr}`,
     { direction:'top', offset:[0,-4], className:'leaflet-tooltip' }
   );
 
@@ -318,18 +308,19 @@ function renderList(items, user) {
   el.innerHTML=`<div class="rank-list">${items.map((d,i)=>{
     const isMe = uid&&d.uid===uid;
     const rc   = i===0?'#BA7517':i===1?'#888780':i===2?'#993C1D':'#AFA9EC';
-    const photo= d.photoThumb?`<img src="${d.photoThumb}" alt="${d.catName}"/>`:'🐱';
+    const src  = img(d.photoThumb);
+    const photo= src?`<img src="${src}" alt="${esc(d.catName)}"/>`:'🐱';
     const nums = [
-      ...(d.numbers||[]).map(n=>`<div class="b">${String(n).padStart(2,'0')}</div>`),
-      ...(d.special||[]).map(n=>`<div class="b sp">${String(n).padStart(2,'0')}</div>`)
+      ...(d.numbers||[]).map(n=>`<div class="b">${ball(n)}</div>`),
+      ...(d.special||[]).map(n=>`<div class="b sp">${ball(n)}</div>`)
     ].join('');
     const loc  = [d.city, d.country].filter(Boolean).join(', ');
-    const fe   = flagEmoji(d.countryCode||'');
+    const fe   = flagEmoji(window.Safe.cc(d.countryCode));
     // 三種狀態：已核對中獎 / 已核對未中獎 / 尚未核對(待開獎)
     const checked = !!d.checkedAt;
-    const won     = d.prizeLevel > 0;
+    const won     = int(d.prizeLevel) > 0;
     const prizeTag = won
-      ? `<div style="font-size:13px;font-weight:500;color:#3B6D11">$${(d.prizeAmount||0).toLocaleString()}</div><span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ${d.prizeLevel}等</span>`
+      ? `<div style="font-size:13px;font-weight:500;color:#3B6D11">$${int(d.prizeAmount).toLocaleString()}</div><span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ${int(d.prizeLevel)}等</span>`
       : checked
         ? `<span class="tag" style="background:#FCEBEB;color:#791F1F">未中獎</span>`
         : `<span class="tag" style="background:#F4F2FB;color:#888780">待開獎</span>`;
@@ -337,8 +328,8 @@ function renderList(items, user) {
       <div class="rc-num" style="color:${rc}">${i+1}</div>
       <div class="rc-photo">${photo}</div>
       <div class="rc-body">
-        <div class="rc-name">${d.catName||''}${isMe?'<span class="badge-me">我的</span>':''}</div>
-        <div class="rc-meta">${fe} ${loc} · ${d.lotFlag||''} ${d.lotName||''} · ${d.date||''}</div>
+        <div class="rc-name">${esc(d.catName)}${isMe?'<span class="badge-me">我的</span>':''}</div>
+        <div class="rc-meta">${fe} ${esc(loc)} · ${esc(d.lotFlag)} ${esc(d.lotName)} · ${esc(d.date)}</div>
         <div class="balls">${nums}</div>
       </div>
       <div class="rc-right">${prizeTag}</div>
