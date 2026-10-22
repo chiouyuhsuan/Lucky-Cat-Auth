@@ -877,7 +877,7 @@ const I18N = {
     profile_title:'我的帳戶',
     profile_my_cats:'我的貓咪',
     card_title:'抽獎號碼', card_info:'{name} ｜ 抽選日期：{date}', card_fun:'僅娛樂',
-    card_d1:'購買彩券應該量力而為，', card_d2:'勿因過度投注而影響正常生活。', card_d3:'投注不過度，助人又樂己。',
+    card_disclaimer:'購買彩券應該量力而為，勿因過度投注而影響正常生活。投注不過度，助人又樂己。',
     card_failed:'圖卡產生失敗，請再試一次', card_downloaded:'✓ 圖卡已下載', card_btn:'圖卡', close:'關閉',
     aspect_story:'限動', aspect_post:'貼文', share_btn:'分享／下載圖卡',
     view_records:'查看我的貓咪紀錄', again_btn:'再選一組', need_name:'請輸入貓咪暱稱',
@@ -965,7 +965,7 @@ const I18N = {
     profile_title:'My Account',
     profile_my_cats:'My Cats',
     card_title:'LUCKY NUMBERS', card_info:'{name} ｜ Picked {date}', card_fun:'Just for fun',
-    card_d1:'Please play responsibly.', card_d2:'Never let lottery spending affect your daily life.', card_d3:'Play in moderation — for fun and for good causes.',
+    card_disclaimer:'Play responsibly — never let lottery spending affect your daily life.',
     card_failed:'Could not create the card, please try again', card_downloaded:'✓ Card downloaded', card_btn:'Card', close:'Close',
     aspect_story:'Story', aspect_post:'Post', share_btn:'Share / Download card',
     view_records:'View my cats', again_btn:'Pick again', need_name:"Enter your cat's name",
@@ -1053,7 +1053,7 @@ const I18N = {
     profile_title:'マイアカウント',
     profile_my_cats:'マイ猫',
     card_title:'ラッキーナンバー', card_info:'{name} ｜ 抽選日：{date}', card_fun:'お楽しみ用',
-    card_d1:'宝くじは無理のない範囲で楽しみましょう。', card_d2:'買いすぎて生活に影響が出ないように。', card_d3:'ほどほどに、楽しく社会貢献を。',
+    card_disclaimer:'宝くじは無理のない範囲で。買いすぎて生活に影響が出ないように。',
     card_failed:'カードを作成できませんでした。もう一度お試しください', card_downloaded:'✓ カードをダウンロードしました', card_btn:'カード', close:'閉じる',
     aspect_story:'ストーリー', aspect_post:'投稿', share_btn:'共有／ダウンロード',
     view_records:'マイ猫記録を見る', again_btn:'もう一度選ぶ', need_name:'猫の名前を入力してください',
@@ -1275,7 +1275,7 @@ function cardText(lotKey, catName, pickDate, target) {
     title: t('card_title'),
     info: t('card_info').replace('{name}', catName || 'LUCKY CAT').replace('{date}', pickDate),
     drawLine: drawLine,
-    disclaimer: [t('card_d1'), t('card_d2'), t('card_d3')],
+    disclaimer: [t('card_disclaimer')],   // 一行、字小一點（使用者 10/22 要求）
   };
 }
 

@@ -90,7 +90,8 @@
 
       // 下方區塊高度（由下往上排）
       var ballD = tall ? 140 : 132, infoSize = tall ? 40 : 36, lotSize = tall ? 46 : 42;
-      var discSize = tall ? 32 : 27, discLH = discSize * 1.5, gap = tall ? 30 : 22;
+      // 警語：一行、字小一點；太長會自動縮小到放得下，不換行
+      var discSize = tall ? 26 : 24, discLH = discSize * 1.7, gap = tall ? 30 : 22;
       var bottom = cy0 + chh - P + 4;
       var discTop = bottom - discLH * tx.disclaimer.length;
       var div2 = discTop - gap;
