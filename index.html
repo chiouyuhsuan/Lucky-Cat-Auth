@@ -120,6 +120,7 @@ input[type=file]{display:none}
 .err-msg{font-size:12px;color:#791F1F;margin-bottom:8px;display:none;padding:8px 12px;background:#FCEBEB;border-radius:8px}
 .err-msg.show{display:block}
 </style>
+<link rel="stylesheet" href="css/mobile.css"/>
 </head>
 <body>
 
@@ -378,7 +379,7 @@ import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
          createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { collection, getDocs, doc, query, orderBy, limit, serverTimestamp,
-         increment, where, writeBatch, getCountFromServer }
+         increment, where, writeBatch, getCountFromServer, updateDoc }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 const { esc, img, int, ball } = window.Safe;
 
@@ -616,160 +617,200 @@ async function loadHomeData() {
 }
 loadHomeData();
 
-// ── 個人頁 ─────────────────────────────────────────────────
+// ── 個人頁：我的貓咪紀錄 ───────────────────────────────────
+// 只讀自己的資料（uid 條件），不受全站筆數影響
+function money(n) { return '$' + int(n).toLocaleString(); }
+function signed(n) { n = int(n); return (n > 0 ? '+' : n < 0 ? '−' : '') + '$' + Math.abs(n).toLocaleString(); }
+function pct(x) { return (Math.round(x * 1000) / 10) + '%'; }
+const T = (k) => window.t(k);
+
+function statBox(label, value, sub, color) {
+  return '<div style="flex:1;min-width:0"><div style="font-size:11px;color:#888780;margin-bottom:2px">' + esc(label) + '</div>'
+    + '<div style="font-size:18px;font-weight:600;color:' + (color || '#26215C') + '">' + esc(value) + '</div>'
+    + (sub ? '<div style="font-size:11px;color:#AFA9EC;margin-top:1px">' + esc(sub) + '</div>' : '') + '</div>';
+}
+
+function summaryHtml(s) {
+  const c = s.cat, r = s.real;
+  const catCard = '<div class="stat-card" style="margin-bottom:10px">'
+    + '<div class="sec-title" style="margin-bottom:8px">🐱 ' + esc(T('pf_cat_title')) + '</div>'
+    + '<div style="display:flex;gap:8px">'
+    + statBox(T('pf_checked'), c.checked + ' / ' + c.draws, c.draws - c.checked ? T('pf_pending_n').replace('{n}', c.draws - c.checked) : '')
+    + statBox(T('pf_wins'), String(c.wins), c.bestLevel ? T('pf_best').replace('{lv}', T('lv_' + c.bestLevel)) : '', c.wins ? '#27500A' : '')
+    + statBox(T('pf_rate'), pct(c.winRate), '')
+    + statBox(T('pf_prize'), money(c.prize), T('pf_sim'), c.prize ? '#BA7517' : '')
+    + '</div></div>';
+  const realCard = '<div class="stat-card" style="margin-bottom:18px">'
+    + '<div class="sec-title" style="margin-bottom:8px">💰 ' + esc(T('pf_real_title')) + '</div>'
+    + (r.bought === 0
+      ? '<div style="font-size:12px;color:#888780">' + esc(T('pf_real_empty')) + '</div>'
+      : '<div style="display:flex;gap:8px">'
+        + statBox(T('pf_bought'), String(r.bought), r.boughtPending ? T('pf_pending_n').replace('{n}', r.boughtPending) : '')
+        + statBox(T('pf_cost'), money(r.cost), '')
+        + statBox(T('pf_won'), money(r.prize), r.wins ? T('pf_win_n').replace('{n}', r.wins) : '', r.prize ? '#27500A' : '')
+        + statBox(T('pf_profit'), signed(r.profit), '', r.profit > 0 ? '#27500A' : r.profit < 0 ? '#791F1F' : '')
+        + '</div>')
+    + '</div>';
+  return catCard + realCard;
+}
+
+// 號碼球：開獎後把對中的主號標綠、對中的特別號標橘；舊紀錄貓自己選的特別號顯示為灰色不計
+function ballsHtml(d) {
+  const win = new Set((d.winNumbers || []).map(Number));
+  const ws = d.winSpecial != null ? Number(d.winSpecial) : null;
+  const base = 'width:30px;height:30px;font-size:11px;';
+  let h = (d.numbers || []).map(function (n) {
+    n = int(n);
+    const style = win.has(n) ? 'background:#3B6D11;color:#fff;' : ws === n ? 'background:#EF9F27;color:#412402;' : '';
+    return '<div class="ball show" style="' + base + style + '">' + ball(n) + '</div>';
+  }).join('');
+  const legacy = d.schema == null && d.lotType === 'tw';
+  h += (d.special || []).map(function (n) {
+    return legacy
+      ? '<div class="ball show" title="' + esc(T('pf_legacy_sp')) + '" style="' + base + 'background:#F1EFE8;color:#B4B2A9;text-decoration:line-through">' + ball(n) + '</div>'
+      : '<div class="ball sp show" style="' + base + '">' + ball(n) + '</div>';
+  }).join('');
+  return h;
+}
+
+function statusTag(d) {
+  const tag = (bg, fg, txt) => '<span class="tag" style="background:' + bg + ';color:' + fg + ';font-size:10px">' + esc(txt) + '</span>';
+  if (d.lotType !== 'tw' || d.tracked === false) return tag('#F1EFE8', '#5F5E5A', T('untracked_tag'));
+  if (!d.checkedAt) return tag('#FAEEDA', '#633806', T('status_pending'));
+  const lv = int(d.prizeLevel);
+  return lv > 0 ? tag('#EAF3DE', '#27500A', T('lv_' + lv) + ' ' + money(d.prizeAmount)) : tag('#FCEBEB', '#791F1F', T('status_no_win'));
+}
+
+// 「我買了」按鈕：開獎日 20:00 前可切換，之後鎖定只顯示結果
+function purchaseHtml(d) {
+  if (d.lotType !== 'tw' || d.tracked === false) return '';
+  if (d.schema !== 2) return '<span style="font-size:11px;color:#B4B2A9">' + esc(T('pf_buy_unknown')) + '</span>';
+  const dl = window.Lottery.purchaseDeadline(d.targetDrawDate);
+  const open = !d.checkedAt && dl && Date.now() < dl.getTime();
+  const on = d.purchased === true;
+  if (!open) {
+    return '<span style="font-size:11px;color:' + (on ? '#27500A' : '#888780') + '">🔒 ' + esc(on ? T('pf_bought_yes') : T('pf_bought_no')) + '</span>';
+  }
+  return '<button class="buy-btn" data-id="' + esc(d.id) + '" data-on="' + (on ? 1 : 0) + '" style="font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;'
+    + (on ? 'background:#3B6D11;color:#fff;border:1px solid #3B6D11' : 'background:#fff;color:#534AB7;border:1px solid #AFA9EC') + '">'
+    + (on ? '✓ ' + esc(T('pf_bought_yes')) : esc(T('pf_buy_btn'))) + '</button>'
+    + '<span style="font-size:10px;color:#AFA9EC;margin-left:6px">' + esc(T('pf_buy_until')) + '</span>';
+}
+
+function drawRowHtml(d) {
+  const target = d.drawDate || d.targetDrawDate;   // 對獎後以官方實際開獎日為準
+  const when = target ? drawDateText(target) : esc(d.date || '');
+  const period = d.drawPeriod ? ' · ' + T('pf_period').replace('{p}', esc(d.drawPeriod)) : '';
+  const match = d.checkedAt && d.matchCount != null
+    ? '<span style="font-size:11px;color:#888780;margin-left:6px">' + esc(T('pf_match').replace('{n}', int(d.matchCount))) + (d.matchSpecial ? ' ＋' + esc(T('pf_sp')) : '') + '</span>' : '';
+  return '<div style="padding:10px 0;border-bottom:0.5px solid #F4F2FB">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
+    + '<span style="font-size:12px;color:#534AB7">' + esc(d.lotFlag) + ' ' + when + '<span style="color:#AFA9EC">' + period + '</span></span>'
+    + statusTag(d) + '</div>'
+    + '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">' + ballsHtml(d) + match + '</div>'
+    + '<div style="margin-top:8px;display:flex;align-items:center">' + purchaseHtml(d) + '</div>'
+    + '</div>';
+}
+
 window._renderProfile = async function() {
   const el = document.getElementById('profile-content');
-  if (!window._state.user) {
+  const user = window._state.user;
+  if (!user) {
     el.innerHTML = '<div style="text-align:center;padding:48px 0">'
       + '<div style="font-size:52px;margin-bottom:14px">🐱</div>'
-      + '<p style="font-size:16px;font-weight:500;color:#26215C;margin:0 0 6px">尚未登入</p>'
-      + '<p style="font-size:13px;color:#888780;margin:0 0 20px">登入後可查看你的選號紀錄</p>'
-      + '<button class="btn" style="max-width:200px;margin:0 auto" onclick="window.showPage && window.showPage(\'email-auth\')">登入 / 註冊</button>'
+      + '<p style="font-size:16px;font-weight:500;color:#26215C;margin:0 0 6px">' + esc(T('pf_need_login')) + '</p>'
+      + '<p style="font-size:13px;color:#888780;margin:0 0 20px">' + esc(T('pf_need_login_sub')) + '</p>'
+      + '<button class="btn" style="max-width:200px;margin:0 auto" onclick="window.showPage(\'email-auth\')">' + esc(T('auth_title')) + '</button>'
       + '</div>';
     return;
   }
-  const user = window._state.user;
-  const displayName = user.displayName || user.email || '用戶';
-  el.innerHTML = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
-    + (img(user.photoURL) ? '<img src="' + img(user.photoURL) + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>' : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>')
-    + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + esc(displayName) + '</p>'
-    + '<p style="font-size:12px;color:#888780;margin:0">' + esc(user.email) + '</p></div></div>'
-    + '<div class="sec-title">我的貓咪</div>'
-    + '<div id="my-cats-list"><div style="text-align:center;padding:16px;color:#888780;font-size:13px">載入中...</div></div>';
+  el.innerHTML = '<div style="text-align:center;padding:24px;color:#888780;font-size:13px">' + esc(T('loading')) + '</div>';
 
+  let cats = [], draws = [];
   try {
-    // 1. 讀取 cats 集合（此用戶的貓）
-    const catsSnap = await getDocs(query(
-      collection(db,'cats'),
-      where('uid','==',user.uid)
-    ));
-    const cats = [];
-    catsSnap.forEach(d => cats.push({id:d.id,...d.data()}));
-
-    // 2. 讀取 draws 集合（此用戶的所有選號紀錄）
-    const drawsSnap = await getDocs(query(
-      collection(db,'draws'),
-      orderBy('createdAt','desc'),
-      limit(100)
-    ));
-    const allDraws = [];
-    drawsSnap.forEach(d => { const data=d.data(); if(data.uid===user.uid) allDraws.push({id:d.id,...data}); });
-
-    const listEl = document.getElementById('my-cats-list');
-
-    if (!cats.length && !allDraws.length) {
-      listEl.innerHTML = '<div style="text-align:center;padding:24px;color:#888780;font-size:13px">還沒有紀錄，去上傳你的貓咪吧！</div>';
-      return;
-    }
-
-    // 3. 把 draws 按 catName 分組（相容舊紀錄沒有 catId 的情況）
-    const drawsByCat = {};
-    allDraws.forEach(function(draw) {
-      const key = draw.catId || ('__nocat__' + draw.catName);
-      if (!drawsByCat[key]) drawsByCat[key] = [];
-      drawsByCat[key].push(draw);
-    });
-
-    // 4. 建立顯示清單：cats 集合有的 + 沒有 catId 的舊紀錄
-    const catCards = [];
-
-    // cats 集合的貓
-    cats.forEach(function(cat) {
-      // 找此貓的所有 draws：有 catId 對應的 + 沒有 catId 但同名的舊紀錄
-      const draws = allDraws.filter(function(d) {
-        return (d.catId && d.catId === cat.id) ||
-               (!d.catId && d.catName === cat.catName);
-      });
-      // 從 draws 即時計算（比 cats 集合的欄位更準確）
-      const totalDraws  = draws.length;
-      const totalWins   = draws.filter(function(d){ return (d.prizeLevel||0) > 0; }).length;
-      const totalPrize  = draws.reduce(function(s,d){ return s+(d.prizeAmount||0); }, 0);
-      const winRate     = totalDraws > 0 ? Math.round(totalWins / totalDraws * 100) : 0;
-      catCards.push({cat, draws, totalDraws, totalWins, totalPrize, winRate});
-    });
-
-    // 沒有對應 cat 的舊紀錄（按 catName 分組，排除已在 cats 集合的名字）
-    const handledCatIds   = new Set(cats.map(c => c.id));
-    const handledCatNames = new Set(cats.map(c => c.catName)); // 排除同名
-    const orphanGroups = {};
-    allDraws.forEach(function(draw) {
-      // 已有 catId 對應的跳過
-      if (draw.catId && handledCatIds.has(draw.catId)) return;
-      // cats 集合已有同名貓的也跳過（舊紀錄沒有 catId 但名字相同）
-      if (handledCatNames.has(draw.catName)) return;
-      const key = draw.catName || '未命名';
-      if (!orphanGroups[key]) orphanGroups[key] = {draws:[], photo: draw.photoThumb};
-      orphanGroups[key].draws.push(draw);
-    });
-    Object.entries(orphanGroups).forEach(function([catName, group]) {
-      const draws = group.draws;
-      const totalWins  = draws.filter(d => d.prizeLevel > 0).length;
-      const totalPrize = draws.reduce(function(s,d){return s+(d.prizeAmount||0);},0);
-      const winRate    = draws.length > 0 ? Math.round(totalWins/draws.length*100) : 0;
-      catCards.push({
-        cat: {catName, photoThumb: group.photo, totalDraws: draws.length, totalWins, totalPrize},
-        draws, totalDraws: draws.length, totalWins, totalPrize, winRate
-      });
-    });
-
-    // 5. 渲染
-    listEl.innerHTML = catCards.map(function(item, idx) {
-      const cat = item.cat;
-      const drawsHtml = item.draws.map(function(draw) {
-        const nums = (draw.numbers||[]).map(function(n){
-          return '<div class="ball show" style="width:30px;height:30px;font-size:11px">'+ball(n)+'</div>';
-        }).join('');
-        const special = (draw.special||[]).map(function(n){
-          return '<div class="ball sp show" style="width:30px;height:30px;font-size:11px">'+ball(n)+'</div>';
-        }).join('');
-        const checked = !!draw.checkedAt;
-        const won = int(draw.prizeLevel) > 0;
-        const status = won
-          ? '<span class="tag" style="background:#EAF3DE;color:#27500A;font-size:10px">中獎'+int(draw.prizeLevel)+'等</span>'
-          : checked
-            ? '<span class="tag" style="background:#FCEBEB;color:#791F1F;font-size:10px">未中獎</span>'
-            : '<span class="tag" style="background:#FAEEDA;color:#633806;font-size:10px">待開獎</span>';
-        return '<div style="padding:10px 0;border-bottom:0.5px solid #F4F2FB">'
-          + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-          + '<span style="font-size:12px;color:#534AB7">' + esc(draw.lotFlag) + ' ' + esc(draw.date) + '</span>'
-          + status + '</div>'
-          + '<div style="display:flex;gap:5px;flex-wrap:wrap">' + nums + special + '</div>'
-          + (won ? '<p style="font-size:11px;color:#27500A;margin:5px 0 0">獎金 $' + int(draw.prizeAmount).toLocaleString() + '</p>' : '')
-          + '</div>';
-      }).join('');
-
-      const catSrc = img(cat.photoThumb);
-      const photo = catSrc
-        ? '<img src="'+catSrc+'" style="width:100%;height:100%;object-fit:cover"/>'
-        : '🐱';
-      const winRateColor = item.winRate > 0 ? '#27500A' : '#888780';
-
-      return '<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;margin-bottom:10px;overflow:hidden">'
-        // 貓咪卡片頭部（點擊展開）
-        + '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="toggleCat(\'cat-draws-'+idx+'\')">'
-        + '<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;border:1.5px solid #CECBF6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">' + photo + '</div>'
-        + '<div style="flex:1">'
-        + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + esc(cat.catName) + '</p>'
-        + '<div style="display:flex;gap:12px;flex-wrap:wrap">'
-        + '<span style="font-size:12px;color:#888780">抽了 <b style="color:#26215C">' + item.totalDraws + '</b> 次</span>'
-        + '<span style="font-size:12px;color:#888780">中獎 <b style="color:#27500A">' + item.totalWins + '</b> 次</span>'
-        + '<span style="font-size:12px;color:#888780">中獎率 <b style="color:'+winRateColor+'">' + item.winRate + '%</b></span>'
-        + (item.totalPrize > 0 ? '<span style="font-size:12px;color:#888780">累積 <b style="color:#EF9F27">$'+item.totalPrize.toLocaleString()+'</b></span>' : '')
-        + '</div></div>'
-        + '<span style="font-size:12px;color:#AFA9EC" id="cat-arrow-'+idx+'">▼</span>'
-        + '</div>'
-        // 展開區域
-        + '<div id="cat-draws-'+idx+'" style="display:none;padding:0 16px 4px;border-top:0.5px solid #F4F2FB">'
-        + (item.draws.length ? drawsHtml : '<p style="font-size:13px;color:#888780;padding:12px 0">還沒有抽號紀錄</p>')
-        + '</div>'
-        + '</div>';
-    }).join('');
-
-  } catch(e) {
+    const [cs, ds] = await Promise.all([
+      getDocs(query(collection(db, 'cats'), where('uid', '==', user.uid))),
+      getDocs(query(collection(db, 'draws'), where('uid', '==', user.uid))),
+    ]);
+    cs.forEach(d => cats.push({ id: d.id, ...d.data() }));
+    ds.forEach(d => draws.push({ id: d.id, ...d.data() }));
+  } catch (e) {
     console.error('renderProfile error:', e);
-    document.getElementById('my-cats-list').innerHTML = '<div style="text-align:center;padding:16px;color:#791F1F;font-size:13px">載入失敗，請重新整理</div>';
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:#791F1F;font-size:13px">' + esc(T('pf_load_failed')) + '</div>';
+    return;
   }
+  const ms = x => (x && x.toMillis) ? x.toMillis() : 0;
+  draws.sort((a, b) => ms(b.createdAt) - ms(a.createdAt));
+  window._myDraws = draws;
+
+  // 把選號分到貓：有 catId 用 catId；舊紀錄沒有 catId 的，用貓名對應（與後端相同）
+  const byName = {};
+  cats.forEach(c => { (byName[c.catName] = byName[c.catName] || []).push(c.id); });
+  const groups = new Map(cats.map(c => [c.id, { cat: c, draws: [] }]));
+  draws.forEach(d => {
+    let cid = d.catId && groups.has(d.catId) ? d.catId : null;
+    if (!cid && (byName[d.catName] || []).length === 1) cid = byName[d.catName][0];
+    if (!cid) {
+      cid = '__name__' + (d.catName || '');
+      if (!groups.has(cid)) groups.set(cid, { cat: { catName: d.catName, photoThumb: d.photoThumb }, draws: [] });
+    }
+    groups.get(cid).draws.push(d);
+  });
+  const list = [...groups.values()].sort((a, b) => ms(b.draws[0] && b.draws[0].createdAt) - ms(a.draws[0] && a.draws[0].createdAt));
+
+  const displayName = user.displayName || user.email || '';
+  const avatar = img(user.photoURL)
+    ? '<img src="' + img(user.photoURL) + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>'
+    : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>';
+
+  let html = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
+    + avatar + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + esc(displayName) + '</p>'
+    + '<p style="font-size:12px;color:#888780;margin:0">' + esc(user.email) + '</p></div></div>'
+    + summaryHtml(window.Lottery.summarize(draws))
+    + '<div class="sec-title">' + esc(T('profile_my_cats')) + '</div>';
+
+  if (!draws.length) {
+    html += '<div style="text-align:center;padding:24px;color:#888780;font-size:13px">' + esc(T('pf_empty')) + '</div>';
+  }
+  list.forEach((g, idx) => {
+    if (!g.draws.length) return;
+    const s = window.Lottery.summarize(g.draws).cat;
+    const src = img(g.cat.photoThumb);
+    html += '<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;margin-bottom:10px;overflow:hidden">'
+      + '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="toggleCat(\'cat-draws-' + idx + '\')">'
+      + '<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;border:1.5px solid #CECBF6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">'
+      + (src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱') + '</div>'
+      + '<div style="flex:1;min-width:0">'
+      + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + esc(g.cat.catName) + '</p>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#888780">'
+      + '<span>' + esc(T('pf_cat_line').replace('{d}', g.draws.length).replace('{c}', s.checked).replace('{w}', s.wins).replace('{r}', pct(s.winRate))) + '</span>'
+      + (s.prize ? '<span style="color:#BA7517;font-weight:500">' + money(s.prize) + '</span>' : '')
+      + '</div></div>'
+      + '<span style="font-size:12px;color:#AFA9EC" id="cat-arrow-' + idx + '">' + (idx === 0 ? '▲' : '▼') + '</span></div>'
+      + '<div id="cat-draws-' + idx + '" style="display:' + (idx === 0 ? 'block' : 'none') + ';padding:0 16px 4px;border-top:0.5px solid #F4F2FB">'
+      + g.draws.map(drawRowHtml).join('') + '</div></div>';
+  });
+  el.innerHTML = html;
 };
+
+// 「我買了」切換：先更新畫面，失敗再還原
+document.addEventListener('click', async function (e) {
+  const btn = e.target.closest && e.target.closest('.buy-btn');
+  if (!btn || btn.disabled) return;
+  const id = btn.dataset.id, next = btn.dataset.on !== '1';
+  btn.disabled = true; btn.style.opacity = '.5';
+  try {
+    await updateDoc(doc(db, 'draws', id), { purchased: next, purchasedAt: serverTimestamp() });
+    const d = (window._myDraws || []).find(x => x.id === id);
+    if (d) d.purchased = next;
+    window.showToast(T(next ? 'pf_buy_saved' : 'pf_buy_removed'));
+    window._renderProfile();
+  } catch (err) {
+    console.error('purchase toggle error:', err);
+    window.showToast(T('pf_buy_failed'));
+    btn.disabled = false; btn.style.opacity = '';
+  }
+});
 
 window.loginWithGoogle = window._loginWithGoogle;
 // 注意：不要在這裡 assign loginWithEmail 和 registerWithEmail
@@ -836,6 +877,17 @@ const I18N = {
     forgot_success:'✅ 重設連結已寄出，請檢查你的信箱',
     profile_title:'我的帳戶',
     profile_my_cats:'我的貓咪',
+    pf_cat_title:'貓的命中率（所有大樂透選號）', pf_checked:'已對獎', pf_pending_n:'{n} 筆待開獎',
+    pf_wins:'中獎次數', pf_best:'最佳：{lv}', pf_rate:'中獎率', pf_prize:'累積獎金', pf_sim:'若每注都買',
+    pf_real_title:'我的實際損益（只算勾選「我買了」）', pf_real_empty:'還沒有標記買過的號碼。開獎日 20:00 前，在下方號碼旁按「我買了」。',
+    pf_bought:'買了幾注', pf_cost:'花費', pf_won:'中獎獎金', pf_win_n:'中 {n} 次', pf_profit:'損益',
+    pf_legacy_sp:'舊版規則由貓自選的特別號，不計入對獎',
+    pf_buy_unknown:'舊紀錄・購買狀態未知', pf_bought_yes:'我買了', pf_bought_no:'沒買', pf_buy_btn:'我買了',
+    pf_buy_until:'開獎日 20:00 前可修改', pf_buy_saved:'✓ 已標記為買了', pf_buy_removed:'已取消標記', pf_buy_failed:'更新失敗，可能已過截止時間',
+    pf_period:'第 {p} 期', pf_match:'對中 {n} 碼', pf_sp:'特別號',
+    pf_need_login:'尚未登入', pf_need_login_sub:'登入後可查看你的選號紀錄', pf_load_failed:'載入失敗，請重新整理',
+    pf_empty:'還沒有紀錄，去上傳你的貓咪吧！', pf_cat_line:'{d} 筆 · 已對 {c} · 中 {w} 次 · {r}', loading:'載入中...',
+    lv_1:'頭獎', lv_2:'貳獎', lv_3:'參獎', lv_4:'肆獎', lv_5:'伍獎', lv_6:'陸獎', lv_7:'柒獎', lv_8:'普獎',
     lot_tw_name:'台灣大樂透', lot_tw_draw:'週二、週五 · 49 選 6',
     lot_us_name:'US Powerball', lot_us_draw:'週一、三、六 · 5/69 + Powerball',
     lot_jp_name:'日本 ロト6', lot_jp_draw:'週一、週四 · 43 選 6',
@@ -904,6 +956,17 @@ const I18N = {
     forgot_success:'✅ Reset link sent! Check your inbox.',
     profile_title:'My Account',
     profile_my_cats:'My Cats',
+    pf_cat_title:"Cat's hit rate (all Taiwan Lotto picks)", pf_checked:'Checked', pf_pending_n:'{n} pending',
+    pf_wins:'Wins', pf_best:'Best: {lv}', pf_rate:'Win rate', pf_prize:'Total prize', pf_sim:'if every pick was bought',
+    pf_real_title:'My real profit (only tickets marked "I bought")', pf_real_empty:'No tickets marked yet. Tap "I bought it" next to a pick before 20:00 on draw day.',
+    pf_bought:'Tickets', pf_cost:'Spent', pf_won:'Won', pf_win_n:'{n} wins', pf_profit:'Profit',
+    pf_legacy_sp:'Special number picked by the cat under the old rules — not used for checking',
+    pf_buy_unknown:'Old record · purchase unknown', pf_bought_yes:'I bought it', pf_bought_no:'Not bought', pf_buy_btn:'I bought it',
+    pf_buy_until:'Editable until 20:00 on draw day', pf_buy_saved:'✓ Marked as bought', pf_buy_removed:'Unmarked', pf_buy_failed:'Update failed — the deadline may have passed',
+    pf_period:'Draw {p}', pf_match:'{n} matched', pf_sp:'special',
+    pf_need_login:'Not signed in', pf_need_login_sub:'Sign in to see your picks', pf_load_failed:'Failed to load, please refresh',
+    pf_empty:'No records yet — upload your cat!', pf_cat_line:'{d} picks · {c} checked · {w} wins · {r}', loading:'Loading...',
+    lv_1:'Jackpot', lv_2:'2nd prize', lv_3:'3rd prize', lv_4:'4th prize', lv_5:'5th prize', lv_6:'6th prize', lv_7:'7th prize', lv_8:'8th prize',
     lot_tw_name:'Taiwan Lotto', lot_tw_draw:'Tue & Fri · Pick 6 of 49',
     lot_us_name:'US Powerball', lot_us_draw:'Mon, Wed, Sat · 5/69 + Powerball',
     lot_jp_name:'Japan Loto 6', lot_jp_draw:'Mon & Thu · Pick 6 of 43',
@@ -972,6 +1035,17 @@ const I18N = {
     forgot_success:'✅ リセットリンクを送信しました！受信箱を確認してください。',
     profile_title:'マイアカウント',
     profile_my_cats:'マイ猫',
+    pf_cat_title:'猫の的中率（台湾宝くじ全体）', pf_checked:'照合済み', pf_pending_n:'{n} 件抽選待ち',
+    pf_wins:'当選回数', pf_best:'最高：{lv}', pf_rate:'当選率', pf_prize:'累計賞金', pf_sim:'全部購入した場合',
+    pf_real_title:'実際の損益（「購入した」のみ）', pf_real_empty:'まだ購入済みの番号がありません。抽選日20:00までに番号の横の「購入した」を押してください。',
+    pf_bought:'購入口数', pf_cost:'支出', pf_won:'当選金', pf_win_n:'{n} 回当選', pf_profit:'損益',
+    pf_legacy_sp:'旧ルールで猫が選んだ特別番号（照合には使いません）',
+    pf_buy_unknown:'旧記録・購入状況不明', pf_bought_yes:'購入した', pf_bought_no:'未購入', pf_buy_btn:'購入した',
+    pf_buy_until:'抽選日20:00まで変更可', pf_buy_saved:'✓ 購入済みにしました', pf_buy_removed:'取り消しました', pf_buy_failed:'更新に失敗しました（締切を過ぎた可能性があります）',
+    pf_period:'第 {p} 回', pf_match:'{n} 個一致', pf_sp:'特別番号',
+    pf_need_login:'未ログイン', pf_need_login_sub:'ログインすると記録が見られます', pf_load_failed:'読み込みに失敗しました。再読み込みしてください',
+    pf_empty:'まだ記録がありません。猫をアップロードしよう！', pf_cat_line:'{d} 件 · 照合 {c} · 当選 {w} · {r}', loading:'読み込み中...',
+    lv_1:'1等', lv_2:'2等', lv_3:'3等', lv_4:'4等', lv_5:'5等', lv_6:'6等', lv_7:'7等', lv_8:'8等',
     lot_tw_name:'台湾宝くじ', lot_tw_draw:'火・金 · 49から6つ',
     lot_us_name:'USパワーボール', lot_us_draw:'月・水・土 · 5/69 + Powerball',
     lot_jp_name:'ロト6', lot_jp_draw:'月・木 · 43から6つ',

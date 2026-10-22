@@ -91,6 +91,10 @@ service cloud.firestore {
                 && ballOk(d.special, 0, 26) && d.tracked == false && d.targetDrawDate == null);
     }
 
+    function purchaseDeadline(d) {
+      return timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) + duration.value(12, 'h');
+    }
+
     match /draws/{drawId} {
       allow read: if true;
 
@@ -120,8 +124,19 @@ service cloud.firestore {
         && request.resource.data.prizeAmount == 0
         && request.resource.data.createdAt == request.time;
 
-      // 對獎結果只能由後端寫入；「我買了」在第 4 段開放
-      allow update, delete: if false;
+      // 「我買了」：擁有者只能改 purchased / purchasedAt，
+      // 限新格式的大樂透、尚未對獎、開獎日 20:00（台灣時間 = UTC 12:00）之前
+      // 對獎結果等其他欄位只能由後端寫入
+      allow update: if isOwner()
+        && resource.data.schema == 2
+        && resource.data.tracked == true
+        && !('checkedAt' in resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['purchased', 'purchasedAt'])
+        && request.resource.data.purchased is bool
+        && request.resource.data.purchasedAt == request.time
+        && request.time < purchaseDeadline(resource.data.targetDrawDate);
+
+      allow delete: if false;
     }
 
     // ── 圖卡用大圖 ───────────────────────────────────────

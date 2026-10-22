@@ -5,6 +5,9 @@
   python scripts/lottery_job.py                 正式執行（會寫入資料庫）
   python scripts/lottery_job.py --dry-run       只讀不寫，列出會做的變更
   python scripts/lottery_job.py --dry-run --include-legacy
+  python scripts/lottery_job.py --fix-legacy ID1,ID2
+                                                只把指定的舊紀錄用新規則對獎並寫入（尚未對過獎的才會處理），
+                                                寫入前把原始內容記錄在摘要裡
                                                 另外預覽舊紀錄（第 7 段）用新規則重算的結果
 
 資料來源：台灣彩券官方 API（開獎號碼、日期、各等獎每注金額）
@@ -89,6 +92,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true')
     ap.add_argument('--include-legacy', action='store_true')
+    ap.add_argument('--fix-legacy', default='')
     ap.add_argument('--summary', default='lottery_summary.md')
     args = ap.parse_args()
     dry = args.dry_run
@@ -112,7 +116,16 @@ def main():
     legacy = [(i, r, d) for i, r, d in all_draws if is_legacy_tw(d)] if args.include_legacy else []
 
     # 2. 抓官方開獎：涵蓋最早一筆待對獎紀錄到今天（至少抓上個月起）
-    created = [to_tw(d.get('createdAt')) for _, _, d in pending + legacy]
+    fix_ids = [x.strip() for x in args.fix_legacy.split(',') if x.strip()]
+    # 可給完整 ID 或至少 6 碼的開頭，但必須剛好對到一筆
+    fix, fix_msgs = [], []
+    for x in fix_ids:
+        hits = [(i, r, d) for i, r, d in all_draws if i == x or (len(x) >= 6 and i.startswith(x))]
+        if len(hits) == 1:
+            fix.append(hits[0])
+        else:
+            fix_msgs.append(f'- `{x}`：對到 {len(hits)} 筆，略過（需剛好一筆）')
+    created = [to_tw(d.get('createdAt')) for _, _, d in pending + legacy + fix]
     created = [c for c in created if c]
     floor = date(now.year if now.month > 1 else now.year - 1, now.month - 1 if now.month > 1 else 12, 1)
     since = min([c.date() for c in created] + [floor])
@@ -191,6 +204,32 @@ def main():
         out.append(f'- `{draw_id[:6]}` 第 {r["period"]} 期 {r["date"]}{moved}：對中 {matched} 碼'
                    f'{"＋特別號" if has_sp else ""} → {PRIZE_NAMES.get(lv, "未中獎")}'
                    + (f' ${amt:,}' if amt else ''))
+
+    # 4a. 指定修正的舊紀錄（只處理舊格式、尚未對過獎的大樂透）
+    if fix_ids:
+        out += ['', '### 指定修正的舊紀錄']
+        out += fix_msgs
+        ok = []
+        for i, r, d in fix:
+            if not is_legacy_tw(d):
+                out.append(f'- `{i}`：不是舊格式的大樂透紀錄，略過'); continue
+            if d.get('checkedAt'):
+                out.append(f'- `{i}`：已經對過獎，略過（整批重算在第 7 段處理）'); continue
+            before = {k: (str(v) if hasattr(v, 'timestamp') else v)
+                      for k, v in sorted(d.items()) if k != 'photoThumb'}
+            if before.get('uid'):   # repo 公開，使用者編號只留末 4 碼
+                before['uid'] = '…' + str(before['uid'])[-4:]
+            out += [f'- `{i}` 修改前完整內容（照片除外）：', '```json',
+                    json.dumps(before, ensure_ascii=False, default=str, indent=1), '```']
+            ok.append((i, r, d))
+        frows, fstats = check(ok, write=not dry)
+        for draw_id, d, r, lv, matched, has_sp, amt in frows:
+            out.append(f'- `{draw_id}` {"（試跑）" if dry else "已寫入"}：第 {r["period"]} 期 {r["date"]}，'
+                       f'開獎 {r["numbers"]} 特別號 {r["special"]}，貓的號碼 {d.get("numbers")} '
+                       f'→ 對中 {matched} 碼{"＋特別號" if has_sp else ""}，{PRIZE_NAMES.get(lv, "未中獎")}'
+                       + (f' ${amt:,}' if amt else ''))
+        if fstats and not frows:
+            out.append(f'- 未寫入：{dict(fstats)}')
 
     # 4b. 舊紀錄重算預覽（只在 --include-legacy 時，且永遠不寫入）
     if args.include_legacy:

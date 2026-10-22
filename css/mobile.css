@@ -1,0 +1,10 @@
+/* 手機版頂部選單：選單連結移到第二列、可左右滑動，避免文字被擠成直排或超出畫面 */
+@media (max-width: 640px) {
+  .topnav { flex-wrap: wrap; height: auto !important; padding: 8px 12px 0 !important; row-gap: 4px; }
+  .topnav .nav-links { order: 3; width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 6px;
+                        scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .topnav .nav-links::-webkit-scrollbar { display: none; }
+  .topnav .nav-link { white-space: nowrap; flex-shrink: 0; }
+  .topnav .lang-switcher { margin-right: 4px; }
+  .topnav .nav-user-name { max-width: 64px; }
+}

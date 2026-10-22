@@ -67,6 +67,46 @@
     return p.y + '.' + String(p.m + 1).padStart(2, '0') + '.' + String(p.d).padStart(2, '0');
   }
 
+  // 「我買了」的截止時間：開獎日台灣時間 20:00（與安全規則相同）
+  function purchaseDeadline(iso) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+    var p = iso.split('-').map(Number);
+    return new Date(Date.UTC(p[0], p[1] - 1, p[2], CUTOFF_HOUR - 8));
+  }
+
+  var TICKET_PRICE = 50;  // 大樂透每注 50 元
+
+  // 統計：貓的命中率（所有要對獎的大樂透）與實際損益（只算標記「我買了」的）
+  function summarize(draws) {
+    var cat = { draws: 0, checked: 0, wins: 0, prize: 0, bestLevel: 0 };
+    var real = { bought: 0, boughtChecked: 0, boughtPending: 0, cost: 0, prize: 0, wins: 0 };
+    draws.forEach(function (d) {
+      if (d.lotType !== 'tw' || d.tracked === false) return;
+      var checked = !!d.checkedAt, lv = Number(d.prizeLevel) || 0, amt = Number(d.prizeAmount) || 0;
+      cat.draws++;
+      if (checked) {
+        cat.checked++;
+        if (lv > 0) {
+          cat.wins++; cat.prize += amt;
+          cat.bestLevel = cat.bestLevel ? Math.min(cat.bestLevel, lv) : lv;
+        }
+      }
+      if (d.purchased === true) {
+        real.bought++; real.cost += TICKET_PRICE;
+        if (checked) {
+          real.boughtChecked++;
+          if (lv > 0) { real.wins++; real.prize += amt; }
+        } else {
+          real.boughtPending++;
+        }
+      }
+    });
+    cat.winRate = cat.checked ? cat.wins / cat.checked : 0;
+    real.profit = real.prize - real.cost;
+    return { cat: cat, real: real };
+  }
+
   window.Lottery = { LOTS: LOTS, pick: pick, targetDrawDate: targetDrawDate,
-                     dateLabel: dateLabel, todayDot: todayDot, CUTOFF_HOUR: CUTOFF_HOUR };
+                     dateLabel: dateLabel, todayDot: todayDot, CUTOFF_HOUR: CUTOFF_HOUR,
+                     purchaseDeadline: purchaseDeadline, summarize: summarize, TICKET_PRICE: TICKET_PRICE };
 })();
