@@ -91,6 +91,13 @@ service cloud.firestore {
                 && ballOk(d.special, 0, 26) && d.tracked == false && d.targetDrawDate == null);
     }
 
+    // 自動對焦位置：null，或 0~1 的 x/y/w/h
+    function unit(v) { return v is number && v >= 0 && v <= 1; }
+    function focusOk(f) {
+      return f == null || (f is map && f.keys().hasOnly(['x', 'y', 'w', 'h'])
+        && unit(f.x) && unit(f.y) && unit(f.w) && unit(f.h));
+    }
+
     function purchaseDeadline(d) {
       return timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) + duration.value(12, 'h');
     }
@@ -101,7 +108,7 @@ service cloud.firestore {
       allow create: if isOwnerOfNew()
         && request.resource.data.keys().hasOnly([
              'schema', 'uid', 'catId', 'catName', 'lotType', 'lotName', 'lotFlag',
-             'numbers', 'special', 'targetDrawDate', 'tracked', 'purchased',
+             'numbers', 'special', 'targetDrawDate', 'tracked', 'purchased', 'focus',
              'country', 'countryCode', 'city', 'date',
              'photoThumb', 'createdAt', 'prizeLevel', 'prizeAmount'])
         && request.resource.data.schema == 2
@@ -111,6 +118,7 @@ service cloud.firestore {
         && request.resource.data.special is list
         && numbersOk(request.resource.data)
         && request.resource.data.purchased == false
+        && focusOk(request.resource.data.get('focus', null))
         && validText(request.resource.data.lotName)
         && validText(request.resource.data.lotFlag)
         && validText(request.resource.data.country)

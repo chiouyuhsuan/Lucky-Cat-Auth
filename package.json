@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "test:rules": "firebase emulators:exec --project demo-luckycat --only firestore \"node tests/rules.test.mjs\"",
-    "test:js": "node --test tests/lottery.test.mjs"
+    "test:js": "node --test tests/lottery.test.mjs tests/focus.test.mjs"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^4.0.1",
