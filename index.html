@@ -119,8 +119,19 @@ input[type=email]:focus,input[type=password]:focus,input[type=text]:focus{outlin
 input[type=file]{display:none}
 .err-msg{font-size:12px;color:#791F1F;margin-bottom:8px;display:none;padding:8px 12px;background:#FCEBEB;border-radius:8px}
 .err-msg.show{display:block}
+/* 圖卡 */
+.aspect-tabs{display:flex;gap:6px;margin-bottom:10px}
+.aspect-tab{flex:1;padding:8px;border-radius:10px;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;font-size:13px;font-family:inherit;cursor:pointer}
+.aspect-tab.on{background:#534AB7;color:#fff;border-color:#534AB7}
+.card-frame{position:relative;background:#F6A85C;border-radius:14px;overflow:hidden;margin-bottom:12px;min-height:200px;display:flex;align-items:center;justify-content:center}
+.card-frame img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain}
+.card-loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:7px;background:rgba(255,247,234,.7)}
+.card-loading.show{display:flex}
+.card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
 </style>
 <link rel="stylesheet" href="css/mobile.css"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap"/>
 </head>
 <body>
 
@@ -262,6 +273,25 @@ input[type=file]{display:none}
     </div>
   </div>
   <div id="verify-bar" class="verify-bar"></div>
+  <div class="sec-title" data-i18n="name_label">貓咪暱稱</div>
+  <input type="text" id="cat-name-input" data-i18n-ph="name_ph" placeholder="例如：Malu、胖虎、奶油..." maxlength="20" oninput="onNameInput(this.value)"/>
+  <p style="font-size:12px;color:#AFA9EC;margin:0 0 14px" data-i18n="name_hint">這個名字會印在圖卡上，也會顯示在排行榜</p>
+  <!-- 同名貓詢問區塊（動態顯示）-->
+  <div id="same-cat-block" style="display:none;background:#FFF8EC;border:1px solid #F0C866;border-radius:12px;padding:14px;margin-bottom:14px">
+    <p style="font-size:13px;font-weight:500;color:#633806;margin:0 0 10px">🐱 你有一隻同名的貓咪，是這隻嗎？</p>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+      <div id="same-cat-photo" style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>
+      <div>
+        <p id="same-cat-name-txt" style="font-size:14px;font-weight:500;color:#26215C;margin:0 0 2px"></p>
+        <p id="same-cat-stats" style="font-size:12px;color:#888780;margin:0"></p>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" style="flex:1;padding:10px;font-size:13px" onclick="useSameCat()">是同一隻！累積紀錄</button>
+      <button class="btn-outline" style="flex:1;padding:10px;font-size:13px" onclick="useNewCat()">不是，建新貓咪</button>
+    </div>
+  </div>
+
   <div class="sec-title" data-i18n="upload_lot">選擇樂透類型</div>
   <div id="lot-tw" class="lot-opt sel" onclick="selectLot('tw')">
     <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇹🇼</span><div><p style="font-size:14px;font-weight:500;margin:0">台灣大樂透</p><p style="font-size:12px;color:#534AB7;margin:0">週二、週五 · 49 選 6</p></div></div>
@@ -289,77 +319,33 @@ input[type=file]{display:none}
   </div>
 </div>
 
-<!-- RESULT -->
+<!-- RESULT：產生號碼後直接顯示圖卡 -->
 <div class="page" id="page-result">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px" data-i18n="result_title">你的幸運號碼</h2>
-  <div class="share-card" id="share-card">
-    <div class="share-card-bg"><div class="dots-pattern"></div></div>
-    <div class="share-cat-img" id="share-cat-img"><span style="font-size:80px;opacity:.3">🐱</span></div>
-    <div class="share-overlay">
-      <div class="sparkle"><svg width="44" height="44" viewBox="0 0 44 44" fill="none"><path d="M22 4 L24 20 L22 22 L20 20 Z" fill="#FFD700"/><path d="M22 22 L24 24 L22 40 L20 24 Z" fill="#FFD700"/><path d="M4 22 L20 20 L22 22 L20 24 Z" fill="#FFD700"/><path d="M22 22 L24 20 L40 22 L24 24 Z" fill="#FFD700"/></svg></div>
-      <div class="share-date-txt" id="share-date"></div>
-      <div class="share-name-block"><div class="share-name-txt" id="share-cat-name">LUCKY CAT</div></div>
-      <div class="share-won-block"><div class="share-won-txt" id="share-won-txt">選號完成！</div></div>
-      <div class="lightning">⚡</div>
-    </div>
-    <div class="share-numbers-bar" id="share-numbers-bar"></div>
+  <h2 style="font-size:20px;font-weight:500;margin-bottom:12px" data-i18n="result_title">你的幸運號碼</h2>
+  <div id="result-saved" style="display:none;background:#EAF3DE;color:#27500A;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.6"></div>
+  <div class="aspect-tabs">
+    <button class="aspect-tab on" id="aspect-9x16" onclick="setAspect('9:16')"><span data-i18n="aspect_story">限動</span> 9:16</button>
+    <button class="aspect-tab" id="aspect-4x5" onclick="setAspect('4:5')"><span data-i18n="aspect_post">貼文</span> 4:5</button>
   </div>
-  <!-- 動態按鈕：已登入/未登入不同 -->
+  <div class="card-frame" id="card-frame">
+    <img id="card-img" alt="lucky numbers card"/>
+    <div id="card-loading" class="card-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+  </div>
+  <button class="btn" id="share-btn" onclick="shareCard()" data-i18n="share_btn">分享／下載圖卡</button>
   <div id="result-action"></div>
 </div>
 
-<!-- NAME（已登入後命名貓咪）-->
-<div class="page" id="page-name">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:16px" data-i18n="name_title">幫你的貓取個名字</h2>
-  <div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">
-    <div id="name-preview-photo" style="width:52px;height:52px;border-radius:8px;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;overflow:hidden">🐱</div>
-    <div>
-      <p id="name-preview-text" style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">你的貓咪</p>
-      <p id="name-preview-loc" style="font-size:12px;color:#888780;margin:0">📍 偵測中...</p>
+<!-- 紀錄頁的圖卡視窗 -->
+<div class="modal-overlay hidden" id="card-modal">
+  <div class="modal-box" style="max-height:94vh;overflow:auto">
+    <div class="modal-handle"></div>
+    <div class="aspect-tabs">
+      <button class="aspect-tab on" id="m-aspect-9x16" onclick="setModalAspect('9:16')"><span data-i18n="aspect_story">限動</span> 9:16</button>
+      <button class="aspect-tab" id="m-aspect-4x5" onclick="setModalAspect('4:5')"><span data-i18n="aspect_post">貼文</span> 4:5</button>
     </div>
-  </div>
-  <label style="font-size:13px;color:#888780;margin-bottom:6px;display:block" data-i18n="name_label">貓咪暱稱</label>
-  <input type="text" id="cat-name-input" placeholder="例如：Malu、胖虎、奶油..." maxlength="20" oninput="onNameInput(this.value)"/>
-  <p style="font-size:12px;color:#AFA9EC;margin:0 0 16px">這個名字會顯示在全球排行榜上</p>
-
-  <!-- 同名貓詢問區塊（動態顯示）-->
-  <div id="same-cat-block" style="display:none;background:#FFF8EC;border:1px solid #F0C866;border-radius:12px;padding:14px;margin-bottom:14px">
-    <p style="font-size:13px;font-weight:500;color:#633806;margin:0 0 10px">🐱 你有一隻同名的貓咪，是這隻嗎？</p>
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-      <div id="same-cat-photo" style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>
-      <div>
-        <p id="same-cat-name-txt" style="font-size:14px;font-weight:500;color:#26215C;margin:0 0 2px"></p>
-        <p id="same-cat-stats" style="font-size:12px;color:#888780;margin:0"></p>
-      </div>
-    </div>
-    <div style="display:flex;gap:8px">
-      <button class="btn" style="flex:1;padding:10px;font-size:13px" onclick="useSameCat()">是同一隻！累積紀錄</button>
-      <button class="btn-outline" style="flex:1;padding:10px;font-size:13px" onclick="useNewCat()">不是，建新貓咪</button>
-    </div>
-  </div>
-
-  <div style="display:flex;align-items:flex-start;gap:8px;padding:12px;background:#F4F2FB;border-radius:10px;margin-bottom:18px">
-    <div style="width:16px;height:16px;border-radius:4px;border:1.5px solid #7F77DD;background:#EEEDFE;flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center"><svg width="10" height="10" viewBox="0 0 10 10"><path d="M2 5l2.5 2.5L8 3" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
-    <p style="font-size:12px;color:#888780;line-height:1.6;margin:0">我同意將貓咪照片、地區和中獎紀錄用於全球排行榜統計。個人資料不對外揭露。</p>
-  </div>
-  <button id="confirm-btn" class="btn disabled" onclick="confirmAndSave()">確認加入排行榜</button>
-  <button class="btn-outline" onclick="showPage('result')">取消</button>
-</div>
-
-<!-- DONE -->
-<div class="page" id="page-done">
-  <div style="text-align:center;padding:28px 0">
-    <div style="width:76px;height:76px;border-radius:50%;background:#EAF3DE;border:2px solid #97C459;display:flex;align-items:center;justify-content:center;margin:0 auto 16px"><svg width="34" height="34" viewBox="0 0 34 34" fill="none"><path d="M6 17l8 8 14-14" stroke="#3B6D11" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-    <p id="done-title" style="font-size:20px;font-weight:500;color:#26215C;margin:0 0 6px"></p>
-    <p id="done-sub" style="font-size:13px;color:#888780;margin:0 0 3px">開獎後自動對獎</p>
-    <p id="done-country" style="font-size:13px;color:#534AB7;margin:0 0 22px"></p>
-    <img src="images/malu-loading.webp" style="width:120px;height:90px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto 20px;opacity:.9" onerror="this.style.display='none'"/>
-    <div style="background:#F8F6FF;border-radius:14px;padding:14px 16px;margin-bottom:20px;border:0.5px solid #CECBF6;text-align:left">
-      <p id="done-lot-label" style="font-size:12px;color:#534AB7;font-weight:500;margin:0 0 10px"></p>
-      <div id="done-balls" style="display:flex;gap:8px;flex-wrap:wrap"></div>
-    </div>
-    <button class="btn" onclick="showPage('home')">回首頁</button>
-    <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none">查看全球排行榜</a>
+    <div class="card-frame"><img id="m-card-img" alt="lucky numbers card"/><div id="m-card-loading" class="card-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+    <button class="btn" onclick="shareModalCard()" data-i18n="share_btn">分享／下載圖卡</button>
+    <div class="modal-skip" onclick="closeModal('card-modal')" data-i18n="close">關閉</div>
   </div>
 </div>
 
@@ -373,13 +359,15 @@ input[type=file]{display:none}
 
 <script src="js/safe.js"></script>
 <script src="js/lottery.js"></script>
+<script src="js/focus.js"></script>
+<script src="js/card.js"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
          createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
 import { collection, getDocs, doc, query, orderBy, limit, serverTimestamp,
-         increment, where, writeBatch, getCountFromServer, updateDoc }
+         increment, where, writeBatch, getCountFromServer, updateDoc, getDoc }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 const { esc, img, int, ball } = window.Safe;
 
@@ -446,7 +434,7 @@ window._loginWithGoogle = async function() {
     window.showToast && window.showToast('✓ 登入成功！');
     // 如果在 email-auth 頁，跳回上傳
     if (document.getElementById('page-email-auth').classList.contains('active')) {
-      window.showPage && window.showPage('upload');
+      window._afterLogin();
     }
   } catch(e) { window.showToast && window.showToast('登入失敗：' + e.message); }
 };
@@ -455,7 +443,7 @@ window._loginWithEmail = async function(email, password) {
   try {
     await signInWithEmailAndPassword(auth, email, password);
     window.showToast && window.showToast('✓ 登入成功！');
-    window.showPage && window.showPage('upload');
+    window._afterLogin();
     return true;
   } catch(e) {
     const msgs = {
@@ -476,7 +464,7 @@ window._registerWithEmail = async function(email, password) {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     console.log('[DEBUG] register success:', result.user.email);
     window.showToast && window.showToast('🎉 帳號建立成功！歡迎加入 LuckyCat');
-    setTimeout(function() { window.showPage && window.showPage('upload'); }, 1200);
+    setTimeout(function() { window._afterLogin(); }, 1200);
     return true;
   } catch(e) {
     console.log('[DEBUG] register error:', e.code, e.message);
@@ -564,6 +552,7 @@ window._saveDraw = async function(catName, existingCatId) {
     lotType: curLot, lotName: window.t('lot_' + curLot + '_name'), lotFlag: lot.flag,
     numbers: currentNums.main, special: currentNums.special,
     targetDrawDate,                         // 大樂透：'YYYY-MM-DD'；美日：null（不對獎）
+    focus: window._state.focus || null,     // 自動對焦位置（0~1），重新產生圖卡時裁切一致
     tracked: lot.tracked,                   // 是否自動對獎、計入中獎率
     purchased: false,                       // 「我買了」，第 4 段開放修改
     country: userLocation.country, countryCode: userLocation.countryCode, city: userLocation.city,
@@ -708,7 +697,8 @@ function drawRowHtml(d) {
     + '<span style="font-size:12px;color:#534AB7">' + esc(d.lotFlag) + ' ' + when + '<span style="color:#AFA9EC">' + period + '</span></span>'
     + statusTag(d) + '</div>'
     + '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">' + ballsHtml(d) + match + '</div>'
-    + '<div style="margin-top:8px;display:flex;align-items:center">' + purchaseHtml(d) + '</div>'
+    + '<div style="margin-top:8px;display:flex;align-items:center;gap:8px">' + purchaseHtml(d)
+    + '<button class="card-btn" onclick="openCardModal(\'' + esc(d.id) + '\')">🖼 ' + esc(T('card_btn')) + '</button></div>'
     + '</div>';
 }
 
@@ -793,6 +783,15 @@ window._renderProfile = async function() {
   el.innerHTML = html;
 };
 
+// 圖卡用照片：新紀錄有 1080px 大圖；舊紀錄只有縮圖
+window._loadCardPhoto = async function (d) {
+  try {
+    const p = await getDoc(doc(db, 'photos', d.id));
+    if (p.exists() && img(p.data().data)) return p.data().data;
+  } catch (e) { console.warn('photos read error:', e); }
+  return img(d.photoThumb) || null;
+};
+
 // 「我買了」切換：先更新畫面，失敗再還原
 document.addEventListener('click', async function (e) {
   const btn = e.target.closest && e.target.closest('.buy-btn');
@@ -846,10 +845,10 @@ const I18N = {
     result_join:'加入排行榜 + 追蹤開獎',
     result_view_rank:'查看排行榜紀錄（不儲存本次）',
     result_later:'稍後再說',
-    result_join_guest:'加入全球排行榜 + 追蹤開獎',
+    result_join_guest:'登入後加入排行榜 + 自動對獎',
     name_title:'幫你的貓取個名字',
     name_label:'貓咪暱稱',
-    name_hint:'這個名字會顯示在全球排行榜上',
+    name_hint:'這個名字會印在圖卡上，也會顯示在排行榜',
     name_agree:'我同意將貓咪照片、地區和中獎紀錄用於全球排行榜統計。個人資料不對外揭露。',
     name_confirm:'確認加入排行榜',
     name_cancel:'取消',
@@ -877,6 +876,15 @@ const I18N = {
     forgot_success:'✅ 重設連結已寄出，請檢查你的信箱',
     profile_title:'我的帳戶',
     profile_my_cats:'我的貓咪',
+    card_title:'抽獎號碼', card_info:'{name} ｜ 抽選日期：{date}', card_fun:'僅娛樂',
+    card_disclaimer:'購買彩券應該量力而為，勿因過度投注而影響正常生活。投注不過度，助人又樂己。',
+    card_failed:'圖卡產生失敗，請再試一次', card_downloaded:'✓ 圖卡已下載', card_btn:'圖卡', close:'關閉',
+    aspect_story:'限動', aspect_post:'貼文', share_btn:'分享／下載圖卡',
+    view_records:'查看我的貓咪紀錄', again_btn:'再選一組', need_name:'請輸入貓咪暱稱',
+    name_ph:'例如：Malu、胖虎、奶油...',
+    verify_bad_file:'這個檔案無法讀取，請換一張照片', verify_fail:'找不到貓咪或寵物，請換一張照片',
+    verify_pass_focus:'找到貓咪了！圖卡會以牠為中心 🎉',
+    same_cat_stats:'已選號 {d} 次 · 中獎 {w} 次', same_cat_yes_toast:'✓ 將累積到 {name} 的紀錄', same_cat_no_toast:'將建立新的貓咪檔案',
     pf_cat_title:'貓的命中率（所有大樂透選號）', pf_checked:'已對獎', pf_pending_n:'{n} 筆待開獎',
     pf_wins:'中獎次數', pf_best:'最佳：{lv}', pf_rate:'中獎率', pf_prize:'累積獎金', pf_sim:'若每注都買',
     pf_real_title:'我的實際損益（只算勾選「我買了」）', pf_real_empty:'還沒有標記買過的號碼。開獎日 20:00 前，在下方號碼旁按「我買了」。',
@@ -925,10 +933,10 @@ const I18N = {
     result_join:'Join Leaderboard + Track Draw',
     result_view_rank:'View leaderboard (don\'t save this draw)',
     result_later:'Maybe later',
-    result_join_guest:'Join Global Leaderboard + Track Draw',
+    result_join_guest:'Sign in to join the leaderboard + auto-check',
     name_title:'Name Your Cat',
     name_label:'Cat Nickname',
-    name_hint:'This name will appear on the global leaderboard',
+    name_hint:'This name will be printed on the card and shown on the leaderboard',
     name_agree:'I agree to use my cat\'s photo, region and prize records for global stats. Personal data will not be disclosed.',
     name_confirm:'Confirm & Join Leaderboard',
     name_cancel:'Cancel',
@@ -956,6 +964,15 @@ const I18N = {
     forgot_success:'✅ Reset link sent! Check your inbox.',
     profile_title:'My Account',
     profile_my_cats:'My Cats',
+    card_title:'LUCKY NUMBERS', card_info:'{name} ｜ Picked {date}', card_fun:'Just for fun',
+    card_disclaimer:'Play responsibly — never let lottery spending affect your daily life.',
+    card_failed:'Could not create the card, please try again', card_downloaded:'✓ Card downloaded', card_btn:'Card', close:'Close',
+    aspect_story:'Story', aspect_post:'Post', share_btn:'Share / Download card',
+    view_records:'View my cats', again_btn:'Pick again', need_name:"Enter your cat's name",
+    name_ph:'e.g. Malu, Tiger, Butter...',
+    verify_bad_file:"Can't read this file, please choose another photo", verify_fail:'No cat or pet found, please choose another photo',
+    verify_pass_focus:'Found your cat! The card will center on it 🎉',
+    same_cat_stats:'{d} picks · {w} wins', same_cat_yes_toast:"✓ Will add to {name}'s record", same_cat_no_toast:'A new cat profile will be created',
     pf_cat_title:"Cat's hit rate (all Taiwan Lotto picks)", pf_checked:'Checked', pf_pending_n:'{n} pending',
     pf_wins:'Wins', pf_best:'Best: {lv}', pf_rate:'Win rate', pf_prize:'Total prize', pf_sim:'if every pick was bought',
     pf_real_title:'My real profit (only tickets marked "I bought")', pf_real_empty:'No tickets marked yet. Tap "I bought it" next to a pick before 20:00 on draw day.',
@@ -1004,10 +1021,10 @@ const I18N = {
     result_join:'ランキングに参加 + 抽選追跡',
     result_view_rank:'ランキングを見る（保存しない）',
     result_later:'後で',
-    result_join_guest:'グローバルランキングに参加 + 抽選追跡',
+    result_join_guest:'ログインしてランキング参加 + 自動照合',
     name_title:'猫に名前をつけよう',
     name_label:'猫のニックネーム',
-    name_hint:'この名前はグローバルランキングに表示されます',
+    name_hint:'この名前はカードとランキングに表示されます',
     name_agree:'猫の写真・地域・当選記録をグローバルランキング統計に使用することに同意します。個人情報は公開されません。',
     name_confirm:'ランキングに参加確定',
     name_cancel:'キャンセル',
@@ -1035,6 +1052,15 @@ const I18N = {
     forgot_success:'✅ リセットリンクを送信しました！受信箱を確認してください。',
     profile_title:'マイアカウント',
     profile_my_cats:'マイ猫',
+    card_title:'ラッキーナンバー', card_info:'{name} ｜ 抽選日：{date}', card_fun:'お楽しみ用',
+    card_disclaimer:'宝くじは無理のない範囲で。買いすぎて生活に影響が出ないように。',
+    card_failed:'カードを作成できませんでした。もう一度お試しください', card_downloaded:'✓ カードをダウンロードしました', card_btn:'カード', close:'閉じる',
+    aspect_story:'ストーリー', aspect_post:'投稿', share_btn:'共有／ダウンロード',
+    view_records:'マイ猫記録を見る', again_btn:'もう一度選ぶ', need_name:'猫の名前を入力してください',
+    name_ph:'例：Malu、トラ、バター...',
+    verify_bad_file:'このファイルは読み込めません。別の写真を選んでください', verify_fail:'猫やペットが見つかりません。別の写真を選んでください',
+    verify_pass_focus:'猫を見つけました！カードは猫を中心にします 🎉',
+    same_cat_stats:'{d} 回選択 · {w} 回当選', same_cat_yes_toast:'✓ {name} の記録に追加します', same_cat_no_toast:'新しい猫のプロフィールを作成します',
     pf_cat_title:'猫の的中率（台湾宝くじ全体）', pf_checked:'照合済み', pf_pending_n:'{n} 件抽選待ち',
     pf_wins:'当選回数', pf_best:'最高：{lv}', pf_rate:'当選率', pf_prize:'累計賞金', pf_sim:'全部購入した場合',
     pf_real_title:'実際の損益（「購入した」のみ）', pf_real_empty:'まだ購入済みの番号がありません。抽選日20:00までに番号の横の「購入した」を押してください。',
@@ -1081,6 +1107,14 @@ function setLang(lang) {
   });
   // 更新 LOTS 名稱
   updateLotsDisplay();
+  // 圖卡文字跟著語言：清掉快取，結果頁正在顯示就重畫
+  if (typeof _cards !== 'undefined') {
+    _cards = {};
+    if (window._state && window._state.currentNums && document.getElementById('page-result').classList.contains('active')) {
+      renderResultCard(); renderResultAction();
+    }
+  }
+  if (document.getElementById('cat-name-input') && window._state) updateGenBtn();
 }
 
 function t(key) {
@@ -1127,6 +1161,7 @@ function showPage(name) {
   window.scrollTo(0, 0);
   if (name === 'profile' && window._renderProfile) window._renderProfile();
   if (name === 'result') renderResultAction();
+  if (name === 'upload' && window.Focus) Focus.preload();
 }
 window.showPage = showPage;
 
@@ -1230,23 +1265,127 @@ async function sendForgotPassword() {
   }
 }
 
-// 結果頁動態按鈕
+// ── 圖卡文字（跟著網站語言）──────────────────────────────
+// pickDate：'YYYY/MM/DD'；target：開獎日 'YYYY-MM-DD' 或 null
+function cardText(lotKey, catName, pickDate, target) {
+  var lot = lotInfo(lotKey);
+  var drawLine = !lot.tracked ? lot.name + ' ｜ ' + t('card_fun')
+               : target ? lot.name + ' ｜ ' + drawDateText(target) : lot.name;
+  return {
+    title: t('card_title'),
+    info: t('card_info').replace('{name}', catName || 'LUCKY CAT').replace('{date}', pickDate),
+    drawLine: drawLine,
+    disclaimer: [t('card_disclaimer')],   // 一行、字小一點（使用者 10/22 要求）
+  };
+}
+
+// 檔名只用英數字：部分瀏覽器遇到中文檔名會改成「download」
+function cardFilename(catName, pickDate, aspect) {
+  var ascii = String(catName || '').replace(/[^A-Za-z0-9_-]+/g, '').slice(0, 20);
+  return 'luckycat_' + (ascii ? ascii + '_' : '') + String(pickDate).replace(/\//g, '') + '_' + aspect.replace(':', 'x') + '.png';
+}
+
+function loadImage(src) {
+  return new Promise(function (res, rej) { var i = new Image(); i.onload = function () { res(i); }; i.onerror = rej; i.src = src; });
+}
+
+// ── 結果頁 ───────────────────────────────────────────────
+var _aspect = '9:16', _cards = {};   // 已畫好的圖卡快取（依比例）
+
+function pickDateOf(d) { return Lottery.todayDot(d).replace(/\./g, '/'); }
+
+async function renderResultCard() {
+  var st = window._state, key = _aspect;
+  var imgEl = document.getElementById('card-img'), loading = document.getElementById('card-loading');
+  loading.classList.add('show');
+  try {
+    if (!_cards[key]) {
+      var photo = st.cardPhotoImg || (st.photoCard ? (st.cardPhotoImg = await loadImage(st.photoCard)) : null);
+      _cards[key] = await Card.render({
+        aspect: key, photo: photo, focus: st.focus,
+        numbers: st.currentNums.main, special: st.currentNums.special,
+        text: cardText(st.curLot, st.catName, pickDateOf(st.pickedAt), Lottery.targetDrawDate(st.curLot, st.pickedAt)),
+      });
+    }
+    if (key === _aspect) imgEl.src = _cards[key].toDataURL('image/png');
+  } catch (e) {
+    console.error('render card error:', e);
+    showToast(t('card_failed'));
+  }
+  loading.classList.remove('show');
+}
+
+function setAspect(a) {
+  _aspect = a;
+  document.getElementById('aspect-9x16').classList.toggle('on', a === '9:16');
+  document.getElementById('aspect-4x5').classList.toggle('on', a === '4:5');
+  renderResultCard();
+}
+
+async function shareCard() {
+  var st = window._state;
+  if (!_cards[_aspect]) await renderResultCard();
+  if (!_cards[_aspect]) return;
+  var r = await Card.share(_cards[_aspect], cardFilename(st.catName, pickDateOf(st.pickedAt), _aspect), 'LuckyCat');
+  if (r === 'downloaded') showToast(t('card_downloaded'));
+}
+
+// 結果頁下方按鈕：已存／已登入／未登入
 function renderResultAction() {
-  const el = document.getElementById('result-action');
+  var el = document.getElementById('result-action');
   if (!el) return;
-  const user = window._state && window._state.user;
+  var st = window._state || {}, saved = st.saved, user = st.user;
+  var banner = document.getElementById('result-saved');
+  if (saved) {
+    var lot = lotInfo(st.curLot);
+    banner.style.display = 'block';
+    banner.innerHTML = '<b>' + Safe.esc(t('done_title').replace('{name}', st.catName)) + '</b><br>'
+      + Safe.esc(lot.tracked ? t('done_sub') : t('done_sub_untracked'));
+    el.innerHTML = '<button class="btn-outline" onclick="showPage(\'profile\')">' + Safe.esc(t('view_records')) + '</button>'
+      + '<button class="btn-outline" onclick="newRound()">' + Safe.esc(t('again_btn')) + '</button>';
+    return;
+  }
+  banner.style.display = 'none';
   if (user) {
-    el.innerHTML = '<button class="btn" onclick="goToName()">加入排行榜 + 追蹤開獎</button>'
-      + '<a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none">查看排行榜紀錄（不儲存本次）</a>'
-      + '<button class="btn-outline" onclick="showPage(\'home\')" style="color:#888780;border-color:#CECBF6">稍後再說</button>';
+    el.innerHTML = '<button class="btn" id="save-btn" onclick="saveCurrent()">' + Safe.esc(t('result_join')) + '</button>'
+      + '<p style="font-size:11px;color:#888780;line-height:1.6;margin:-2px 0 10px;text-align:center">' + Safe.esc(t('name_agree')) + '</p>'
+      + '<button class="btn-outline" onclick="newRound()">' + Safe.esc(t('again_btn')) + '</button>';
   } else {
-    el.innerHTML = '<button class="btn" onclick="goToLogin()">加入全球排行榜 + 追蹤開獎</button>'
-      + '<button class="btn-outline" onclick="showPage(\'home\')">稍後再說</button>';
+    el.innerHTML = '<button class="btn" onclick="goToLogin()">' + Safe.esc(t('result_join_guest')) + '</button>'
+      + '<button class="btn-outline" onclick="newRound()">' + Safe.esc(t('again_btn')) + '</button>';
   }
 }
 
 function goToLogin() { showPage('email-auth'); }
-function goToName()  { showPage('name'); }
+
+// 登入成功後：有還沒存的號碼就回結果頁，否則到上傳頁
+window._afterLogin = function () {
+  var st = window._state;
+  showPage(st && st.currentNums && !st.saved ? 'result' : 'upload');
+};
+
+function newRound() {
+  var st = window._state;
+  st.currentNums = null; st.saved = null; _cards = {};
+  showPage('upload');
+}
+
+async function saveCurrent() {
+  var st = window._state, btn = document.getElementById('save-btn');
+  if (!btn || btn.classList.contains('disabled') || st.saved) return;   // 防止連點存兩次
+  btn.textContent = t('saving'); btn.classList.add('disabled');
+  try {
+    var r = await window._saveDraw(st.catName, (_useExistingCat && _sameCatData) ? _sameCatData.id : null);
+    st.saved = r;
+    showToast(t('saved_ok'));
+  } catch (e) {
+    console.error('saveDraw error:', e);
+    showToast(t('save_failed'));
+    btn.textContent = t('result_join'); btn.classList.remove('disabled');
+    return;
+  }
+  renderResultAction();
+}
 
 function selectLot(key) {
   ['tw','us','jp'].forEach(k => {
@@ -1268,7 +1407,7 @@ function setVerifyBar(state, msg) {
   else bar.style.display = 'none';
 }
 
-// TF.js
+// ── 寵物辨識（自動對焦找不到動物時的備援，可辨識兔子、倉鼠等）──
 let tfModel = null;
 const ANIMAL_KEYWORDS = ['cat','kitten','tabby','persian','siamese','angora','egyptian','tiger cat','dog','puppy','poodle','retriever','labrador','bulldog','husky','shiba','chihuahua','rabbit','bunny','hamster','guinea pig','ferret','bird','parrot','budgie','fish','goldfish','turtle','lizard','gecko','lion','tiger','leopard','cheetah','fox','wolf','bear','panda','raccoon','horse','cow','sheep','goat','pig','elephant','monkey'];
 
@@ -1288,23 +1427,18 @@ function loadScript(src) {
   });
 }
 
-async function verifyWithTFJS(img) {
+async function classifyPet(img) {
   try {
     const model = await loadTFModel();
     const predictions = await model.classify(img, 5);
-    console.log('TF.js:', predictions);
     const isAnimal = predictions.some(function(p) {
       const cls = p.className.toLowerCase();
       return ANIMAL_KEYWORDS.some(function(kw) { return cls.indexOf(kw) !== -1; });
     });
-    const topClass = predictions[0] ? predictions[0].className : '未知內容';
-    return {
-      is_pet: isAnimal,
-      reason: isAnimal ? '' : '這看起來是「' + topClass + '」，目前只支援貓咪或寵物照片 🐱'
-    };
+    return { is_pet: isAnimal, top: predictions[0] ? predictions[0].className : '' };
   } catch(e) {
     console.warn('TF.js 失敗:', e);
-    return {is_pet: true, reason: ''};
+    return { is_pet: true, top: '' };   // 模型載不到時不擋使用者
   }
 }
 
@@ -1323,89 +1457,83 @@ function resizePhoto(img, maxSide, quality, maxChars) {
   return out;
 }
 
+// 產生按鈕：要有通過辨識的照片＋貓名
+function updateGenBtn() {
+  var st = window._state, btn = document.getElementById('gen-btn');
+  var name = document.getElementById('cat-name-input').value.trim();
+  var ready = st.hasPhoto && name;
+  btn.classList.toggle('disabled', !ready);
+  btn.textContent = !st.hasPhoto ? t('upload_btn_default') : !name ? t('need_name') : t('upload_btn_ready');
+}
+
+var _fileSeq = 0;
 async function handleFile(input) {
   const file = input.files[0];
   if (!file) return;
-  const preview = URL.createObjectURL(file);
-  document.getElementById('preview-img').src = preview;
+  const seq = ++_fileSeq;   // 連續換照片時，只採用最後一張的結果
+  const st = window._state;
+  st.hasPhoto = false; st.focus = null; st.photoCard = null; st.photoThumb = null; st.cardPhotoImg = null;
+  document.getElementById('preview-img').src = URL.createObjectURL(file);
   document.getElementById('upload-placeholder').style.display = 'none';
   document.getElementById('preview-frame').style.display = 'flex';
-  const btn = document.getElementById('gen-btn');
-  btn.textContent = '驗證中...'; btn.classList.add('disabled');
-  if (window._state) window._state.hasPhoto = false;
-  setVerifyBar('checking', '🐱 AI 辨識中，請稍候（首次載入約 5 秒）...');
+  updateGenBtn();
+  setVerifyBar('checking', t('verify_checking'));
 
-  var np = document.getElementById('name-preview-photo');
-  np.innerHTML = '';
-  var i1 = document.createElement('img'); i1.src = preview; i1.style.cssText = 'width:100%;height:100%;object-fit:cover'; np.appendChild(i1);
-  var sc = document.getElementById('share-cat-img');
-  sc.innerHTML = '';
-  var i2 = document.createElement('img'); i2.src = preview; i2.style.cssText = 'width:100%;height:100%;object-fit:cover;object-position:center top'; sc.appendChild(i2);
+  let img;
+  try { img = await loadImage(URL.createObjectURL(file)); }
+  catch (e) { setVerifyBar('fail', t('verify_bad_file')); return; }
 
-  var reader = new FileReader();
-  reader.onload = async function(e) {
-    var img = new Image();
-    img.onload = async function() {
-      // 大圖給分享圖卡用；縮圖給列表用
-      window._state.photoCard  = resizePhoto(img, 1080, 0.85, 700000);
-      window._state.photoThumb = resizePhoto(img, 320, 0.75, 60000);
+  // 先縮成 1080px 再偵測：大圖與存檔、圖卡用的是同一張，對焦座標才會一致
+  const card = resizePhoto(img, 1080, 0.85, 700000);
+  const thumb = resizePhoto(img, 320, 0.75, 60000);
+  const cardImg = await loadImage(card);
 
-      var result = await verifyWithTFJS(img);
-      if (!result.is_pet) {
-        setVerifyBar('fail', result.reason + '　請上傳貓咪或寵物的照片！');
-        btn.textContent = '請重新上傳照片'; btn.classList.add('disabled');
-        if (window._state) window._state.hasPhoto = false;
-        return;
-      }
-      setVerifyBar('pass', '貓貓驗證通過！準備選號 🎉');
-      btn.textContent = '產生幸運號碼'; btn.classList.remove('disabled');
-      if (window._state) window._state.hasPhoto = true;
-    };
-    img.src = e.target.result;
-  };
-  reader.readAsDataURL(file);
+  const det = await Focus.detect(cardImg);
+  let ok = det.isAnimal === true;
+  if (!ok) ok = (await classifyPet(cardImg)).is_pet;   // 偵測不到動物（或模型不可用）時再用分類模型確認
+  if (seq !== _fileSeq) return;
+  if (!ok) {
+    setVerifyBar('fail', t('verify_fail'));
+    return;
+  }
+  st.photoCard = card; st.photoThumb = thumb; st.cardPhotoImg = cardImg;
+  st.focus = det.focus ? { x: det.focus.x, y: det.focus.y, w: det.focus.w, h: det.focus.h } : null;
+  st.hasPhoto = true;
+  setVerifyBar('pass', det.focus ? t('verify_pass_focus') : t('verify_pass'));
+  updateGenBtn();
 }
 
 function startGenerate() {
-  if (!window._state || !window._state.hasPhoto) return;
-  var lot = lotInfo(window._state.curLot);
+  const st = window._state;
+  const name = document.getElementById('cat-name-input').value.trim();
+  if (!st.hasPhoto || !name) return;
+  st.catName = name;
+  const lot = lotInfo(st.curLot);
   document.getElementById('loading-lot-name').textContent = lot.flag + ' ' + lot.name;
   showPage('loading');
   setTimeout(function() {
-    window._state.pickedAt = new Date();
-    window._state.currentNums = Lottery.pick(window._state.curLot);
-    renderShareCard(window._state.currentNums);
+    st.pickedAt = new Date();
+    st.currentNums = Lottery.pick(st.curLot);
+    st.saved = null; _cards = {};
+    document.getElementById('card-img').removeAttribute('src');
     showPage('result');
+    renderResultCard();
   }, 2600);
 }
 
-function renderShareCard(nums) {
-  var lot = lotInfo(window._state.curLot);
-  var target = Lottery.targetDrawDate(lot.key, window._state.pickedAt);
-  document.getElementById('share-date').textContent = target ? drawDateText(target) : Lottery.todayDot(window._state.pickedAt);
-  document.getElementById('share-won-txt').textContent = lot.flag + ' ' + lot.name;
-  var bar = document.getElementById('share-numbers-bar'); bar.innerHTML = '';
-  nums.main.forEach(function(n) { var d = document.createElement('div'); d.className = 'share-ball'; d.textContent = String(n).padStart(2,'0'); bar.appendChild(d); });
-  nums.special.forEach(function(n) { var d = document.createElement('div'); d.className = 'share-ball special'; d.textContent = String(n).padStart(2,'0'); bar.appendChild(d); });
-}
-
 var _nameCheckTimer = null;
-var _sameCatData = null;  // 儲存查到的同名貓資料
-var _useExistingCat = false;  // 用戶選擇是否用同一隻
+var _sameCatData = null;      // 查到的同名貓
+var _useExistingCat = false;  // 是否沿用那隻貓
 
 function onNameInput(v) {
-  document.getElementById('name-preview-text').textContent = v || '你的貓咪';
-  document.getElementById('share-cat-name').textContent = v ? v.toUpperCase() : 'LUCKY CAT';
-  document.getElementById('confirm-btn').classList.toggle('disabled', !v.trim());
+  updateGenBtn();
   document.getElementById('same-cat-block').style.display = 'none';
   _sameCatData = null; _useExistingCat = false;
-
-  // debounce 500ms 後查同名貓
   if (_nameCheckTimer) clearTimeout(_nameCheckTimer);
-  if (v.trim().length >= 1 && window._state && window._state.user) {
+  if (v.trim() && window._state && window._state.user && window._findSameCat) {
     _nameCheckTimer = setTimeout(async function() {
       var found = await window._findSameCat(v.trim());
-      if (found) {
+      if (found && document.getElementById('cat-name-input').value.trim() === v.trim()) {
         _sameCatData = found;
         showSameCatBlock(found);
       }
@@ -1416,67 +1544,71 @@ function onNameInput(v) {
 function showSameCatBlock(cat) {
   var block = document.getElementById('same-cat-block');
   var photo = document.getElementById('same-cat-photo');
-  var nameTxt = document.getElementById('same-cat-name-txt');
-  var stats = document.getElementById('same-cat-stats');
   var src = Safe.img(cat.photoThumb);
-  if (src) {
-    photo.innerHTML = '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>';
-  } else {
-    photo.innerHTML = '🐱';
-  }
-  nameTxt.textContent = cat.catName;
-  stats.textContent = '已抽 ' + (cat.totalDraws||0) + ' 次 · 中獎 ' + (cat.totalWins||0) + ' 次' +
-    (cat.totalPrize > 0 ? ' · 累積 $' + cat.totalPrize.toLocaleString() : '');
+  photo.innerHTML = src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱';
+  document.getElementById('same-cat-name-txt').textContent = cat.catName;
+  var s = cat.stats || {};
+  document.getElementById('same-cat-stats').textContent = t('same_cat_stats')
+    .replace('{d}', cat.totalDraws || 0).replace('{w}', s.wins != null ? s.wins : (cat.totalWins || 0));
   block.style.display = 'block';
 }
 
 function useSameCat() {
   _useExistingCat = true;
   document.getElementById('same-cat-block').style.display = 'none';
-  showToast('✓ 將累積到同一隻 ' + _sameCatData.catName + ' 的紀錄');
+  showToast(t('same_cat_yes_toast').replace('{name}', _sameCatData.catName));
 }
 
 function useNewCat() {
   _useExistingCat = false;
   _sameCatData = null;
   document.getElementById('same-cat-block').style.display = 'none';
-  showToast('將建立新的貓咪檔案');
+  showToast(t('same_cat_no_toast'));
 }
 
-async function confirmAndSave() {
-  var name = document.getElementById('cat-name-input').value.trim();
-  if (!name) return;
-  var btn = document.getElementById('confirm-btn');
-  if (btn.classList.contains('disabled')) return;   // 防止連點存兩次
-  btn.textContent = t('saving'); btn.classList.add('disabled');
+// ── 紀錄頁的圖卡視窗 ─────────────────────────────────────
+var _modal = { draw: null, photo: null, aspect: '9:16', cards: {} };
 
-  var saved;
+window.openCardModal = async function (drawId) {
+  var d = (window._myDraws || []).find(function (x) { return x.id === drawId; });
+  if (!d) return;
+  _modal = { draw: d, photo: null, aspect: _modal.aspect || '9:16', cards: {} };
+  document.getElementById('m-card-img').removeAttribute('src');
+  document.getElementById('card-modal').classList.remove('hidden');
+  document.getElementById('m-card-loading').classList.add('show');
   try {
-    saved = await window._saveDraw(name, (_useExistingCat && _sameCatData) ? _sameCatData.id : null);
-  } catch (e) {
-    console.error('saveDraw error:', e);
-    showToast(t('save_failed'));
-    btn.textContent = t('name_confirm'); btn.classList.remove('disabled');
-    return;
-  }
+    var data = window._loadCardPhoto ? await window._loadCardPhoto(d) : null;
+    _modal.photo = data ? await loadImage(data) : null;
+  } catch (e) { console.warn('load card photo error:', e); }
+  setModalAspect(_modal.aspect);
+};
 
-  var lot  = lotInfo(window._state.curLot);
-  var loc  = window._state.userLocation;
-  var nums = window._state.currentNums;
-  document.getElementById('done-title').textContent = t('done_title').replace('{name}', name);
-  document.getElementById('done-country').textContent = t('done_country').replace('{country}', loc.country);
-  document.getElementById('done-sub').textContent = lot.tracked ? t('done_sub') : t('done_sub_untracked');
-  document.getElementById('done-lot-label').textContent = lot.flag + ' ' + lot.name + ' · '
-    + (saved.targetDrawDate ? drawDateText(saved.targetDrawDate) : t('untracked_tag'));
-  var db2 = document.getElementById('done-balls'); db2.innerHTML = '';
-  nums.main.forEach(function(n) { var d = document.createElement('div'); d.className = 'ball show'; d.textContent = String(n).padStart(2,'0'); db2.appendChild(d); });
-  nums.special.forEach(function(n) { var d = document.createElement('div'); d.className = 'ball sp show'; d.textContent = String(n).padStart(2,'0'); db2.appendChild(d); });
+async function setModalAspect(a) {
+  _modal.aspect = a;
+  document.getElementById('m-aspect-9x16').classList.toggle('on', a === '9:16');
+  document.getElementById('m-aspect-4x5').classList.toggle('on', a === '4:5');
+  var d = _modal.draw; if (!d) return;
+  var loading = document.getElementById('m-card-loading');
+  loading.classList.add('show');
+  try {
+    if (!_modal.cards[a]) {
+      var legacy = d.schema == null;
+      _modal.cards[a] = await Card.render({
+        aspect: a, photo: _modal.photo, focus: d.focus || null,
+        numbers: d.numbers || [], special: (legacy && d.lotType === 'tw') ? [] : (d.special || []),
+        text: cardText(d.lotType, d.catName, String(d.date || '').replace(/\./g, '/'), d.targetDrawDate || d.drawDate || null),
+      });
+    }
+    if (_modal.aspect === a) document.getElementById('m-card-img').src = _modal.cards[a].toDataURL('image/png');
+  } catch (e) { console.error(e); showToast(t('card_failed')); }
+  loading.classList.remove('show');
+}
 
-  // 這組號碼已存，清掉避免按上一頁再存一次
-  window._state.currentNums = null;
-  btn.textContent = t('name_confirm');
-  showToast(t('saved_ok'));
-  showPage('done');
+async function shareModalCard() {
+  var d = _modal.draw, a = _modal.aspect;
+  if (!d || !_modal.cards[a]) return;
+  var r = await Card.share(_modal.cards[a], cardFilename(d.catName, String(d.date || '').replace(/\./g, '/'), a), 'LuckyCat');
+  if (r === 'downloaded') showToast(t('card_downloaded'));
 }
 
 function showToast(msg) {
