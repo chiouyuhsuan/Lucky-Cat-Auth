@@ -78,20 +78,21 @@
       var L = cx0 + P, R = cx0 + cw - P, IW = R - L;
 
       // 標題列
-      var titleSize = tall ? 150 : 128, box = tall ? 150 : 128, top = cy0 + P - 6;
+      // 4:5：標題、號碼球、文字縮小，把空間讓給照片（照片區接近正方形，捲成一團的貓也放得下）
+      var titleSize = tall ? 150 : 96, box = tall ? 150 : 96, top = cy0 + P - 6;
       ctx.fillStyle = C.pawBox; ctx.strokeStyle = C.line; ctx.lineWidth = 5;
       rr(ctx, R - box, top, box, box, 24); ctx.fill(); ctx.stroke();
       paw(ctx, R - box / 2, top + box / 2 + 4, box * 0.62, C.frame, 0);
       ctx.fillStyle = C.title;
       fitText(ctx, tx.title, '900', titleSize, IW - box - 30, 60);
       ctx.fillText(tx.title, L + 4, top + box * 0.80);
-      var y0 = top + box + 22;
+      var y0 = top + box + (tall ? 22 : 16);
       ctx.fillStyle = C.line; ctx.fillRect(L, y0, IW, 4);
 
       // 下方區塊高度（由下往上排）
-      var ballD = tall ? 140 : 132, infoSize = tall ? 40 : 36, lotSize = tall ? 46 : 42;
+      var ballD = tall ? 140 : 104, infoSize = tall ? 40 : 30, lotSize = tall ? 46 : 34;
       // 警語：一行、字小一點；太長會自動縮小到放得下，不換行
-      var discSize = tall ? 26 : 24, discLH = discSize * 1.7, gap = tall ? 30 : 22;
+      var discSize = tall ? 26 : 21, discLH = discSize * 1.7, gap = tall ? 30 : 16;
       var bottom = cy0 + chh - P + 4;
       var discTop = bottom - discLH * tx.disclaimer.length;
       var div2 = discTop - gap;
@@ -103,6 +104,7 @@
 
       // 照片（依自動對焦裁切）
       var ph = photoBottom - photoTop;
+      cv.dataset.photoSlot = Math.round(IW) + 'x' + Math.round(ph);
       ctx.save(); rr(ctx, L, photoTop, IW, ph, 28); ctx.clip();
       if (opts.photo) {
         var iw = opts.photo.naturalWidth || opts.photo.width, ih = opts.photo.naturalHeight || opts.photo.height;
