@@ -80,5 +80,29 @@
     return { x: x, y: y, w: cw, h: ch };
   }
 
-  window.Focus = { preload: preload, detect: detect, pickFocus: pickFocus, cropRect: cropRect };
+  // 決定照片怎麼放進版位（slotW × slotH）：
+  // - cover：裁切放大填滿（一般情況）
+  // - contain：主角太寬或太高、裁切會切掉超過 2 成時，把主角完整放進框，
+  //   空出的部分用同一張照片的模糊版本補滿（例如橫向照片兩隻貓分別在左右兩端，放進直式框）
+  // 沒有對焦資訊時，把整張照片當成主角，避免舊紀錄或偵測不到時切掉太多
+  var MIN_COVERAGE = 0.8;
+  function layout(imgW, imgH, focus, slotW, slotH) {
+    var aspect = slotW / slotH;
+    var f = (focus && focus.w > 0 && focus.h > 0) ? focus : { x: 0, y: 0, w: 1, h: 1 };
+    var c = cropRect(imgW, imgH, focus || null, aspect);
+    var fw = f.w * imgW, fh = f.h * imgH;
+    var coverage = Math.min(1, c.w / fw, c.h / fh);
+    if (coverage >= MIN_COVERAGE) return { mode: 'cover', src: c, coverage: coverage };
+    // 主角四周留 4% 邊，限制在照片範圍內
+    var pad = 0.04;
+    var sx = Math.max(0, (f.x - pad) * imgW), sy = Math.max(0, (f.y - pad) * imgH);
+    var ex = Math.min(imgW, (f.x + f.w + pad) * imgW), ey = Math.min(imgH, (f.y + f.h + pad) * imgH);
+    var sw = ex - sx, sh = ey - sy;
+    var scale = Math.min(slotW / sw, slotH / sh);
+    var dw = sw * scale, dh = sh * scale;
+    return { mode: 'contain', coverage: coverage, src: { x: sx, y: sy, w: sw, h: sh },
+             dst: { x: (slotW - dw) / 2, y: (slotH - dh) / 2, w: dw, h: dh } };
+  }
+
+  window.Focus = { preload: preload, detect: detect, pickFocus: pickFocus, cropRect: cropRect, layout: layout };
 })();
