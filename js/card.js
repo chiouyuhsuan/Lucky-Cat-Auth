@@ -79,13 +79,17 @@
 
       // 標題列
       // 4:5：標題、號碼球、文字縮小，把空間讓給照片（照片區接近正方形，捲成一團的貓也放得下）
-      var titleSize = tall ? 150 : 96, box = tall ? 150 : 96, top = cy0 + P - 6;
+      // 標題放貓名（使用者 10/24 決定）：字比原本「抽獎號碼」小一點，與卡片邊緣多留空間，在標題列垂直置中
+      var titleSize = tall ? 112 : 74, box = tall ? 150 : 96, top = cy0 + P - 6;
+      var inset = tall ? 22 : 16;
       ctx.fillStyle = C.pawBox; ctx.strokeStyle = C.line; ctx.lineWidth = 5;
       rr(ctx, R - box, top, box, box, 24); ctx.fill(); ctx.stroke();
       paw(ctx, R - box / 2, top + box / 2 + 4, box * 0.62, C.frame, 0);
       ctx.fillStyle = C.title;
-      fitText(ctx, tx.title, '900', titleSize, IW - box - 30, 60);
-      ctx.fillText(tx.title, L + 4, top + box * 0.80);
+      var ts = fitText(ctx, tx.title, '900', titleSize, IW - box - inset - 36, 40);
+      ctx.textBaseline = 'middle';
+      ctx.fillText(tx.title, L + inset, top + box / 2 + ts * 0.04);
+      ctx.textBaseline = 'alphabetic';
       var y0 = top + box + (tall ? 22 : 16);
       ctx.fillStyle = C.line; ctx.fillRect(L, y0, IW, 4);
 
