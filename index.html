@@ -876,7 +876,7 @@ const I18N = {
     forgot_success:'✅ 重設連結已寄出，請檢查你的信箱',
     profile_title:'我的帳戶',
     profile_my_cats:'我的貓咪',
-    card_title:'抽獎號碼', card_info:'{name} ｜ 抽選日期：{date}', card_fun:'僅娛樂',
+    card_info:'抽選日期：{date}', card_fun:'僅娛樂',
     card_disclaimer:'購買彩券應該量力而為，勿因過度投注而影響正常生活。投注不過度，助人又樂己。',
     card_failed:'圖卡產生失敗，請再試一次', card_downloaded:'✓ 圖卡已下載', card_btn:'圖卡', close:'關閉',
     aspect_story:'限動', aspect_post:'貼文', share_btn:'分享／下載圖卡',
@@ -964,7 +964,7 @@ const I18N = {
     forgot_success:'✅ Reset link sent! Check your inbox.',
     profile_title:'My Account',
     profile_my_cats:'My Cats',
-    card_title:'LUCKY NUMBERS', card_info:'{name} ｜ Picked {date}', card_fun:'Just for fun',
+    card_info:'Picked on {date}', card_fun:'Just for fun',
     card_disclaimer:'Play responsibly — never let lottery spending affect your daily life.',
     card_failed:'Could not create the card, please try again', card_downloaded:'✓ Card downloaded', card_btn:'Card', close:'Close',
     aspect_story:'Story', aspect_post:'Post', share_btn:'Share / Download card',
@@ -1052,7 +1052,7 @@ const I18N = {
     forgot_success:'✅ リセットリンクを送信しました！受信箱を確認してください。',
     profile_title:'マイアカウント',
     profile_my_cats:'マイ猫',
-    card_title:'ラッキーナンバー', card_info:'{name} ｜ 抽選日：{date}', card_fun:'お楽しみ用',
+    card_info:'抽選日：{date}', card_fun:'お楽しみ用',
     card_disclaimer:'宝くじは無理のない範囲で。買いすぎて生活に影響が出ないように。',
     card_failed:'カードを作成できませんでした。もう一度お試しください', card_downloaded:'✓ カードをダウンロードしました', card_btn:'カード', close:'閉じる',
     aspect_story:'ストーリー', aspect_post:'投稿', share_btn:'共有／ダウンロード',
@@ -1272,8 +1272,8 @@ function cardText(lotKey, catName, pickDate, target) {
   var drawLine = !lot.tracked ? lot.name + ' ｜ ' + t('card_fun')
                : target ? lot.name + ' ｜ ' + drawDateText(target) : lot.name;
   return {
-    title: t('card_title'),
-    info: t('card_info').replace('{name}', catName || 'LUCKY CAT').replace('{date}', pickDate),
+    title: catName || 'LUCKY CAT',          // 標題放貓名（「抽獎號碼」與下方號碼球重複，已拿掉）
+    info: t('card_info').replace('{date}', pickDate),
     drawLine: drawLine,
     disclaimer: [t('card_disclaimer')],   // 一行、字小一點（使用者 10/22 要求）
   };
