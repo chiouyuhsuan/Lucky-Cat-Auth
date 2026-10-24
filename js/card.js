@@ -108,8 +108,25 @@
       ctx.save(); rr(ctx, L, photoTop, IW, ph, 28); ctx.clip();
       if (opts.photo) {
         var iw = opts.photo.naturalWidth || opts.photo.width, ih = opts.photo.naturalHeight || opts.photo.height;
-        var c = window.Focus.cropRect(iw, ih, opts.focus, IW / ph);
-        ctx.drawImage(opts.photo, c.x, c.y, c.w, c.h, L, photoTop, IW, ph);
+        var lay = window.Focus.layout(iw, ih, opts.focus, IW, ph);
+        cv.dataset.photoMode = lay.mode;
+        if (lay.mode === 'cover') {
+          ctx.drawImage(opts.photo, lay.src.x, lay.src.y, lay.src.w, lay.src.h, L, photoTop, IW, ph);
+        } else {
+          // 背景：同一張照片縮到很小再放大，形成模糊效果（各瀏覽器都支援，不依賴 ctx.filter）
+          var bg = window.Focus.cropRect(iw, ih, null, IW / ph);
+          var tiny = document.createElement('canvas'); tiny.width = 24; tiny.height = Math.max(1, Math.round(24 * ph / IW));
+          var tctx = tiny.getContext('2d'); tctx.imageSmoothingQuality = 'high';
+          tctx.drawImage(opts.photo, bg.x, bg.y, bg.w, bg.h, 0, 0, tiny.width, tiny.height);
+          ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(tiny, 0, 0, tiny.width, tiny.height, L, photoTop, IW, ph);
+          ctx.fillStyle = 'rgba(255,247,234,0.28)'; ctx.fillRect(L, photoTop, IW, ph);   // 背景稍微淡化，讓主角更突出
+          var d = lay.dst;
+          ctx.save();
+          ctx.shadowColor = 'rgba(58,39,27,0.25)'; ctx.shadowBlur = 24;
+          ctx.drawImage(opts.photo, lay.src.x, lay.src.y, lay.src.w, lay.src.h, L + d.x, photoTop + d.y, d.w, d.h);
+          ctx.restore();
+        }
       } else {
         ctx.fillStyle = '#FBE3C4'; ctx.fillRect(L, photoTop, IW, ph);
         paw(ctx, L + IW / 2, photoTop + ph / 2, Math.min(IW, ph) * 0.35, C.framePaw, 0);
