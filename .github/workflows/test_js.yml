@@ -2,7 +2,7 @@ name: 前端單元測試
 
 on:
   pull_request:
-    paths: ['js/**', 'tests/*.test.mjs', '.github/workflows/test_js.yml']
+    paths: ['js/**', 'tests/*.test.mjs', 'package.json', '.github/workflows/test_js.yml']
   push:
     branches: [main]
     paths: ['js/**', 'tests/*.test.mjs']

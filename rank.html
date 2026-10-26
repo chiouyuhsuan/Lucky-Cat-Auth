@@ -72,6 +72,16 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .dot:nth-child(2){animation:bounce 1.2s infinite .2s}
 .dot:nth-child(3){animation:bounce 1.2s infinite .4s}
 
+/* TABS */
+.tabs{display:flex;gap:6px;margin-bottom:8px}
+.tab{flex:1;padding:10px 6px;border-radius:12px;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.tab.on{background:#534AB7;color:#fff;border-color:#534AB7}
+.tab-note{font-size:12px;color:#888780;margin:0 2px 12px}
+.rc-stats{font-size:12px;color:#534AB7}
+.rc-big{font-size:18px;font-weight:700;white-space:nowrap}
+.rc-sub{font-size:11px;color:#888780}
+.b.hit{background:#3B6D11;color:#fff}
+
 /* Leaflet custom marker */
 .cat-marker{background:#7F77DD;border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;transition:transform .15s}
 .cat-marker:hover{transform:scale(1.25)}
@@ -107,13 +117,13 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 
 <div class="wrap">
   <h1 style="font-size:22px;font-weight:500;margin-bottom:4px">全球幸運貓排行榜</h1>
-  <p style="font-size:14px;color:#534AB7;margin-bottom:20px">點擊地圖標記篩選國家，看看哪裡的貓最幸運</p>
+  <p style="font-size:14px;color:#534AB7;margin-bottom:20px">台灣大樂透 · 點擊地圖標記可篩選國家</p>
 
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-val" style="color:#534AB7" id="s-cats">—</div><div class="stat-lbl">全球貓咪</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:#3B6D11" id="s-prize">—</div><div class="stat-lbl">總中獎金額</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#534AB7" id="s-cats">—</div><div class="stat-lbl">參賽貓咪</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#3B6D11" id="s-prize">—</div><div class="stat-lbl">累積獎金</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#993C1D" id="s-countries">—</div><div class="stat-lbl">參與國家</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:#BA7517" id="s-wins">—</div><div class="stat-lbl">中獎紀錄</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:#BA7517" id="s-wins">—</div><div class="stat-lbl">中獎次數</div></div>
   </div>
 
   <div class="map-wrap">
@@ -133,22 +143,12 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
     <button class="cc-close" onclick="clearCC()">清除篩選 ✕</button>
   </div>
 
-  <div class="filter-bar">
-    <div class="f-group">
-      <span class="f-lbl">排序</span>
-      <button class="chip on" id="sort-wins"   onclick="setSort('wins')">中獎次數</button>
-      <button class="chip"    id="sort-prize"  onclick="setSort('prize')">中獎金額</button>
-      <button class="chip"    id="sort-newest" onclick="setSort('newest')">最新上傳</button>
-    </div>
-    <div class="f-sep"></div>
-    <div class="f-group">
-      <span class="f-lbl">樂透</span>
-      <button class="chip on" id="lot-all" onclick="setLot('all')">全部</button>
-      <button class="chip"    id="lot-tw"  onclick="setLot('tw')">🇹🇼 大樂透</button>
-      <button class="chip"    id="lot-us"  onclick="setLot('us')">🇺🇸 Powerball</button>
-      <button class="chip"    id="lot-jp"  onclick="setLot('jp')">🇯🇵 ロト6</button>
-    </div>
+  <div class="tabs" role="tablist">
+    <button class="tab on" id="tab-prize" onclick="setTab('prize')">💰 獎金榜</button>
+    <button class="tab" id="tab-rate" onclick="setTab('rate')">🎯 中獎率榜</button>
+    <button class="tab" id="tab-latest" onclick="setTab('latest')">🆕 最新選號</button>
   </div>
+  <p class="tab-note" id="tab-note"></p>
 
   <div id="rank-list">
     <div class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
@@ -158,208 +158,168 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script src="js/safe.js"></script>
+<script src="js/lottery.js"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
-import { collection, getDocs, doc, getDoc, query, orderBy, limit, where }
+import { collection, getDocs, query, orderBy, limit }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-const { esc, img, int, ball } = window.Safe;
-let me = null;
-onAuthStateChanged(auth, u => { me = u; window._me = u; rerender(); });
+const { esc, img, int, ball, cc: safeCC } = window.Safe;
 
-// ── Load data ────────────────────────────────────────────
-async function loadDraws() {
-  try {
-    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(300));
-    const s = await getDocs(q); const a = [];
-    s.forEach(d => a.push({id:d.id,...d.data()}));
-    return a;
-  } catch { return []; }
-}
-async function loadStats() {
-  try { const s = await getDoc(doc(db,'stats','global')); return s.exists()?s.data():{}; }
-  catch { return {}; }
-}
-
-const [draws, stats] = await Promise.all([loadDraws(), loadStats()]);
-window._draws = draws;
-
-// ── Stats ────────────────────────────────────────────────
-const totalPrize = draws.reduce((s,d)=>s+(d.prizeAmount||0),0);
-const totalWins  = draws.filter(d=>d.prizeAmount>0).length;
-const countries  = [...new Set(draws.map(d=>d.countryCode).filter(Boolean))];
-// 讀 cats 集合的實際數量
-const catsCountSnap = await getDocs(collection(db,'cats'));
-document.getElementById('s-cats').textContent = catsCountSnap.size.toLocaleString();
-document.getElementById('s-prize').textContent    = '$'+(totalPrize>=1000000?(totalPrize/1000000).toFixed(1)+'M':totalPrize>=1000?(totalPrize/1000).toFixed(0)+'K':totalPrize||0);
-document.getElementById('s-countries').textContent= countries.length;
-document.getElementById('s-wins').textContent     = totalWins;
-
-// ── Helpers ───────────────────────────────────────────────
-function flagEmoji(cc) {
-  if(!cc||cc.length!==2) return '';
-  return [...cc.toUpperCase()].map(c=>String.fromCodePoint(127397+c.charCodeAt())).join('');
-}
-window._flagEmoji = flagEmoji;
-
-// Country centroids
-const CENT = {
-  TW:[25.0,121.5],JP:[35.7,139.7],US:[37,-96],TR:[39,35],DE:[51.2,10.4],
-  GB:[52,-1],FR:[46.2,2.2],KR:[37.5,127.5],CN:[35,105],AU:[-26,134],
-  BR:[-15,-50],CA:[57,-100],MX:[24,-102],IN:[20,77],ID:[-5,120],
-  TH:[15,101],SG:[1.3,103.8],MY:[4,110],PH:[12,122],VN:[16,108],
-  IT:[42,12],ES:[40,-4],RU:[60,90],ZA:[-30,25],EG:[26,30],
-  NG:[9,8],AR:[-35,-64],CL:[-35,-71],CO:[4,-74],PL:[52,20],
-  NL:[52.3,5.3],BE:[50.5,4.5],SE:[60,18],NO:[62,10],CH:[47,8],
-  AT:[47,14],PT:[39,-8],GR:[38,23],UA:[49,32],HK:[22.3,114.2],
-  NZ:[-41,174],SA:[24,45],AE:[24,54],IL:[31,35],
+// 排行榜只算台灣大樂透（美日樂透之後再做）。不顯示任何人的「我買了」與損益。
+const LV = { 1: '頭獎', 2: '貳獎', 3: '參獎', 4: '肆獎', 5: '伍獎', 6: '陸獎', 7: '柒獎', 8: '普獎' };
+const NOTES = {
+  prize: '依「若每注都買」的累積獎金排名；同金額時比中獎次數。',
+  rate: '中獎率 = 中獎次數 ÷ 已對獎次數。不設門檻，同中獎率時對獎次數多的排前面。',
+  latest: '最近的台灣大樂透選號，開獎後自動對獎。',
 };
 
-// ── Leaflet map ───────────────────────────────────────────
-const map = L.map('leafmap', {
-  center: [20, 15],
-  zoom: 2,
-  minZoom: 1,
-  maxZoom: 6,
-  worldCopyJump: true,
-  zoomControl: true,
+let me = null, cats = [], latest = [], tab = 'prize', ccFilter = 'all';
+onAuthStateChanged(auth, u => { me = u; render(); });
+
+// ── 讀資料：貓咪（含後端算好的統計）、最近 100 筆選號 ─────────
+async function load() {
+  const [cs, ds] = await Promise.all([
+    getDocs(collection(db, 'cats')),
+    getDocs(query(collection(db, 'draws'), orderBy('createdAt', 'desc'), limit(100))),
+  ]);
+  cs.forEach(d => cats.push({ id: d.id, ...d.data() }));
+  ds.forEach(d => { const x = d.data(); if (x.lotType === 'tw' && x.tracked !== false) latest.push({ id: d.id, ...x }); });
+}
+try { await load(); } catch (e) {
+  console.error(e);
+  document.getElementById('rank-list').innerHTML = '<div class="empty">載入失敗，請重新整理</div>';
+}
+
+const S = c => c.stats || { twDraws: 0, checked: 0, wins: 0, prize: 0, bestLevel: 0, winRate: 0 };
+const twCats = cats.filter(c => S(c).twDraws > 0);
+
+// ── 上方統計 ────────────────────────────────────────────
+const money = n => '$' + int(n).toLocaleString();
+const short = n => n >= 1e8 ? (n / 1e8).toFixed(1) + '億' : n >= 1e4 ? (n / 1e4).toFixed(n >= 1e5 ? 0 : 1) + '萬' : int(n).toLocaleString();
+document.getElementById('s-cats').textContent = twCats.length.toLocaleString();
+document.getElementById('s-prize').textContent = '$' + short(twCats.reduce((s, c) => s + int(S(c).prize), 0));
+document.getElementById('s-countries').textContent = new Set(twCats.map(c => safeCC(c.countryCode)).filter(Boolean)).size;
+document.getElementById('s-wins').textContent = twCats.reduce((s, c) => s + int(S(c).wins), 0);
+
+// ── 地圖：每個國家的貓咪數、中獎次數 ────────────────────────
+function flagEmoji(cc) { return cc ? [...cc].map(c => String.fromCodePoint(127397 + c.charCodeAt())).join('') : ''; }
+const CENT = {
+  TW:[25.0,121.5],JP:[35.7,139.7],US:[37,-96],TR:[39,35],DE:[51.2,10.4],GB:[52,-1],FR:[46.2,2.2],KR:[37.5,127.5],
+  CN:[35,105],AU:[-26,134],BR:[-15,-50],CA:[57,-100],MX:[24,-102],IN:[20,77],ID:[-5,120],TH:[15,101],SG:[1.3,103.8],
+  MY:[4,110],PH:[12,122],VN:[16,108],IT:[42,12],ES:[40,-4],RU:[60,90],ZA:[-30,25],EG:[26,30],NG:[9,8],AR:[-35,-64],
+  CL:[-35,-71],CO:[4,-74],PL:[52,20],NL:[52.3,5.3],BE:[50.5,4.5],SE:[60,18],NO:[62,10],CH:[47,8],AT:[47,14],PT:[39,-8],
+  GR:[38,23],UA:[49,32],HK:[22.3,114.2],NZ:[-41,174],SA:[24,45],AE:[24,54],IL:[31,35],
+};
+const byCC = {};
+twCats.forEach(c => {
+  const cc = safeCC(c.countryCode); if (!cc) return;
+  const g = byCC[cc] = byCC[cc] || { cats: 0, wins: 0, prize: 0, name: c.country || cc };
+  g.cats++; g.wins += int(S(c).wins); g.prize += int(S(c).prize);
 });
-
-// Tile layer — CartoDB light (no API key needed)
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap © CARTO',
-  subdomains: 'abcd',
-  maxZoom: 19,
-}).addTo(map);
-
-// Aggregate per country
-const ccDraws={}, ccWins={}, ccPrize={}, ccNames={};
-draws.forEach(d => {
-  const cc = window.Safe.cc(d.countryCode); if(!cc) return;
-  ccDraws[cc]  = (ccDraws[cc]||0)+1;
-  ccNames[cc]  = d.country||cc;
-  if(d.prizeAmount>0){
-    ccWins[cc]  = (ccWins[cc]||0)+1;
-    ccPrize[cc] = (ccPrize[cc]||0)+(d.prizeAmount||0);
-  }
-});
-
-// Add circle markers
-Object.keys(ccDraws).forEach(cc => {
-  const cent = CENT[cc];
-  if(!cent) return;
-  const count  = ccDraws[cc]||0;
-  const wins   = ccWins[cc]||0;
-  const prize  = ccPrize[cc]||0;
-  const hasWin = wins > 0;
-  const radius = Math.min(10 + Math.sqrt(count)*8, 40);
-  const color  = hasWin ? '#EF9F27' : '#7F77DD';
-  const fe     = flagEmoji(cc);
-  const prizeStr = prize>0 ? `<br>中獎金額：$${prize>=1000000?(prize/1000000).toFixed(1)+'M':prize>=1000?(prize/1000).toFixed(0)+'K':prize}` : '';
-
-  const circle = L.circleMarker(cent, {
-    radius,
-    fillColor: color,
-    color: '#fff',
-    weight: 2.5,
-    opacity: 1,
-    fillOpacity: 0.82,
-  }).addTo(map);
-
-  circle.bindTooltip(
-    `<strong>${fe} ${esc(ccNames[cc]||cc)}</strong><br>${count} 隻貓咪 · ${wins} 次中獎${prizeStr}`,
-    { direction:'top', offset:[0,-4], className:'leaflet-tooltip' }
-  );
-
-  circle.on('click', () => {
-    window._ccF = cc;
-    const banner = document.getElementById('cc-banner');
-    document.getElementById('banner-txt').textContent =
-      `${fe} ${ccNames[cc]||cc} — ${count} 隻貓咪 · ${wins} 次中獎`;
-    banner.classList.add('show');
-    rerender();
-    // scroll down to list
-    document.getElementById('rank-list').scrollIntoView({behavior:'smooth', block:'start'});
+if (window.L) {
+  const map = L.map('leafmap', { center: [20, 15], zoom: 2, minZoom: 1, maxZoom: 6, worldCopyJump: true });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    { attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+  Object.entries(byCC).forEach(([cc, g]) => {
+    if (!CENT[cc]) return;
+    const m = L.circleMarker(CENT[cc], { radius: Math.min(10 + Math.sqrt(g.cats) * 8, 40), fillColor: g.wins ? '#EF9F27' : '#7F77DD',
+      color: '#fff', weight: 2.5, opacity: 1, fillOpacity: 0.82 }).addTo(map);
+    m.bindTooltip(`<strong>${flagEmoji(cc)} ${esc(g.name)}</strong><br>${g.cats} 隻貓咪 · ${g.wins} 次中獎`
+      + (g.prize ? `<br>累積獎金 ${money(g.prize)}` : ''), { direction: 'top', offset: [0, -4] });
+    m.on('click', () => {
+      ccFilter = cc;
+      document.getElementById('banner-txt').textContent = `${flagEmoji(cc)} ${g.name} — ${g.cats} 隻貓咪 · ${g.wins} 次中獎`;
+      document.getElementById('cc-banner').classList.add('show');
+      render();
+      document.getElementById('rank-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   });
-});
-
-window._map = map;
-
-// ── Render list ───────────────────────────────────────────
-function rerender() {
-  let items = [...(window._draws||[])];
-  const lotF = window._lotF||'all';
-  const ccF  = window._ccF||'all';
-  const srt  = window._srt||'wins';
-  if(lotF!=='all') items=items.filter(d=>d.lotType===lotF);
-  if(ccF!=='all')  items=items.filter(d=>d.countryCode===ccF);
-  if(srt==='wins')   items.sort((a,b)=>(b.prizeLevel||0)-(a.prizeLevel||0)||(b.prizeAmount||0)-(a.prizeAmount||0));
-  else if(srt==='prize') items.sort((a,b)=>(b.prizeAmount||0)-(a.prizeAmount||0));
-  renderList(items, window._me);
 }
-window.rerender = rerender;
 
-function renderList(items, user) {
+// ── 排名列表 ────────────────────────────────────────────
+const rankColor = i => i === 0 ? '#BA7517' : i === 1 ? '#888780' : i === 2 ? '#993C1D' : '#AFA9EC';
+const photoHtml = (src, alt) => img(src) ? `<img src="${img(src)}" alt="${esc(alt)}"/>` : '🐱';
+const where = x => [x.city, x.country].filter(Boolean).join(', ');
+
+function catRow(c, i, right) {
+  const s = S(c), isMe = me && c.uid === me.uid;
+  const best = s.bestLevel ? ` · 最佳 ${LV[s.bestLevel] || ''}` : '';
+  return `<div class="rc ${isMe ? 'mine' : ''}">
+    <div class="rc-num" style="color:${rankColor(i)}">${i + 1}</div>
+    <div class="rc-photo">${photoHtml(c.photoThumb, c.catName)}</div>
+    <div class="rc-body">
+      <div class="rc-name">${esc(c.catName)}${isMe ? '<span class="badge-me">我的</span>' : ''}</div>
+      <div class="rc-meta">${flagEmoji(safeCC(c.countryCode))} ${esc(where(c))}</div>
+      <div class="rc-stats">大樂透 ${int(s.twDraws)} 筆 · 已對 ${int(s.checked)} · 中 ${int(s.wins)} 次${esc(best)}</div>
+    </div>
+    <div class="rc-right">${right}</div>
+  </div>`;
+}
+
+function drawRow(d, i) {
+  const isMe = me && d.uid === me.uid;
+  const win = new Set((d.winNumbers || []).map(Number)), ws = d.winSpecial != null ? Number(d.winSpecial) : null;
+  // 舊紀錄由貓自選的特別號不顯示（大樂透只看 6 碼）
+  const balls = (d.numbers || []).map(n => {
+    n = int(n);
+    const cls = win.has(n) ? 'b hit' : ws === n ? 'b sp' : 'b';
+    return `<div class="${cls}">${ball(n)}</div>`;
+  }).join('');
+  const target = d.drawDate || d.targetDrawDate;
+  const lab = window.Lottery.dateLabel(target);
+  const WD = '日一二三四五六';
+  const when = lab ? `${lab.md}（${WD[lab.wd]}）開獎` : esc(d.date || '');
+  const lv = int(d.prizeLevel);
+  const status = !d.checkedAt ? '<span class="tag" style="background:#FAEEDA;color:#633806">待開獎</span>'
+    : lv > 0 ? `<div style="font-size:13px;font-weight:600;color:#3B6D11">${money(d.prizeAmount)}</div><span class="tag" style="background:#EAF3DE;color:#27500A">${LV[lv]}</span>`
+    : `<span class="tag" style="background:#FCEBEB;color:#791F1F">未中獎</span>`;
+  return `<div class="rc ${isMe ? 'mine' : ''}">
+    <div class="rc-photo">${photoHtml(d.photoThumb, d.catName)}</div>
+    <div class="rc-body">
+      <div class="rc-name">${esc(d.catName)}${isMe ? '<span class="badge-me">我的</span>' : ''}</div>
+      <div class="rc-meta">${flagEmoji(safeCC(d.countryCode))} ${esc(where(d))} · ${when}${d.drawPeriod ? ' · 第 ' + esc(d.drawPeriod) + ' 期' : ''}</div>
+      <div class="balls">${balls}</div>
+    </div>
+    <div class="rc-right">${status}</div>
+  </div>`;
+}
+
+function render() {
   const el = document.getElementById('rank-list');
-  if(!items.length){
-    el.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:12px">🐱</div><p style="font-size:15px;font-weight:500;margin-bottom:5px">這裡還沒有貓咪</p><p style="font-size:13px">換個篩選或成為第一個！</p></div>`;
-    return;
+  document.getElementById('tab-note').textContent = NOTES[tab];
+  const inCC = x => ccFilter === 'all' || safeCC(x.countryCode) === ccFilter;
+  let html = '';
+  if (tab === 'latest') {
+    const items = latest.filter(inCC);
+    html = items.map(drawRow).join('');
+  } else if (tab === 'prize') {
+    const items = twCats.filter(inCC).sort((a, b) =>
+      int(S(b).prize) - int(S(a).prize) || int(S(b).wins) - int(S(a).wins) || int(S(b).checked) - int(S(a).checked));
+    html = items.map((c, i) => catRow(c, i,
+      `<div class="rc-big" style="color:${S(c).prize ? '#BA7517' : '#B4B2A9'}">${money(S(c).prize)}</div>`)).join('');
+  } else {
+    const items = twCats.filter(c => inCC(c) && int(S(c).checked) > 0).sort((a, b) =>
+      (S(b).winRate || 0) - (S(a).winRate || 0) || int(S(b).checked) - int(S(a).checked) || int(S(b).prize) - int(S(a).prize));
+    html = items.map((c, i) => catRow(c, i,
+      `<div class="rc-big" style="color:${S(c).wins ? '#3B6D11' : '#B4B2A9'}">${Math.round((S(c).winRate || 0) * 1000) / 10}%</div>`
+      + `<div class="rc-sub">${int(S(c).wins)} / ${int(S(c).checked)}</div>`)).join('');
   }
-  const uid = user?user.uid:null;
-  el.innerHTML=`<div class="rank-list">${items.map((d,i)=>{
-    const isMe = uid&&d.uid===uid;
-    const rc   = i===0?'#BA7517':i===1?'#888780':i===2?'#993C1D':'#AFA9EC';
-    const src  = img(d.photoThumb);
-    const photo= src?`<img src="${src}" alt="${esc(d.catName)}"/>`:'🐱';
-    const nums = [
-      ...(d.numbers||[]).map(n=>`<div class="b">${ball(n)}</div>`),
-      ...(d.special||[]).map(n=>`<div class="b sp">${ball(n)}</div>`)
-    ].join('');
-    const loc  = [d.city, d.country].filter(Boolean).join(', ');
-    const fe   = flagEmoji(window.Safe.cc(d.countryCode));
-    // 三種狀態：已核對中獎 / 已核對未中獎 / 尚未核對(待開獎)
-    const checked = !!d.checkedAt;
-    const won     = int(d.prizeLevel) > 0;
-    const prizeTag = won
-      ? `<div style="font-size:13px;font-weight:500;color:#3B6D11">$${int(d.prizeAmount).toLocaleString()}</div><span class="tag" style="background:#EAF3DE;color:#27500A">中獎 ${int(d.prizeLevel)}等</span>`
-      : checked
-        ? `<span class="tag" style="background:#FCEBEB;color:#791F1F">未中獎</span>`
-        : `<span class="tag" style="background:#F4F2FB;color:#888780">待開獎</span>`;
-    return `<div class="rc ${isMe?'mine':''}">
-      <div class="rc-num" style="color:${rc}">${i+1}</div>
-      <div class="rc-photo">${photo}</div>
-      <div class="rc-body">
-        <div class="rc-name">${esc(d.catName)}${isMe?'<span class="badge-me">我的</span>':''}</div>
-        <div class="rc-meta">${fe} ${esc(loc)} · ${esc(d.lotFlag)} ${esc(d.lotName)} · ${esc(d.date)}</div>
-        <div class="balls">${nums}</div>
-      </div>
-      <div class="rc-right">${prizeTag}</div>
-    </div>`;
-  }).join('')}</div>`;
+  el.innerHTML = html ? `<div class="rank-list">${html}</div>`
+    : '<div class="empty"><div style="font-size:48px;margin-bottom:12px">🐱</div><p style="font-size:15px;font-weight:500;margin-bottom:5px">這裡還沒有貓咪</p><p style="font-size:13px">換個篩選或成為第一個！</p></div>';
 }
 
-rerender();
-</script>
-
-<script>
-window._lotF='all'; window._ccF='all'; window._srt='wins';
-function setSort(k){
-  window._srt=k;
-  document.querySelectorAll('[id^="sort-"]').forEach(e=>e.classList.remove('on'));
-  document.getElementById('sort-'+k).classList.add('on');
-  window.rerender&&window.rerender();
-}
-function setLot(k){
-  window._lotF=k;
-  document.querySelectorAll('[id^="lot-"]').forEach(e=>e.classList.remove('on'));
-  document.getElementById('lot-'+k).classList.add('on');
-  window.rerender&&window.rerender();
-}
-function clearCC(){
-  window._ccF='all';
+window.setTab = function (t) {
+  tab = t;
+  ['prize', 'rate', 'latest'].forEach(k => document.getElementById('tab-' + k).classList.toggle('on', k === t));
+  render();
+};
+window.clearCC = function () {
+  ccFilter = 'all';
   document.getElementById('cc-banner').classList.remove('show');
-  window.rerender&&window.rerender();
-}
+  render();
+};
+render();
 </script>
 </body>
 </html>

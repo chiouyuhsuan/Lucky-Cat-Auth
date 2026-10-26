@@ -85,6 +85,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 /* FADE IN */
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .cat-card{animation:fadeIn .4s ease forwards;opacity:0}
+.cat-dupes{display:inline-block;margin-top:4px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);padding:2px 8px;border-radius:10px}
 </style>
 <link rel="stylesheet" href="css/mobile.css"/>
 </head>
@@ -121,16 +122,17 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
   <div class="stats-bar">
     <div class="stat-item"><div class="stat-num" id="wall-count">—</div><div class="stat-lbl">全球貓咪</div></div>
     <div class="stat-item"><div class="stat-num" id="wall-countries">—</div><div class="stat-lbl">參與國家</div></div>
-    <div class="stat-item"><div class="stat-num" id="wall-winners">—</div><div class="stat-lbl">中獎紀錄</div></div>
+    <div class="stat-item"><div class="stat-num" id="wall-winners">—</div><div class="stat-lbl">中獎次數</div></div>
   </div>
 </div>
 
 <div class="filters">
-  <button class="filter-btn active" onclick="setFilter('all')">全部</button>
-  <button class="filter-btn" onclick="setFilter('won')">🏆 中獎貓</button>
-  <button class="filter-btn" onclick="setFilter('tw')">🇹🇼 台灣</button>
-  <button class="filter-btn" onclick="setFilter('recent')">🆕 最新上傳</button>
+  <button class="filter-btn active" onclick="setFilter('all', this)">全部</button>
+  <button class="filter-btn" onclick="setFilter('won', this)">🏆 中獎貓</button>
+  <button class="filter-btn" onclick="setFilter('tw', this)">🇹🇼 台灣</button>
+  <button class="filter-btn" onclick="setFilter('recent', this)">🆕 最新上傳</button>
 </div>
+<p id="dedupe-note" style="text-align:center;font-size:12px;color:rgba(255,255,255,.55);margin:-6px 0 12px"></p>
 
 <div id="cat-wall" class="cat-wall">
   <div class="loading-wall" style="column-span:all">
@@ -152,106 +154,94 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 </div>
 
 <script src="js/safe.js"></script>
+<script src="js/dedupe.js"></script>
 <script type="module">
 import { db } from "./js/firebase.js";
-import { collection, getDocs, getDoc, doc, query, orderBy, limit, where }
+import { collection, getDocs, query, orderBy, limit }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
-const { esc, img, int } = window.Safe;
+const { esc, img, int, cc: safeCC } = window.Safe;
+const LV = { 1: '頭獎', 2: '貳獎', 3: '參獎', 4: '肆獎', 5: '伍獎', 6: '陸獎', 7: '柒獎', 8: '普獎' };
 
-let allDraws = [];
-let currentFilter = 'all';
+let allDraws = [], filter = 'all', renderSeq = 0;
 
 async function loadWall() {
   try {
-    const snap = await getDocs(query(
-      collection(db, 'draws'),
-      orderBy('createdAt', 'desc'),
-      limit(500)
-    ));
-    allDraws = [];
-    snap.forEach(d => {
-      const data = d.to_dict ? d.to_dict() : d.data();
-      if (img(data.photoThumb)) allDraws.push({id: d.id, ...data});
-    });
-
-    // 統計數字 - 用 cats 集合的實際數量
-    const catsSnap = await getDocs(collection(db, 'cats'));
-    const countries = new Set(allDraws.map(d => d.countryCode).filter(Boolean));
-    const winners   = allDraws.filter(d => (d.prizeLevel || 0) > 0).length;
-    document.getElementById('wall-count').textContent = catsSnap.size.toLocaleString();
-    document.getElementById('wall-countries').textContent = countries.size;
-    document.getElementById('wall-winners').textContent = winners;
-
-    renderWall(allDraws);
-  } catch(e) {
+    const [snap, catsSnap] = await Promise.all([
+      getDocs(query(collection(db, 'draws'), orderBy('createdAt', 'desc'), limit(500))),
+      getDocs(collection(db, 'cats')),
+    ]);
+    snap.forEach(d => { const x = d.data(); if (img(x.photoThumb)) allDraws.push({ id: d.id, ...x }); });
+    const cats = []; catsSnap.forEach(d => cats.push(d.data()));
+    document.getElementById('wall-count').textContent = cats.length.toLocaleString();
+    document.getElementById('wall-countries').textContent = new Set(cats.map(c => safeCC(c.countryCode)).filter(Boolean)).size;
+    document.getElementById('wall-winners').textContent = cats.reduce((s, c) => s + int((c.stats || {}).wins), 0);
+    render();
+  } catch (e) {
     console.error(e);
     document.getElementById('cat-wall').innerHTML = '<div class="loading-wall" style="column-span:all">載入失敗，請重新整理</div>';
   }
 }
 
-function renderWall(draws) {
+function statusOf(d) {
+  if (d.lotType !== 'tw' || d.tracked === false) return '';
+  if (!d.checkedAt) return '<span class="cat-prize pending">⏳ 待開獎</span>';
+  const lv = int(d.prizeLevel);
+  return lv > 0 ? '<span class="cat-prize won">🏆 ' + LV[lv] + '</span>' : '';
+}
+
+async function render() {
+  const seq = ++renderSeq;
+  let items = allDraws;
+  if (filter === 'won') items = items.filter(d => int(d.prizeLevel) > 0);
+  if (filter === 'tw') items = items.filter(d => safeCC(d.countryCode) === 'TW');
+  // 同一位使用者看起來重複的照片只留最新一張
+  const groups = await window.Dedupe.dedupe(items, d => d.photoThumb, d => d.uid);
+  if (seq !== renderSeq) return;
+  const shown = filter === 'recent' ? groups.slice(0, 50) : groups;
   const wall = document.getElementById('cat-wall');
-  if (!draws.length) {
+  if (!shown.length) {
     wall.innerHTML = '<div class="loading-wall" style="column-span:all">目前還沒有貓咪，成為第一個！</div>';
     return;
   }
-
-  wall.innerHTML = draws.map((item, idx) => {
-    const won     = int(item.prizeLevel) > 0;
-    const loc     = [item.city, item.country].filter(Boolean).join(', ');
-    const prize   = won
-      ? '<span class="cat-prize won">🏆 中獎 ' + int(item.prizeLevel) + '等</span>'
-      : item.checkedAt
-        ? ''
-        : '<span class="cat-prize pending">⏳ 待開獎</span>';
-    const delay   = (idx % 20) * 0.05;
-
-    // 點擊時用資料陣列的索引找回該筆，不再把整筆資料塞進 onclick 屬性
-    return '<div class="cat-card" style="animation-delay:' + delay + 's" data-idx="' + idx + '">'
-      + '<img src="' + img(item.photoThumb) + '" alt="' + esc(item.catName) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'">'
+  wall.innerHTML = shown.map((g, idx) => {
+    const d = g.item, loc = [d.city, d.country].filter(Boolean).join(', ');
+    const more = g.dupes.length ? '<span class="cat-dupes">同一張照片選號 ' + (g.dupes.length + 1) + ' 次</span>' : '';
+    return '<div class="cat-card" style="animation-delay:' + ((idx % 20) * 0.05) + 's" data-idx="' + idx + '">'
+      + '<img src="' + img(d.photoThumb) + '" alt="' + esc(d.catName) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'">'
       + '<div class="cat-overlay">'
-      + '<div class="cat-name">' + esc(item.catName || '貓咪') + '</div>'
+      + '<div class="cat-name">' + esc(d.catName || '貓咪') + '</div>'
       + '<div class="cat-loc">' + esc(loc) + '</div>'
-      + prize
+      + statusOf(d) + more
       + '</div></div>';
   }).join('');
-  wall.querySelectorAll('.cat-card').forEach(function (card) {
-    card.addEventListener('click', function () {
-      window.openLightbox(draws[int(card.dataset.idx)]);
-    });
-  });
+  wall.querySelectorAll('.cat-card').forEach(card => card.addEventListener('click', () => {
+    const g = shown[int(card.dataset.idx)];
+    window.openLightbox(g.item, g.dupes.length + 1);
+  }));
+  document.getElementById('dedupe-note').textContent =
+    groups.length < items.length ? `已隱藏 ${items.length - groups.length} 張重複照片` : '';
 }
 
-window._allDraws = () => allDraws;
-window._renderWall = renderWall;
-
+window.setFilter = function (f, btn) {
+  filter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+  render();
+};
 loadWall();
 </script>
 
 <script>
-let currentFilter = 'all';
-
-function setFilter(f) {
-  currentFilter = f;
-  document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-  const all = window._allDraws ? window._allDraws() : [];
-  let filtered = all;
-  if (f === 'won')    filtered = all.filter(d => (d.prizeLevel || 0) > 0);
-  if (f === 'tw')     filtered = all.filter(d => d.countryCode === 'TW');
-  if (f === 'recent') filtered = all.slice(0, 50);
-  if (window._renderWall) window._renderWall(filtered);
-}
-
-function openLightbox(item) {
+function openLightbox(item, times) {
   if (!item) return;
+  var LV = { 1: '頭獎', 2: '貳獎', 3: '參獎', 4: '肆獎', 5: '伍獎', 6: '陸獎', 7: '柒獎', 8: '普獎' };
   document.getElementById('lightbox-img').src = Safe.img(item.photoThumb);
   document.getElementById('lightbox-name').textContent = item.catName || '貓咪';
-  const loc = [item.city, item.country].filter(Boolean).join('・');
-  const prize = Safe.int(item.prizeLevel) > 0
-    ? '  🏆 中獎 ' + Safe.int(item.prizeLevel) + '等'
-    : item.checkedAt ? '  未中獎' : '  ⏳ 待開獎';
-  document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize;
+  var loc = [item.city, item.country].filter(Boolean).join('・');
+  var lv = Safe.int(item.prizeLevel);
+  var tracked = item.lotType === 'tw' && item.tracked !== false;
+  var prize = !tracked ? '  僅娛樂' : lv > 0 ? '  🏆 ' + LV[lv] : item.checkedAt ? '  未中獎' : '  ⏳ 待開獎';
+  document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize
+    + (times > 1 ? '  ·  同一張照片選號 ' + times + ' 次' : '');
   document.getElementById('lightbox').classList.add('show');
   document.body.style.overflow = 'hidden';
 }
@@ -262,7 +252,7 @@ function closeLightbox(e) {
   document.body.style.overflow = '';
 }
 
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox({target: document.getElementById('lightbox')}); });
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox({ target: document.getElementById('lightbox') }); });
 </script>
 </body>
 </html>
