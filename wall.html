@@ -87,7 +87,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 .cat-card{animation:fadeIn .4s ease forwards;opacity:0}
 .cat-dupes{display:inline-block;margin-top:4px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);padding:2px 8px;border-radius:10px}
 </style>
-<link rel="stylesheet" href="css/mobile.css"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261028"/>
+<style>/* 深色背景：帳號名字改淺色 */.topnav .nav-user-name{color:#E4E1FB}.topnav .nav-user-menu:hover{background:rgba(255,255,255,.08)}</style>
+<script src="js/analytics.js?v=20261028"></script>
 </head>
 <body>
 
@@ -153,8 +155,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
   </div>
 </div>
 
-<script src="js/safe.js"></script>
-<script src="js/dedupe.js"></script>
+<script src="js/safe.js?v=20261028"></script>
+<script src="js/dedupe.js?v=20261028"></script>
 <script type="module">
 import { db } from "./js/firebase.js";
 import { collection, getDocs, query, orderBy, limit }
@@ -223,6 +225,7 @@ async function render() {
 }
 
 window.setFilter = function (f, btn) {
+  if (f !== filter) window.LC && LC.track('wall_filter', { filter: f });
   filter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b === btn));
   render();
@@ -243,6 +246,7 @@ function openLightbox(item, times) {
   document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize
     + (times > 1 ? '  ·  同一張照片選號 ' + times + ' 次' : '');
   document.getElementById('lightbox').classList.add('show');
+  window.LC && LC.track('wall_photo_open', { lottery_type: item.lotType || 'unknown', status: !tracked ? 'untracked' : lv > 0 ? 'won' : item.checkedAt ? 'lost' : 'pending', same_photo_times: times || 1 });
   document.body.style.overflow = 'hidden';
 }
 
@@ -254,6 +258,6 @@ function closeLightbox(e) {
 
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox({ target: document.getElementById('lightbox') }); });
 </script>
-<script type="module" src="js/navuser.js"></script>
+<script type="module" src="js/navuser.js?v=20261028"></script>
 </body>
 </html>

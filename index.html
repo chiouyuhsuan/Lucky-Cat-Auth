@@ -129,9 +129,10 @@ input[type=file]{display:none}
 .card-loading.show{display:flex}
 .card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
 </style>
-<link rel="stylesheet" href="css/mobile.css"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261028"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap"/>
+<script src="js/analytics.js?v=20261028"></script>
 </head>
 <body>
 
@@ -174,16 +175,16 @@ input[type=file]{display:none}
     <div class="modal-handle"></div>
     <div class="modal-title" data-i18n="modal_login_title">🐱 登入可以累積貓咪幸運值！</div>
     <div class="modal-sub" data-i18n="modal_login_sub">登入後每次選號都會累積到你的貓咪檔案，追蹤歷史中獎紀錄、計算中獎率，讓你的貓成為全球最幸運的貓！</div>
-    <button class="social-btn" onclick="loginWithGoogle(); closeModal('login-prompt-modal')">
+    <button class="social-btn" onclick="ga('login_prompt_choice',{choice:'google'}); loginWithGoogle(); closeModal('login-prompt-modal')">
       <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.566 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
       以 Google 登入
     </button>
-    <button class="social-btn" onclick="closeModal('login-prompt-modal'); showPage('email-auth')">
+    <button class="social-btn" onclick="ga('login_prompt_choice',{choice:'email'}); closeModal('login-prompt-modal'); showPage('email-auth')">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="3" width="16" height="12" rx="2" stroke="#534AB7" stroke-width="1.3"/><path d="M1 5l8 5 8-5" stroke="#534AB7" stroke-width="1.3" stroke-linecap="round"/></svg>
       Email 註冊 / 登入
     </button>
     <div class="modal-divider"><div class="modal-divider-line"></div><span style="font-size:12px;color:#888780">或</span><div class="modal-divider-line"></div></div>
-    <div class="modal-skip" onclick="closeModal('login-prompt-modal'); showPage('upload')">不用，直接抽號 →</div>
+    <div class="modal-skip" onclick="ga('login_prompt_choice',{choice:'skip'}); closeModal('login-prompt-modal'); showPage('upload')">不用，直接抽號 →</div>
   </div>
 </div>
 
@@ -357,10 +358,10 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
-<script src="js/safe.js"></script>
-<script src="js/lottery.js"></script>
-<script src="js/focus.js"></script>
-<script src="js/card.js"></script>
+<script src="js/safe.js?v=20261028"></script>
+<script src="js/lottery.js?v=20261028"></script>
+<script src="js/focus.js?v=20261028"></script>
+<script src="js/card.js?v=20261028"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
@@ -404,6 +405,7 @@ detectLocation();
 onAuthStateChanged(auth, user => {
   window._state.user = user;
   window._authReady = true;
+  window.LC && LC.setUser(user ? user.uid : null);
   const navRight = document.getElementById('nav-right');
   if (user) {
     const name = user.displayName || (user.email ? user.email.split('@')[0] : '用戶');
@@ -431,17 +433,22 @@ onAuthStateChanged(auth, user => {
 window._loginWithGoogle = async function() {
   try {
     await signInWithPopup(auth, new GoogleAuthProvider());
+    window.LC && LC.track('login', { method: 'google' });
     window.showToast && window.showToast('✓ 登入成功！');
     // 如果在 email-auth 頁，跳回上傳
     if (document.getElementById('page-email-auth').classList.contains('active')) {
       window._afterLogin();
     }
-  } catch(e) { window.showToast && window.showToast('登入失敗：' + e.message); }
+  } catch(e) {
+    window.LC && LC.track('login_error', { method: 'google', error_code: e.code || 'unknown' });
+    window.showToast && window.showToast('登入失敗：' + e.message);
+  }
 };
 
 window._loginWithEmail = async function(email, password) {
   try {
     await signInWithEmailAndPassword(auth, email, password);
+    window.LC && LC.track('login', { method: 'email' });
     window.showToast && window.showToast('✓ 登入成功！');
     window._afterLogin();
     return true;
@@ -454,20 +461,20 @@ window._loginWithEmail = async function(email, password) {
       'auth/too-many-requests': '嘗試次數過多，請稍後再試',
       'auth/network-request-failed': '網路連線失敗，請稍後再試',
     };
+    window.LC && LC.track('login_error', { method: 'email', error_code: e.code || 'unknown' });
     return msgs[e.code] || ('錯誤：' + e.message);
   }
 };
 
 window._registerWithEmail = async function(email, password) {
-  console.log('[DEBUG] registerWithEmail called:', email);
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
-    console.log('[DEBUG] register success:', result.user.email);
+    window.LC && LC.track('sign_up', { method: 'email' });
     window.showToast && window.showToast('🎉 帳號建立成功！歡迎加入 LuckyCat');
     setTimeout(function() { window._afterLogin(); }, 1200);
     return true;
   } catch(e) {
-    console.log('[DEBUG] register error:', e.code, e.message);
+    window.LC && LC.track('sign_up_error', { method: 'email', error_code: e.code || 'unknown' });
     const msgs = {
       'auth/email-already-in-use': '此 Email 已被註冊，請改用登入',
       'auth/invalid-email': 'Email 格式不正確',
@@ -483,17 +490,20 @@ window._registerWithEmail = async function(email, password) {
 window._sendPasswordReset = async function(email) {
   try {
     await sendPasswordResetEmail(auth, email);
+    window.LC && LC.track('password_reset_request', { result: 'ok' });
     return true;
   } catch(e) {
     const msgs = {
       'auth/user-not-found': '找不到此 Email 的帳號',
       'auth/invalid-email': 'Email 格式不正確',
     };
+    window.LC && LC.track('password_reset_request', { result: e.code || 'unknown' });
     return msgs[e.code] || ('錯誤：' + e.message);
   }
 };
 
 window._logout = async function() {
+  window.LC && LC.track('logout');
   await signOut(auth);
   window.showToast && window.showToast('已登出');
   window.showPage('home');
@@ -802,6 +812,7 @@ document.addEventListener('click', async function (e) {
     await updateDoc(doc(db, 'draws', id), { purchased: next, purchasedAt: serverTimestamp() });
     const d = (window._myDraws || []).find(x => x.id === id);
     if (d) d.purchased = next;
+    window.LC && LC.track('mark_purchased', { action: next ? 'on' : 'off' });
     window.showToast(T(next ? 'pf_buy_saved' : 'pf_buy_removed'));
     window._renderProfile();
   } catch (err) {
@@ -1088,8 +1099,10 @@ const I18N = {
 let _curLang = localStorage.getItem('lang') || 'zh';
 
 function setLang(lang) {
+  var changed = lang !== _curLang;
   _curLang = lang;
   localStorage.setItem('lang', lang);
+  if (changed) ga('language_change', { new_language: lang });
   ['zh','en','ja'].forEach(function(l) {
     var btn = document.getElementById('lang-' + l);
     if (btn) btn.classList.toggle('active', l === lang);
@@ -1152,7 +1165,12 @@ function drawDateText(iso) {
   return t('draw_on').replace('{md}', d.md).replace('{wd}', t('wd_' + d.wd));
 }
 
+// GA4：頁面程式統一透過這裡送事件（analytics.js 沒載入時不做事）
+function ga(name, params) { if (window.LC) LC.track(name, params); }
+if (window.LC) LC.page('home', true);
+
 function showPage(name) {
+  if (window.LC) LC.page(name);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.getElementById('page-' + name).classList.add('active');
   document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
@@ -1183,6 +1201,7 @@ function handleUploadClick() {
     showPage('upload');
   } else {
     document.getElementById('login-prompt-modal').classList.remove('hidden');
+    ga('login_prompt_show');
   }
 }
 
@@ -1308,9 +1327,13 @@ async function renderResultCard() {
         date: pickDateOf(st.pickedAt),
       });
     }
-    if (key === _aspect) imgEl.src = _cards[key].toDataURL('image/png');
+    if (key === _aspect) {
+      imgEl.src = _cards[key].toDataURL('image/png');
+      ga('card_view', { source: 'result', aspect: key, card_color: Card.themeName(pickDateOf(st.pickedAt)), lottery_type: st.curLot });
+    }
   } catch (e) {
     console.error('render card error:', e);
+    ga('card_error', { source: 'result' });
     showToast(t('card_failed'));
   }
   loading.classList.remove('show');
@@ -1328,6 +1351,7 @@ async function shareCard() {
   if (!_cards[_aspect]) await renderResultCard();
   if (!_cards[_aspect]) return;
   var r = await Card.share(_cards[_aspect], cardFilename(st.catName, pickDateOf(st.pickedAt), _aspect), 'LuckyCat');
+  ga('share', { method: r, content_type: 'card', item_id: _aspect, aspect: _aspect, source: 'result', card_color: Card.themeName(pickDateOf(st.pickedAt)) });
   if (r === 'downloaded') showToast(t('card_downloaded'));
 }
 
@@ -1367,6 +1391,7 @@ window._afterLogin = function () {
 
 function newRound() {
   var st = window._state;
+  ga('new_round', { after_save: st.saved ? 'yes' : 'no' });
   st.currentNums = null; st.saved = null; _cards = {};
   showPage('upload');
 }
@@ -1378,9 +1403,11 @@ async function saveCurrent() {
   try {
     var r = await window._saveDraw(st.catName, (_useExistingCat && _sameCatData) ? _sameCatData.id : null);
     st.saved = r;
+    ga('save_draw', { lottery_type: st.curLot, cat_type: (_useExistingCat && _sameCatData) ? 'existing' : 'new' });
     showToast(t('saved_ok'));
   } catch (e) {
     console.error('saveDraw error:', e);
+    ga('save_draw_error', { error_code: e.code || 'unknown' });
     showToast(t('save_failed'));
     btn.textContent = t('result_join'); btn.classList.remove('disabled');
     return;
@@ -1396,6 +1423,7 @@ function selectLot(key) {
     r.innerHTML = k === key ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' : '';
   });
   if (window._state) window._state.curLot = key;
+  ga('select_lottery', { lottery_type: key });
 }
 
 function setVerifyBar(state, msg) {
@@ -1482,7 +1510,7 @@ async function handleFile(input) {
 
   let img;
   try { img = await loadImage(URL.createObjectURL(file)); }
-  catch (e) { setVerifyBar('fail', t('verify_bad_file')); return; }
+  catch (e) { setVerifyBar('fail', t('verify_bad_file')); ga('photo_upload', { result: 'bad_file', file_type: file.type || 'unknown' }); return; }
 
   // 先縮成 1080px 再偵測：大圖與存檔、圖卡用的是同一張，對焦座標才會一致
   const card = resizePhoto(img, 1080, 0.85, 700000);
@@ -1493,10 +1521,15 @@ async function handleFile(input) {
   let ok = det.isAnimal === true;
   if (!ok) ok = (await classifyPet(cardImg)).is_pet;   // 偵測不到動物（或模型不可用）時再用分類模型確認
   if (seq !== _fileSeq) return;
+  var upInfo = { file_type: file.type || 'unknown', file_size_kb: Math.round(file.size / 1024),
+                 photo_shape: img.naturalWidth > img.naturalHeight * 1.1 ? 'landscape' : img.naturalHeight > img.naturalWidth * 1.1 ? 'portrait' : 'square' };
   if (!ok) {
     setVerifyBar('fail', t('verify_fail'));
+    upInfo.result = 'not_animal'; ga('photo_upload', upInfo);
     return;
   }
+  upInfo.result = 'pass'; upInfo.focus_found = det.focus ? 'yes' : 'no'; upInfo.detected_by = det.isAnimal === true ? 'coco_ssd' : 'mobilenet';
+  ga('photo_upload', upInfo);
   st.photoCard = card; st.photoThumb = thumb; st.cardPhotoImg = cardImg;
   st.focus = det.focus ? { x: det.focus.x, y: det.focus.y, w: det.focus.w, h: det.focus.h } : null;
   st.hasPhoto = true;
@@ -1515,6 +1548,9 @@ function startGenerate() {
   setTimeout(function() {
     st.pickedAt = new Date();
     st.currentNums = Lottery.pick(st.curLot);
+    var target = Lottery.targetDrawDate(st.curLot, st.pickedAt);
+    ga('generate_numbers', { lottery_type: st.curLot, cat_type: (_useExistingCat && _sameCatData) ? 'existing' : 'new',
+      days_to_draw: target ? Math.max(0, Math.round((Date.parse(target + 'T20:00:00+08:00') - st.pickedAt.getTime()) / 864e5)) : undefined });
     st.saved = null; _cards = {};
     document.getElementById('card-img').removeAttribute('src');
     showPage('result');
@@ -1556,6 +1592,7 @@ function showSameCatBlock(cat) {
 
 function useSameCat() {
   _useExistingCat = true;
+  ga('same_cat_choice', { choice: 'same' });
   document.getElementById('same-cat-block').style.display = 'none';
   showToast(t('same_cat_yes_toast').replace('{name}', _sameCatData.catName));
 }
@@ -1563,6 +1600,7 @@ function useSameCat() {
 function useNewCat() {
   _useExistingCat = false;
   _sameCatData = null;
+  ga('same_cat_choice', { choice: 'new' });
   document.getElementById('same-cat-block').style.display = 'none';
   showToast(t('same_cat_no_toast'));
 }
@@ -1601,8 +1639,11 @@ async function setModalAspect(a) {
         date: String(d.date || '').replace(/\./g, '/'),
       });
     }
-    if (_modal.aspect === a) document.getElementById('m-card-img').src = _modal.cards[a].toDataURL('image/png');
-  } catch (e) { console.error(e); showToast(t('card_failed')); }
+    if (_modal.aspect === a) {
+      document.getElementById('m-card-img').src = _modal.cards[a].toDataURL('image/png');
+      ga('card_view', { source: 'records', aspect: a, card_color: Card.themeName(String(d.date || '')), lottery_type: d.lotType });
+    }
+  } catch (e) { console.error(e); ga('card_error', { source: 'records' }); showToast(t('card_failed')); }
   loading.classList.remove('show');
 }
 
@@ -1610,6 +1651,7 @@ async function shareModalCard() {
   var d = _modal.draw, a = _modal.aspect;
   if (!d || !_modal.cards[a]) return;
   var r = await Card.share(_modal.cards[a], cardFilename(d.catName, String(d.date || '').replace(/\./g, '/'), a), 'LuckyCat');
+  ga('share', { method: r, content_type: 'card', item_id: a, aspect: a, source: 'records', card_color: Card.themeName(String(d.date || '')) });
   if (r === 'downloaded') showToast(t('card_downloaded'));
 }
 

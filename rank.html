@@ -90,7 +90,8 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .cat-marker:hover{transform:scale(1.25)}
 .cat-marker.won{background:#EF9F27}
 </style>
-<link rel="stylesheet" href="css/mobile.css"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261028"/>
+<script src="js/analytics.js?v=20261028"></script>
 </head>
 <body>
 
@@ -160,8 +161,8 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="js/safe.js"></script>
-<script src="js/lottery.js"></script>
+<script src="js/safe.js?v=20261028"></script>
+<script src="js/lottery.js?v=20261028"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
@@ -178,7 +179,7 @@ const NOTES = {
 };
 
 let me = null, cats = [], latest = [], tab = 'prize', ccFilter = 'all';
-onAuthStateChanged(auth, u => { me = u; render(); });
+onAuthStateChanged(auth, u => { me = u; window.LC && LC.setUser(u ? u.uid : null); render(); });
 
 // ── 讀資料：貓咪（含後端算好的統計）、最近 100 筆選號 ─────────
 async function load() {
@@ -236,6 +237,7 @@ if (window.L) {
       + (g.prize ? `<br>累積獎金 ${money(g.prize)}` : ''), { direction: 'top', offset: [0, -4] });
     m.on('click', () => {
       ccFilter = cc;
+      window.LC && LC.track('map_country_click', { country_code: cc, cats_in_country: g.cats });
       document.getElementById('banner-txt').textContent = `${flagEmoji(cc)} ${g.name} — ${g.cats} 隻貓咪 · ${g.wins} 次中獎`;
       document.getElementById('cc-banner').classList.add('show');
       render();
@@ -317,17 +319,19 @@ function render() {
 }
 
 window.setTab = function (t) {
+  if (t !== tab) window.LC && LC.track('rank_tab', { tab: t });
   tab = t;
   ['prize', 'rate', 'latest'].forEach(k => document.getElementById('tab-' + k).classList.toggle('on', k === t));
   render();
 };
 window.clearCC = function () {
+  window.LC && LC.track('rank_filter_clear');
   ccFilter = 'all';
   document.getElementById('cc-banner').classList.remove('show');
   render();
 };
 render();
 </script>
-<script type="module" src="js/navuser.js"></script>
+<script type="module" src="js/navuser.js?v=20261028"></script>
 </body>
 </html>
