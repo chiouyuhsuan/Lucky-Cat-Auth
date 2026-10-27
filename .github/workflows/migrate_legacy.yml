@@ -1,0 +1,83 @@
+name: 舊資料整理（第 7 段）
+
+# 一次性工作。
+# - 推送到分支時：自動試跑（不寫入），結果貼到 PR
+# - 正式執行／還原：只能在 Actions 頁面手動觸發，且要輸入確認文字
+on:
+  push:
+    branches-ignore: [main]
+    paths:
+      - 'scripts/migrate_legacy.py'
+      - '.github/workflows/migrate_legacy.yml'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: '執行模式'
+        type: choice
+        options: [試跑, 正式執行, 還原]
+        default: 試跑
+      confirm:
+        description: '正式執行請輸入：整理舊資料'
+        type: string
+        default: ''
+      restore_id:
+        description: '還原時填入備份 ID（例如 20261027-130000）'
+        type: string
+        default: ''
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: lottery
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install firebase-admin requests
+      - name: 單元測試（對獎規則）
+        run: python -m unittest discover -s tests -p "test_*.py"
+
+      - name: 檢查確認文字
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == '正式執行' && inputs.confirm != '整理舊資料'
+        run: |
+          echo "::error::正式執行需要在 confirm 欄位輸入「整理舊資料」"
+          exit 1
+
+      - name: 執行
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '試跑' }}
+          RESTORE_ID: ${{ inputs.restore_id }}
+        run: |
+          case "$MODE" in
+            正式執行) python scripts/migrate_legacy.py --apply ;;
+            還原)     test -n "$RESTORE_ID" || { echo "::error::請填入備份 ID"; exit 1; }
+                      python scripts/migrate_legacy.py --restore "$RESTORE_ID" | tee migrate_summary.md ;;
+            *)        python scripts/migrate_legacy.py ;;
+          esac
+          cat migrate_summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: 重新計算貓咪統計
+        if: github.event_name == 'workflow_dispatch' && inputs.mode != '試跑'
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          python scripts/lottery_job.py --summary after.md
+          { echo; echo '---'; echo '### 重新計算後'; sed -n '/### 貓咪統計/,$p' after.md; } >> migrate_summary.md
+
+      - name: 結果貼到 PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR=$(gh pr list --repo ${{ github.repository }} --head "${GITHUB_REF_NAME}" --state all --json number --jq '.[0].number')
+          [ -z "$PR" ] && PR=$(gh pr list --repo ${{ github.repository }} --search "第 7 段" --state all --json number --jq '.[0].number')
+          if [ -n "$PR" ]; then gh pr comment "$PR" --repo ${{ github.repository }} --body-file migrate_summary.md; fi
