@@ -82,6 +82,9 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .rc-sub{font-size:11px;color:#888780}
 .b.hit{background:#3B6D11;color:#fff}
 
+/* 底圖調淡，讓貓咪圓圈比較明顯 */
+.leaflet-tile-pane{filter:saturate(.55) brightness(1.06)}
+
 /* Leaflet custom marker */
 .cat-marker{background:#7F77DD;border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;transition:transform .15s}
 .cat-marker:hover{transform:scale(1.25)}
@@ -219,8 +222,12 @@ twCats.forEach(c => {
 });
 if (window.L) {
   const map = L.map('leafmap', { center: [20, 15], zoom: 2, minZoom: 1, maxZoom: 6, worldCopyJump: true });
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    { attribution: '© OpenStreetMap © CARTO', subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+  // 底圖：OpenStreetMap 官方圖磚（不需金鑰，須標示出處）。
+  // 原本的 CARTO 底圖 2026-10 起需要金鑰，未帶金鑰會回傳「API KEY REQUIRED」圖片。
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors',
+    maxZoom: 19,
+  }).addTo(map);
   Object.entries(byCC).forEach(([cc, g]) => {
     if (!CENT[cc]) return;
     const m = L.circleMarker(CENT[cc], { radius: Math.min(10 + Math.sqrt(g.cats) * 8, 40), fillColor: g.wins ? '#EF9F27' : '#7F77DD',
