@@ -112,7 +112,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
     <a class="nav-link active" href="wall.html">貓咪牆</a>
     <a class="nav-link" href="about.html">關於</a>
   </div>
-  <a class="nav-cta" href="index.html">加入</a>
+  <div id="nav-right"><a class="nav-cta" href="index.html">開始選號</a></div>
 </nav>
 
 <div class="wall-header">
@@ -254,5 +254,6 @@ function closeLightbox(e) {
 
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox({ target: document.getElementById('lightbox') }); });
 </script>
+<script type="module" src="js/navuser.js"></script>
 </body>
 </html>
