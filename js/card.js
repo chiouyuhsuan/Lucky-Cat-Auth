@@ -3,11 +3,36 @@
 // 尺寸：9:16（限時動態）1080×1920、4:5（貼文）1080×1350
 (function () {
   var SIZES = { '9:16': [1080, 1920], '4:5': [1080, 1350] };
-  var C = {
-    frame: '#F6A85C', framePaw: '#FBC98F', card: '#FFF7EA', line: '#F3B36E',
-    title: '#3A271B', text: '#4A3426', ball: '#F9C27F', ballDark: '#EF8E3A', ballText: '#2E1F14',
-    photoStroke: '#F3B36E', pawBox: '#FFF7EA'
+  // 每天換一個顏色：依「選號日」是星期幾，週一紅、週二橙、週三黃、週四綠、週五藍、週六靛、週日紫
+  // 同一張選號之後再打開，顏色不變
+  var BROWN = { title: '#3A271B', text: '#4A3426', ballText: '#2E1F14' };
+  var NAVY = { title: '#1F2A44', text: '#2D3A55', ballText: '#1B2238' };
+  var PLUM = { title: '#2E2140', text: '#3B2D52', ballText: '#24183A' };
+  var THEMES = {
+    red:    mk('#E8676B', '#F39C9E', '#F09A9C', '#F7B5B6', '#E46D71', '#FFF5F4', '#FADADB', BROWN),
+    orange: mk('#F6A85C', '#FBC98F', '#F3B36E', '#F9C27F', '#EF8E3A', '#FFF7EA', '#FBE3C4', BROWN),
+    yellow: mk('#F2C230', '#F8DA7A', '#EEC64A', '#F9DE86', '#EDB520', '#FFFBEA', '#FBEDB8', BROWN),
+    green:  mk('#6DBE7E', '#9FD7AB', '#8FCB9C', '#B5E1BF', '#6BB97C', '#F4FBF5', '#D5EEDB', NAVY),
+    blue:   mk('#5AA7E0', '#93C6EE', '#8CC0E8', '#B3D7F3', '#5FA4DB', '#F3F9FE', '#D3E7F7', NAVY),
+    indigo: mk('#5C6BC0', '#8F9AD7', '#9AA3DA', '#BEC5EB', '#8792D4', '#F5F6FD', '#DCE0F4', NAVY),
+    purple: mk('#9B72CF', '#C0A3E3', '#BFA2E2', '#D7C5EF', '#AC8AD9', '#F9F5FE', '#E7DCF6', PLUM)
   };
+  // getDay()：0＝週日
+  var WEEK = ['purple', 'red', 'orange', 'yellow', 'green', 'blue', 'indigo'];
+  function mk(frame, framePaw, line, ball, ballDark, card, empty, ink) {
+    return { frame: frame, framePaw: framePaw, line: line, photoStroke: line, ball: ball, ballDark: ballDark,
+      card: card, pawBox: card, empty: empty, title: ink.title, text: ink.text, ballText: ink.ballText };
+  }
+  // date：Date，或 'YYYY/MM/DD'、'YYYY.MM.DD'、'YYYY-MM-DD'；讀不到就用今天
+  function themeName(date) {
+    var d = date instanceof Date ? date : null;
+    if (!d && date) {
+      var m = String(date).match(/(\d{4})\D(\d{1,2})\D(\d{1,2})/);
+      if (m) d = new Date(+m[1], +m[2] - 1, +m[3]);
+    }
+    if (!d || isNaN(d)) d = new Date();
+    return WEEK[d.getDay()];
+  }
   var FONT = '"Noto Sans TC","Noto Sans CJK TC","PingFang TC","Hiragino Sans","Microsoft JhengHei",sans-serif';
 
   function rr(ctx, x, y, w, h, r) {
@@ -55,12 +80,14 @@
    *   focus: {x,y,w,h}（0~1，可為 null）
    *   numbers: [..]，special: [..]
    *   text: { title, info, drawLine, disclaimer: [3 行] }
+   *   date：選號日（決定顏色，見 THEMES）；theme：直接指定顏色名稱（測試用）
    * 回傳 Promise<HTMLCanvasElement>
    */
   function render(opts) {
     var size = SIZES[opts.aspect] || SIZES['9:16'];
     var W = size[0], H = size[1], tall = opts.aspect === '9:16';
     var tx = opts.text;
+    var C = THEMES[opts.theme] || THEMES[themeName(opts.date)];
     return ensureFonts([tx.title, tx.info, tx.drawLine].concat(tx.disclaimer, '0123456789')).then(function () {
       var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
       var ctx = cv.getContext('2d');
@@ -124,7 +151,7 @@
           tctx.drawImage(opts.photo, bg.x, bg.y, bg.w, bg.h, 0, 0, tiny.width, tiny.height);
           ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
           ctx.drawImage(tiny, 0, 0, tiny.width, tiny.height, L, photoTop, IW, ph);
-          ctx.fillStyle = 'rgba(255,247,234,0.28)'; ctx.fillRect(L, photoTop, IW, ph);   // 背景稍微淡化，讓主角更突出
+          ctx.globalAlpha = 0.28; ctx.fillStyle = C.card; ctx.fillRect(L, photoTop, IW, ph); ctx.globalAlpha = 1;   // 背景稍微淡化，讓主角更突出
           var d = lay.dst;
           ctx.save();
           ctx.shadowColor = 'rgba(58,39,27,0.25)'; ctx.shadowBlur = 24;
@@ -132,7 +159,7 @@
           ctx.restore();
         }
       } else {
-        ctx.fillStyle = '#FBE3C4'; ctx.fillRect(L, photoTop, IW, ph);
+        ctx.fillStyle = C.empty; ctx.fillRect(L, photoTop, IW, ph);
         paw(ctx, L + IW / 2, photoTop + ph / 2, Math.min(IW, ph) * 0.35, C.framePaw, 0);
       }
       ctx.restore();
@@ -198,5 +225,5 @@
     return 'downloaded';
   }
 
-  window.Card = { render: render, share: share, toBlob: toBlob, SIZES: SIZES };
+  window.Card = { render: render, share: share, toBlob: toBlob, SIZES: SIZES, THEMES: THEMES, themeName: themeName };
 })();
