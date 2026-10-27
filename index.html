@@ -680,12 +680,12 @@ function statusTag(d) {
   return lv > 0 ? tag('#EAF3DE', '#27500A', T('lv_' + lv) + ' ' + money(d.prizeAmount)) : tag('#FCEBEB', '#791F1F', T('status_no_win'));
 }
 
-// 「我買了」按鈕：開獎日 20:00 前可切換，之後鎖定只顯示結果
+// 「我買了」按鈕：開獎隔天 24:00 前可切換（對獎後也能補登），之後鎖定只顯示結果
 function purchaseHtml(d) {
   if (d.lotType !== 'tw' || d.tracked === false) return '';
   if (d.schema !== 2) return '<span style="font-size:11px;color:#B4B2A9">' + esc(T('pf_buy_unknown')) + '</span>';
   const dl = window.Lottery.purchaseDeadline(d.targetDrawDate);
-  const open = !d.checkedAt && dl && Date.now() < dl.getTime();
+  const open = dl && Date.now() < dl.getTime();
   const on = d.purchased === true;
   if (!open) {
     return '<span style="font-size:11px;color:' + (on ? '#27500A' : '#888780') + '">🔒 ' + esc(on ? T('pf_bought_yes') : T('pf_bought_no')) + '</span>';
@@ -898,11 +898,11 @@ const I18N = {
     same_cat_stats:'已選號 {d} 次 · 中獎 {w} 次', same_cat_yes_toast:'✓ 將累積到 {name} 的紀錄', same_cat_no_toast:'將建立新的貓咪檔案',
     pf_cat_title:'貓的命中率（所有大樂透選號）', pf_checked:'已對獎', pf_pending_n:'{n} 筆待開獎',
     pf_wins:'中獎次數', pf_best:'最佳：{lv}', pf_rate:'中獎率', pf_prize:'累積獎金', pf_sim:'若每注都買',
-    pf_real_title:'我的實際損益（只算勾選「我買了」）', pf_real_empty:'還沒有標記買過的號碼。開獎日 20:00 前，在下方號碼旁按「我買了」。',
+    pf_real_title:'我的實際損益（只算勾選「我買了」）', pf_real_empty:'還沒有標記買過的號碼。開獎隔天 24:00 前，在下方號碼旁按「我買了」。',
     pf_bought:'買了幾注', pf_cost:'花費', pf_won:'中獎獎金', pf_win_n:'中 {n} 次', pf_profit:'損益',
     pf_legacy_sp:'舊版規則由貓自選的特別號，不計入對獎',
     pf_buy_unknown:'舊紀錄・購買狀態未知', pf_bought_yes:'我買了', pf_bought_no:'沒買', pf_buy_btn:'我買了',
-    pf_buy_until:'開獎日 20:00 前可修改', pf_buy_saved:'✓ 已標記為買了', pf_buy_removed:'已取消標記', pf_buy_failed:'更新失敗，可能已過截止時間',
+    pf_buy_until:'開獎隔天 24:00 前可修改', pf_buy_saved:'✓ 已標記為買了', pf_buy_removed:'已取消標記', pf_buy_failed:'更新失敗，可能已過截止時間',
     pf_period:'第 {p} 期', pf_match:'對中 {n} 碼', pf_sp:'特別號',
     pf_need_login:'尚未登入', pf_need_login_sub:'登入後可查看你的選號紀錄', pf_load_failed:'載入失敗，請重新整理',
     pf_empty:'還沒有紀錄，去上傳你的貓咪吧！', pf_cat_line:'{d} 筆 · 已對 {c} · 中 {w} 次 · {r}', loading:'載入中...',
@@ -986,11 +986,11 @@ const I18N = {
     same_cat_stats:'{d} picks · {w} wins', same_cat_yes_toast:"✓ Will add to {name}'s record", same_cat_no_toast:'A new cat profile will be created',
     pf_cat_title:"Cat's hit rate (all Taiwan Lotto picks)", pf_checked:'Checked', pf_pending_n:'{n} pending',
     pf_wins:'Wins', pf_best:'Best: {lv}', pf_rate:'Win rate', pf_prize:'Total prize', pf_sim:'if every pick was bought',
-    pf_real_title:'My real profit (only tickets marked "I bought")', pf_real_empty:'No tickets marked yet. Tap "I bought it" next to a pick before 20:00 on draw day.',
+    pf_real_title:'My real profit (only tickets marked "I bought")', pf_real_empty:'No tickets marked yet. Tap "I bought it" next to a pick by midnight the day after the draw.',
     pf_bought:'Tickets', pf_cost:'Spent', pf_won:'Won', pf_win_n:'{n} wins', pf_profit:'Profit',
     pf_legacy_sp:'Special number picked by the cat under the old rules — not used for checking',
     pf_buy_unknown:'Old record · purchase unknown', pf_bought_yes:'I bought it', pf_bought_no:'Not bought', pf_buy_btn:'I bought it',
-    pf_buy_until:'Editable until 20:00 on draw day', pf_buy_saved:'✓ Marked as bought', pf_buy_removed:'Unmarked', pf_buy_failed:'Update failed — the deadline may have passed',
+    pf_buy_until:'Editable until midnight the day after the draw', pf_buy_saved:'✓ Marked as bought', pf_buy_removed:'Unmarked', pf_buy_failed:'Update failed — the deadline may have passed',
     pf_period:'Draw {p}', pf_match:'{n} matched', pf_sp:'special',
     pf_need_login:'Not signed in', pf_need_login_sub:'Sign in to see your picks', pf_load_failed:'Failed to load, please refresh',
     pf_empty:'No records yet — upload your cat!', pf_cat_line:'{d} picks · {c} checked · {w} wins · {r}', loading:'Loading...',
@@ -1074,11 +1074,11 @@ const I18N = {
     same_cat_stats:'{d} 回選択 · {w} 回当選', same_cat_yes_toast:'✓ {name} の記録に追加します', same_cat_no_toast:'新しい猫のプロフィールを作成します',
     pf_cat_title:'猫の的中率（台湾宝くじ全体）', pf_checked:'照合済み', pf_pending_n:'{n} 件抽選待ち',
     pf_wins:'当選回数', pf_best:'最高：{lv}', pf_rate:'当選率', pf_prize:'累計賞金', pf_sim:'全部購入した場合',
-    pf_real_title:'実際の損益（「購入した」のみ）', pf_real_empty:'まだ購入済みの番号がありません。抽選日20:00までに番号の横の「購入した」を押してください。',
+    pf_real_title:'実際の損益（「購入した」のみ）', pf_real_empty:'まだ購入済みの番号がありません。抽選翌日24:00までに番号の横の「購入した」を押してください。',
     pf_bought:'購入口数', pf_cost:'支出', pf_won:'当選金', pf_win_n:'{n} 回当選', pf_profit:'損益',
     pf_legacy_sp:'旧ルールで猫が選んだ特別番号（照合には使いません）',
     pf_buy_unknown:'旧記録・購入状況不明', pf_bought_yes:'購入した', pf_bought_no:'未購入', pf_buy_btn:'購入した',
-    pf_buy_until:'抽選日20:00まで変更可', pf_buy_saved:'✓ 購入済みにしました', pf_buy_removed:'取り消しました', pf_buy_failed:'更新に失敗しました（締切を過ぎた可能性があります）',
+    pf_buy_until:'抽選翌日24:00まで変更可', pf_buy_saved:'✓ 購入済みにしました', pf_buy_removed:'取り消しました', pf_buy_failed:'更新に失敗しました（締切を過ぎた可能性があります）',
     pf_period:'第 {p} 回', pf_match:'{n} 個一致', pf_sp:'特別番号',
     pf_need_login:'未ログイン', pf_need_login_sub:'ログインすると記録が見られます', pf_load_failed:'読み込みに失敗しました。再読み込みしてください',
     pf_empty:'まだ記録がありません。猫をアップロードしよう！', pf_cat_line:'{d} 件 · 照合 {c} · 当選 {w} · {r}', loading:'読み込み中...',

@@ -59,10 +59,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .cats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
 .cat-card{background:#fff;border-radius:16px;overflow:hidden;border:0.5px solid #CECBF6;box-shadow:0 4px 12px rgba(127,119,221,.10);text-align:left}
 .cat-card img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover;background:var(--purple-light)}
-.cat-card-body{padding:10px 12px 12px}
+.cat-card-body{padding:10px 12px}
 .cat-card-name{font-family:'Nunito','Noto Sans TC',sans-serif;font-size:15px;font-weight:800;color:var(--text)}
-.cat-card-tag{display:inline-block;margin-top:4px;font-size:11px;font-weight:600;color:var(--purple-deep);background:var(--purple-light);border-radius:10px;padding:2px 8px}
-.cat-card-tag.bro{color:#9A5B0B;background:#FDF0DA}
 .done-badge{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#0F6E56;background:#E1F5EE;border-radius:8px;padding:1px 7px;vertical-align:middle}
 .wip-badge{display:inline-block;margin-left:6px;font-size:10px;font-weight:700;color:#9A5B0B;background:#FDF0DA;border-radius:8px;padding:1px 7px;vertical-align:middle}
 .nav-right{display:flex;align-items:center;gap:6px}
@@ -141,7 +139,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
       <button class="lang-btn" id="lang-en" onclick="setLang('en')">EN</button>
       <button class="lang-btn" id="lang-ja" onclick="setLang('ja')">日</button>
     </div>
-    <a class="nav-cta" href="index.html" data-i18n="nav_cta">開始選號</a>
+    <div id="nav-right"><a class="nav-cta" href="index.html" data-i18n="nav_cta">開始選號</a></div>
   </div>
 </nav>
 
@@ -188,19 +186,19 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
     <div class="cats-grid">
       <div class="cat-card">
         <img src="images/cat-jigula.webp" alt="吉古拉" data-i18n-alt="cat1_name" loading="lazy" width="720" height="720"/>
-        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat1_name">吉古拉</div><span class="cat-card-tag" data-i18n="tag_adopt">領養</span></div>
+        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat1_name">吉古拉</div></div>
       </div>
       <div class="cat-card">
         <img src="images/cat-maluchan.webp" alt="馬露醬" data-i18n-alt="cat2_name" loading="lazy" width="720" height="720"/>
-        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat2_name">馬露醬</div><span class="cat-card-tag" data-i18n="tag_adopt">領養</span></div>
+        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat2_name">馬露醬</div></div>
       </div>
       <div class="cat-card">
         <img src="images/cat-pangji.webp" alt="胖吉" data-i18n-alt="cat3_name" loading="lazy" width="720" height="720"/>
-        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat3_name">胖吉</div><span class="cat-card-tag bro" data-i18n="tag_bro">兄弟</span></div>
+        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat3_name">胖吉</div></div>
       </div>
       <div class="cat-card">
         <img src="images/cat-pangfu.webp" alt="胖福" data-i18n-alt="cat4_name" loading="lazy" width="720" height="720"/>
-        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat4_name">胖福</div><span class="cat-card-tag bro" data-i18n="tag_bro">兄弟</span></div>
+        <div class="cat-card-body"><div class="cat-card-name" data-i18n="cat4_name">胖福</div></div>
       </div>
     </div>
   </div>
@@ -323,7 +321,6 @@ zh: {
   origin_p2:'2010 年世界盃，德國章魚哥 Paul 以接近完美的預測成績震驚全球。而日本自古流傳的招財貓傳說，更讓人對動物與好運之間的連結充滿好奇。這個想法在心裡悄悄發芽——<b>如果換成全球的貓咪來選樂透號碼呢？</b>',
   cats_tag:'我的四隻貓', cats_title:'這一切的起源',
   cat1_name:'吉古拉', cat2_name:'馬露醬', cat3_name:'胖吉', cat4_name:'胖福',
-  tag_adopt:'領養', tag_bro:'兄弟',
   inspo_tag:'靈感來源', inspo_title:'招財貓 × 章魚哥 × 大數據', inspo_body:'三個看似不相關的事物，串起了 LuckyCat 的誕生。',
   inspo1_t:'日本招財貓', inspo1_d:'千年傳說，貓咪自古與好運緊密相連',
   inspo2_t:'章魚哥 Paul', inspo2_d:'動物的直覺，也許真的藏著人類無法理解的智慧',
@@ -355,7 +352,6 @@ en: {
   origin_p2:'At the 2010 World Cup, Paul the Octopus in Germany stunned the world with his near-perfect predictions. And Japan\'s age-old legend of the beckoning cat (maneki-neko) makes you wonder about the link between animals and good fortune. An idea quietly took root — <b>what if cats around the world picked lottery numbers?</b>',
   cats_tag:'My four cats', cats_title:'Where it all began',
   cat1_name:'Jigula', cat2_name:'Malu-chan', cat3_name:'Pangji', cat4_name:'Pangfu',
-  tag_adopt:'Adopted', tag_bro:'Brothers',
   inspo_tag:'Inspiration', inspo_title:'Maneki-neko × Paul the Octopus × Big Data', inspo_body:'Three seemingly unrelated things that together gave birth to LuckyCat.',
   inspo1_t:'Maneki-neko', inspo1_d:'For centuries, cats have been tied to good fortune',
   inspo2_t:'Paul the Octopus', inspo2_d:'Maybe animal instinct holds a wisdom we can\'t explain',
@@ -387,7 +383,6 @@ ja: {
   origin_p2:'2010年のワールドカップで、ドイツのタコ・パウルはほぼ完璧な予想で世界を驚かせました。日本に古くから伝わる招き猫も、動物と幸運のつながりへの好奇心をかき立てます。そこで心にひとつのアイデアが芽生えました——<b>世界中の猫にロトの番号を選んでもらったら？</b>',
   cats_tag:'わたしの4匹', cats_title:'すべてのはじまり',
   cat1_name:'ジグラ', cat2_name:'マルちゃん', cat3_name:'パンジー', cat4_name:'パンフー',
-  tag_adopt:'保護猫', tag_bro:'兄弟',
   inspo_tag:'インスピレーション', inspo_title:'招き猫 × タコのパウル × ビッグデータ', inspo_body:'一見関係なさそうな3つが、LuckyCat を生み出しました。',
   inspo1_t:'招き猫', inspo1_d:'昔から猫は幸運と深く結びついてきた',
   inspo2_t:'タコのパウル', inspo2_d:'動物の直感には、人間にはわからない知恵があるのかも',
@@ -436,5 +431,6 @@ function setLang(lang) {
 })();
 </script>
 
+<script type="module" src="js/navuser.js"></script>
 </body>
 </html>

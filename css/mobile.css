@@ -1,3 +1,16 @@
+/* 右上角帳號選單（排行榜、貓咪牆、關於頁共用；首頁另有同樣的樣式） */
+#nav-right{display:flex;align-items:center}
+.nav-user-photo{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid #7F77DD}
+.nav-user-avatar{width:28px;height:28px;border-radius:50%;background:#7F77DD;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-user-name{font-size:13px;color:#534AB7;font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-user-menu{display:flex;align-items:center;gap:6px;cursor:pointer;position:relative;padding:4px 8px;border-radius:8px;transition:background .15s}
+.nav-user-menu:hover{background:#EEEDFE}
+.nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:0.5px solid #CECBF6;border-radius:12px;box-shadow:0 8px 24px rgba(83,74,183,.15);min-width:160px;overflow:hidden;display:none;z-index:200}
+.nav-dropdown.open{display:block}
+.nav-dropdown-item{padding:10px 14px;font-size:13px;color:#26215C;cursor:pointer;transition:background .15s}
+.nav-dropdown-item:hover{background:#F4F2FB}
+.nav-dropdown-divider{height:0.5px;background:#CECBF6}
+
 /* 手機版頂部選單：選單連結移到第二列、可左右滑動，避免文字被擠成直排或超出畫面 */
 @media (max-width: 640px) {
   .topnav { flex-wrap: wrap; height: auto !important; padding: 8px 12px 0 !important; row-gap: 4px; }
