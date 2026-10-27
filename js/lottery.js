@@ -67,11 +67,11 @@
     return p.y + '.' + String(p.m + 1).padStart(2, '0') + '.' + String(p.d).padStart(2, '0');
   }
 
-  // 「我買了」的截止時間：開獎日台灣時間 20:00（與安全規則相同）
+  // 「我買了」的截止時間：開獎隔天台灣時間 24:00（與安全規則相同）
   function purchaseDeadline(iso) {
     if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
     var p = iso.split('-').map(Number);
-    return new Date(Date.UTC(p[0], p[1] - 1, p[2], CUTOFF_HOUR - 8));
+    return new Date(Date.UTC(p[0], p[1] - 1, p[2] + 1, 24 - 8));
   }
 
   var TICKET_PRICE = 50;  // 大樂透每注 50 元

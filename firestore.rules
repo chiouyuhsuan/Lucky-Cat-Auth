@@ -98,8 +98,9 @@ service cloud.firestore {
         && unit(f.x) && unit(f.y) && unit(f.w) && unit(f.h));
     }
 
+    // 開獎隔天 24:00（台灣時間）= 開獎日 UTC 00:00 + 40 小時（10/27 決定，原本是開獎日 20:00）
     function purchaseDeadline(d) {
-      return timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) + duration.value(12, 'h');
+      return timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) + duration.value(40, 'h');
     }
 
     match /draws/{drawId} {
@@ -133,12 +134,11 @@ service cloud.firestore {
         && request.resource.data.createdAt == request.time;
 
       // 「我買了」：擁有者只能改 purchased / purchasedAt，
-      // 限新格式的大樂透、尚未對獎、開獎日 20:00（台灣時間 = UTC 12:00）之前
+      // 限新格式的大樂透、開獎隔天 24:00（台灣時間）之前；已對獎也可以改（讓來不及按的人補登）
       // 對獎結果等其他欄位只能由後端寫入
       allow update: if isOwner()
         && resource.data.schema == 2
         && resource.data.tracked == true
-        && !('checkedAt' in resource.data)
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['purchased', 'purchasedAt'])
         && request.resource.data.purchased is bool
         && request.resource.data.purchasedAt == request.time
