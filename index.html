@@ -1305,6 +1305,7 @@ async function renderResultCard() {
         aspect: key, photo: photo, focus: st.focus,
         numbers: st.currentNums.main, special: st.currentNums.special,
         text: cardText(st.curLot, st.catName, pickDateOf(st.pickedAt), Lottery.targetDrawDate(st.curLot, st.pickedAt)),
+        date: pickDateOf(st.pickedAt),
       });
     }
     if (key === _aspect) imgEl.src = _cards[key].toDataURL('image/png');
@@ -1597,6 +1598,7 @@ async function setModalAspect(a) {
         aspect: a, photo: _modal.photo, focus: d.focus || null,
         numbers: d.numbers || [], special: (legacy && d.lotType === 'tw') ? [] : (d.special || []),
         text: cardText(d.lotType, d.catName, String(d.date || '').replace(/\./g, '/'), d.targetDrawDate || d.drawDate || null),
+        date: String(d.date || '').replace(/\./g, '/'),
       });
     }
     if (_modal.aspect === a) document.getElementById('m-card-img').src = _modal.cards[a].toDataURL('image/png');
