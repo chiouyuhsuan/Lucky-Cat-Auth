@@ -110,6 +110,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text
 .delay-4{animation-delay:.4s}
 </style>
 <link rel="stylesheet" href="css/mobile.css"/>
+<script src="js/analytics.js"></script>
 </head>
 <body>
 
@@ -408,7 +409,10 @@ ja: {
 };
 function setLang(lang) {
   if (!I18N[lang]) lang = 'zh';
+  var prev = null;
+  try { prev = localStorage.getItem('lang') || 'zh'; } catch (e) {}
   try { localStorage.setItem('lang', lang); } catch (e) {}
+  if (prev && prev !== lang && window.LC) LC.track('language_change', { new_language: lang });
   var d = I18N[lang];
   document.documentElement.lang = lang === 'zh' ? 'zh-TW' : lang;
   document.title = d.page_title;
