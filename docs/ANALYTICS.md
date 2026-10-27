@@ -63,7 +63,35 @@
 | `wall_filter` | `filter`：all／won／tw／recent |
 | `wall_photo_open` | `status`：won／lost／pending／untracked；`lottery_type`；`same_photo_times` |
 | `language_change` | `new_language` |
-| `internal_link_click` | `link_area`：nav／nav_cta／cta／link；`link_path` |
+
+### 全站通用（每個頁面自動）
+| 事件 | 何時送 | 參數 |
+|---|---|---|
+| `ui_click` | 點任何按鈕、連結、可點的元素 | `ui_id`（元件代號，例如 `tab-rate`、`selectLot:tw`、`link:rank.html`；不記畫面文字）；`ui_type`；`ui_section`；`page_name` |
+| `scroll_depth` | 捲到 25／50／75／90／100%（頁面很短時不送） | `percent_scrolled`；`page_name` |
+| `section_view` | 區塊有一半出現在畫面上（每次瀏覽一次） | `section_name`；`page_name`；`seconds_since_page_view` |
+| `page_leave` | 離開頁面、切到別的分頁、首頁內換頁 | `page_name`；`engaged_seconds`（實際在看的秒數）；`max_scroll_percent`；`leave_reason`：navigate／hidden／unload |
+
+區塊名稱：首頁 `home_stats`、`home_list`、`upload_preview`、`result_card`、`result_actions`；排行榜 `map`、`rank_list`；貓咪牆 `wall_grid`；關於 `origin`、`four_cats`、`inspiration`、`vision`、`future`、`cta`
+
+### 細節事件（第二版追加）
+| 事件 | 參數 |
+|---|---|
+| `photo_select` | 選了照片、還沒檢查完：`file_type`；`file_size_kb`；`replace`（是否換照片） |
+| `photo_upload` 追加 | `check_ms`（照片檢查花幾毫秒） |
+| `cat_name_input_start` | 開始輸入貓名（每輪一次）：`has_photo` |
+| `same_cat_prompt_show` | 出現「同名貓」詢問 |
+| `generate_numbers` 追加 | `name_length`；`focus_found`；`aspect_default` |
+| `card_view` 追加 | `render_ms`（圖卡繪製毫秒） |
+| `share`、`save_draw`、`new_round` 追加 | `seconds_on_result`（看到號碼後幾秒才做這件事） |
+| `login_cta_click` | 結果頁按「登入後加入」：`seconds_on_result` |
+| `auth_tab` | 登入／註冊分頁切換：`tab` |
+| `password_reset_open` | 打開忘記密碼 |
+| `profile_view` | 紀錄頁載入：`cat_count`、`draw_count`、`checked_count`、`win_count`、`bought_count` |
+| `profile_cat_toggle` | 展開／收合某隻貓：`state` |
+| `card_modal_open` | 紀錄頁打開圖卡：`lottery_type`、`checked`、`won` |
+| `rank_loaded` | 排行榜資料載入：`cat_count`、`latest_count`、`country_count` |
+| `wall_photo_close` | 關閉貓咪牆大圖：`seconds_viewed` |
 
 ### 錯誤
 | 事件 | 參數 |
@@ -74,9 +102,12 @@
 
 ## GA4 後台要手動設定的項目
 1. **自訂維度**（管理 → 自訂定義 → 建立自訂維度，範圍選「事件」）：
-   `site_language`、`logged_in`、`lottery_type`、`page_name`、`result`、`choice`、`cat_type`、`source`、`aspect`、`card_color`、`method`、`tab`、`filter`、`status`、`action`、`error_code`
+   `site_language`、`logged_in`、`lottery_type`、`page_name`、`result`、`choice`、`cat_type`、`source`、`aspect`、`card_color`、`method`、`tab`、`filter`、`status`、`action`、`error_code`、`ui_id`、`ui_section`、`section_name`、`leave_reason`、`focus_found`、`state`
    ＋ 範圍選「使用者」：`logged_in`（使用者屬性）
-2. **自訂指標**（範圍「事件」）：`days_to_draw`、`file_size_kb`
+2. **自訂指標**（範圍「事件」）：`days_to_draw`、`file_size_kb`、`engaged_seconds`、`max_scroll_percent`、`percent_scrolled`、`seconds_on_result`、`check_ms`、`render_ms`、`seconds_viewed`
 3. **關鍵事件**（管理 → 事件 → 標為關鍵事件）：`generate_numbers`、`share`、`save_draw`、`sign_up`
 4. **資料保留**：管理 → 資料保留 → 改成 14 個月（預設只有 2 個月，探索報表只能看保留期內的資料）
 5. **漏斗探索**：探索 → 漏斗探索，步驟依序 `page_view`（page_name = upload）→ `photo_upload`（result = pass）→ `generate_numbers` → `share` 或 `save_draw`
+
+## 改 css／js 檔時
+頁面引用都帶版本號（例如 `js/analytics.js?v=20261028b`），改了檔案要一起把四個頁面的版本號換掉，不然使用者會讀到瀏覽器快取的舊檔。

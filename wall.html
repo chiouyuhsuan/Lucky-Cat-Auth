@@ -87,9 +87,9 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 .cat-card{animation:fadeIn .4s ease forwards;opacity:0}
 .cat-dupes{display:inline-block;margin-top:4px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);padding:2px 8px;border-radius:10px}
 </style>
-<link rel="stylesheet" href="css/mobile.css?v=20261028"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261028b"/>
 <style>/* 深色背景：帳號名字改淺色 */.topnav .nav-user-name{color:#E4E1FB}.topnav .nav-user-menu:hover{background:rgba(255,255,255,.08)}</style>
-<script src="js/analytics.js?v=20261028"></script>
+<script src="js/analytics.js?v=20261028b"></script>
 </head>
 <body>
 
@@ -136,7 +136,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 </div>
 <p id="dedupe-note" style="text-align:center;font-size:12px;color:rgba(255,255,255,.55);margin:-6px 0 12px"></p>
 
-<div id="cat-wall" class="cat-wall">
+<div id="cat-wall" class="cat-wall" data-ga-section="wall_grid">
   <div class="loading-wall" style="column-span:all">
     <div>載入中...</div>
     <div class="loading-dots"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
@@ -155,8 +155,8 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
   </div>
 </div>
 
-<script src="js/safe.js?v=20261028"></script>
-<script src="js/dedupe.js?v=20261028"></script>
+<script src="js/safe.js?v=20261028b"></script>
+<script src="js/dedupe.js?v=20261028b"></script>
 <script type="module">
 import { db } from "./js/firebase.js";
 import { collection, getDocs, query, orderBy, limit }
@@ -246,18 +246,21 @@ function openLightbox(item, times) {
   document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize
     + (times > 1 ? '  ·  同一張照片選號 ' + times + ' 次' : '');
   document.getElementById('lightbox').classList.add('show');
+  window._lbOpenAt = Date.now();
   window.LC && LC.track('wall_photo_open', { lottery_type: item.lotType || 'unknown', status: !tracked ? 'untracked' : lv > 0 ? 'won' : item.checkedAt ? 'lost' : 'pending', same_photo_times: times || 1 });
   document.body.style.overflow = 'hidden';
 }
 
 function closeLightbox(e) {
   if (e && e.target !== document.getElementById('lightbox') && !e.target.classList.contains('lightbox-close')) return;
-  document.getElementById('lightbox').classList.remove('show');
+  var lb = document.getElementById('lightbox');
+  if (lb.classList.contains('show') && window.LC && window._lbOpenAt) LC.track('wall_photo_close', { seconds_viewed: Math.round((Date.now() - window._lbOpenAt) / 1000) });
+  lb.classList.remove('show');
   document.body.style.overflow = '';
 }
 
 document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeLightbox({ target: document.getElementById('lightbox') }); });
 </script>
-<script type="module" src="js/navuser.js?v=20261028"></script>
+<script type="module" src="js/navuser.js?v=20261028b"></script>
 </body>
 </html>
