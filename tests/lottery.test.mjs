@@ -16,8 +16,10 @@ test('開獎日：20:00 為界、跨週、跨年', () => {
   assert.equal(L.targetDrawDate('us', new Date()), null);
 });
 
-test('我買了截止時間 = 開獎日台灣時間 20:00', () => {
-  assert.equal(L.purchaseDeadline('2026-10-23').toISOString(), '2026-10-23T12:00:00.000Z');
+test('我買了截止時間 = 開獎隔天台灣時間 24:00', () => {
+  assert.equal(L.purchaseDeadline('2026-10-23').toISOString(), '2026-10-24T16:00:00.000Z');
+  assert.equal(L.purchaseDeadline('2026-10-31').toISOString(), '2026-11-01T16:00:00.000Z');   // 跨月
+  assert.equal(L.purchaseDeadline('2026-12-31').toISOString(), '2027-01-01T16:00:00.000Z');   // 跨年
   assert.equal(L.purchaseDeadline(null), null);
   assert.equal(L.purchaseDeadline('<x>'), null);
 });
