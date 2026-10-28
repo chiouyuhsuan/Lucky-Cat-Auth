@@ -129,10 +129,10 @@ input[type=file]{display:none}
 .card-loading.show{display:flex}
 .card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
 </style>
-<link rel="stylesheet" href="css/mobile.css?v=20261028b"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261028c"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap"/>
-<script src="js/analytics.js?v=20261028b"></script>
+<script src="js/analytics.js?v=20261028c"></script>
 </head>
 <body>
 
@@ -358,10 +358,10 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
-<script src="js/safe.js?v=20261028b"></script>
-<script src="js/lottery.js?v=20261028b"></script>
-<script src="js/focus.js?v=20261028b"></script>
-<script src="js/card.js?v=20261028b"></script>
+<script src="js/safe.js?v=20261028c"></script>
+<script src="js/lottery.js?v=20261028c"></script>
+<script src="js/focus.js?v=20261028c"></script>
+<script src="js/card.js?v=20261028c"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
@@ -1321,9 +1321,16 @@ var _aspect = '9:16', _cards = {};   // 已畫好的圖卡快取（依比例）
 
 function pickDateOf(d) { return Lottery.todayDot(d).replace(/\./g, '/'); }
 
+// 圖卡外面的底色跟著當天的圖卡顏色（原本固定橘色）
+function setFrameColor(imgEl, date) {
+  var th = Card.THEMES[Card.themeName(date)];
+  if (th && imgEl && imgEl.parentElement) imgEl.parentElement.style.background = th.frame;
+}
+
 async function renderResultCard() {
   var st = window._state, key = _aspect;
   var imgEl = document.getElementById('card-img'), loading = document.getElementById('card-loading');
+  setFrameColor(imgEl, pickDateOf(st.pickedAt));
   loading.classList.add('show');
   try {
     var t0 = performance.now(), cv = _cards[key];
@@ -1646,6 +1653,7 @@ async function setModalAspect(a) {
   document.getElementById('m-aspect-9x16').classList.toggle('on', a === '9:16');
   document.getElementById('m-aspect-4x5').classList.toggle('on', a === '4:5');
   var d = _modal.draw; if (!d) return;
+  setFrameColor(document.getElementById('m-card-img'), String(d.date || '').replace(/\./g, '/'));
   var loading = document.getElementById('m-card-loading');
   loading.classList.add('show');
   try {
