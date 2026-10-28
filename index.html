@@ -129,10 +129,10 @@ input[type=file]{display:none}
 .card-loading.show{display:flex}
 .card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
 </style>
-<link rel="stylesheet" href="css/mobile.css?v=20261028"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261028b"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap"/>
-<script src="js/analytics.js?v=20261028"></script>
+<script src="js/analytics.js?v=20261028b"></script>
 </head>
 <body>
 
@@ -197,12 +197,12 @@ input[type=file]{display:none}
     <p style="font-size:14px;color:#534AB7;margin-bottom:20px" data-i18n="hero_sub">上傳完全免費 · 全球統計 · 即時排行</p>
     <button class="hero-btn" onclick="handleUploadClick()" data-i18n="hero_btn">上傳我的貓咪</button>
   </div>
-  <div class="stat-grid">
+  <div class="stat-grid" data-ga-section="home_stats">
     <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_cats_lbl">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div></div>
     <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_draws_lbl">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div></div>
   </div>
   <div class="sec-title" data-i18n="home_latest">最新幸運貓</div>
-  <div id="home-rank-list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
+  <div id="home-rank-list" data-ga-section="home_list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
   <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none;margin-top:8px"><span data-i18n="home_rank_link">查看完整排行榜 →</span></a>
 </div>
 
@@ -268,7 +268,7 @@ input[type=file]{display:none}
       <p style="font-size:13px;color:#534AB7;margin:0 0 10px" data-i18n="upload_hint2">JPG、PNG · 最大 10MB</p>
       <span class="tag" style="background:#EAF3DE;color:#27500A" data-i18n="upload_free">完全免費 · 無需付費</span>
     </div>
-    <div id="preview-frame" class="preview-frame" style="display:none">
+    <div id="preview-frame" data-ga-section="upload_preview" class="preview-frame" style="display:none">
       <img id="preview-img" alt="貓咪預覽"/>
       <button class="preview-change" onclick="document.getElementById('file-in').click()">更換照片</button>
     </div>
@@ -329,11 +329,11 @@ input[type=file]{display:none}
     <button class="aspect-tab" id="aspect-4x5" onclick="setAspect('4:5')"><span data-i18n="aspect_post">貼文</span> 4:5</button>
   </div>
   <div class="card-frame" id="card-frame">
-    <img id="card-img" alt="lucky numbers card"/>
+    <img id="card-img" alt="lucky numbers card" data-ga-section="result_card"/>
     <div id="card-loading" class="card-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
   <button class="btn" id="share-btn" onclick="shareCard()" data-i18n="share_btn">分享／下載圖卡</button>
-  <div id="result-action"></div>
+  <div id="result-action" data-ga-section="result_actions"></div>
 </div>
 
 <!-- 紀錄頁的圖卡視窗 -->
@@ -358,10 +358,10 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
-<script src="js/safe.js?v=20261028"></script>
-<script src="js/lottery.js?v=20261028"></script>
-<script src="js/focus.js?v=20261028"></script>
-<script src="js/card.js?v=20261028"></script>
+<script src="js/safe.js?v=20261028b"></script>
+<script src="js/lottery.js?v=20261028b"></script>
+<script src="js/focus.js?v=20261028b"></script>
+<script src="js/card.js?v=20261028b"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
@@ -742,6 +742,12 @@ window._renderProfile = async function() {
   const ms = x => (x && x.toMillis) ? x.toMillis() : 0;
   draws.sort((a, b) => ms(b.createdAt) - ms(a.createdAt));
   window._myDraws = draws;
+  window.LC && LC.track('profile_view', {
+    cat_count: cats.length, draw_count: draws.length,
+    checked_count: draws.filter(d => d.checkedAt).length,
+    win_count: draws.filter(d => int(d.prizeLevel) > 0).length,
+    bought_count: draws.filter(d => d.purchased === true).length,
+  });
 
   // 把選號分到貓：有 catId 用 catId；舊紀錄沒有 catId 的，用貓名對應（與後端相同）
   const byName = {};
@@ -1216,6 +1222,7 @@ document.getElementById('login-prompt-modal').addEventListener('click', function
 
 // Email 登入/註冊 tab 切換
 function switchAuthTab(tab) {
+  ga('auth_tab', { tab: tab });
   document.getElementById('auth-login-form').style.display    = tab === 'login'    ? '' : 'none';
   document.getElementById('auth-register-form').style.display = tab === 'register' ? '' : 'none';
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
@@ -1257,6 +1264,7 @@ function showErr(el, msg) {
 }
 
 function showForgotPassword() {
+  ga('password_reset_open');
   // 預填當前 email
   var email = document.getElementById('login-email').value.trim();
   if (email) document.getElementById('forgot-email').value = email;
@@ -1318,9 +1326,10 @@ async function renderResultCard() {
   var imgEl = document.getElementById('card-img'), loading = document.getElementById('card-loading');
   loading.classList.add('show');
   try {
-    if (!_cards[key]) {
+    var t0 = performance.now(), cv = _cards[key];
+    if (!cv) {
       var photo = st.cardPhotoImg || (st.photoCard ? (st.cardPhotoImg = await loadImage(st.photoCard)) : null);
-      _cards[key] = await Card.render({
+      cv = _cards[key] = await Card.render({
         aspect: key, photo: photo, focus: st.focus,
         numbers: st.currentNums.main, special: st.currentNums.special,
         text: cardText(st.curLot, st.catName, pickDateOf(st.pickedAt), Lottery.targetDrawDate(st.curLot, st.pickedAt)),
@@ -1328,12 +1337,12 @@ async function renderResultCard() {
       });
     }
     if (key === _aspect) {
-      imgEl.src = _cards[key].toDataURL('image/png');
-      ga('card_view', { source: 'result', aspect: key, card_color: Card.themeName(pickDateOf(st.pickedAt)), lottery_type: st.curLot });
+      imgEl.src = cv.toDataURL('image/png');   // 用區域變數：切換語言會清空 _cards，避免同時重畫時讀到空值
+      ga('card_view', { source: 'result', aspect: key, card_color: Card.themeName(pickDateOf(st.pickedAt)), lottery_type: st.curLot, render_ms: Math.round(performance.now() - t0) });
     }
   } catch (e) {
     console.error('render card error:', e);
-    ga('card_error', { source: 'result' });
+    ga('card_error', { source: 'result', error_message: String(e && e.message || e).slice(0, 100) });
     showToast(t('card_failed'));
   }
   loading.classList.remove('show');
@@ -1351,7 +1360,7 @@ async function shareCard() {
   if (!_cards[_aspect]) await renderResultCard();
   if (!_cards[_aspect]) return;
   var r = await Card.share(_cards[_aspect], cardFilename(st.catName, pickDateOf(st.pickedAt), _aspect), 'LuckyCat');
-  ga('share', { method: r, content_type: 'card', item_id: _aspect, aspect: _aspect, source: 'result', card_color: Card.themeName(pickDateOf(st.pickedAt)) });
+  ga('share', { method: r, content_type: 'card', item_id: _aspect, aspect: _aspect, source: 'result', card_color: Card.themeName(pickDateOf(st.pickedAt)), seconds_on_result: secOnResult() });
   if (r === 'downloaded') showToast(t('card_downloaded'));
 }
 
@@ -1381,7 +1390,8 @@ function renderResultAction() {
   }
 }
 
-function goToLogin() { showPage('email-auth'); }
+function goToLogin() { ga('login_cta_click', { source: 'result', seconds_on_result: secOnResult() }); showPage('email-auth'); }
+function secOnResult() { var t = window._state && window._state.resultAt; return t ? Math.round((Date.now() - t) / 1000) : undefined; }
 
 // 登入成功後：有還沒存的號碼就回結果頁，否則到上傳頁
 window._afterLogin = function () {
@@ -1391,7 +1401,8 @@ window._afterLogin = function () {
 
 function newRound() {
   var st = window._state;
-  ga('new_round', { after_save: st.saved ? 'yes' : 'no' });
+  ga('new_round', { after_save: st.saved ? 'yes' : 'no', seconds_on_result: secOnResult() });
+  _nameStarted = false;
   st.currentNums = null; st.saved = null; _cards = {};
   showPage('upload');
 }
@@ -1403,7 +1414,7 @@ async function saveCurrent() {
   try {
     var r = await window._saveDraw(st.catName, (_useExistingCat && _sameCatData) ? _sameCatData.id : null);
     st.saved = r;
-    ga('save_draw', { lottery_type: st.curLot, cat_type: (_useExistingCat && _sameCatData) ? 'existing' : 'new' });
+    ga('save_draw', { lottery_type: st.curLot, cat_type: (_useExistingCat && _sameCatData) ? 'existing' : 'new', seconds_on_result: secOnResult() });
     showToast(t('saved_ok'));
   } catch (e) {
     console.error('saveDraw error:', e);
@@ -1500,6 +1511,8 @@ async function handleFile(input) {
   const file = input.files[0];
   if (!file) return;
   const seq = ++_fileSeq;   // 連續換照片時，只採用最後一張的結果
+  const checkStart = performance.now();
+  ga('photo_select', { file_type: file.type || 'unknown', file_size_kb: Math.round(file.size / 1024), replace: window._state.hasPhoto ? 'yes' : 'no' });
   const st = window._state;
   st.hasPhoto = false; st.focus = null; st.photoCard = null; st.photoThumb = null; st.cardPhotoImg = null;
   document.getElementById('preview-img').src = URL.createObjectURL(file);
@@ -1521,7 +1534,7 @@ async function handleFile(input) {
   let ok = det.isAnimal === true;
   if (!ok) ok = (await classifyPet(cardImg)).is_pet;   // 偵測不到動物（或模型不可用）時再用分類模型確認
   if (seq !== _fileSeq) return;
-  var upInfo = { file_type: file.type || 'unknown', file_size_kb: Math.round(file.size / 1024),
+  var upInfo = { file_type: file.type || 'unknown', file_size_kb: Math.round(file.size / 1024), check_ms: Math.round(performance.now() - checkStart),
                  photo_shape: img.naturalWidth > img.naturalHeight * 1.1 ? 'landscape' : img.naturalHeight > img.naturalWidth * 1.1 ? 'portrait' : 'square' };
   if (!ok) {
     setVerifyBar('fail', t('verify_fail'));
@@ -1549,7 +1562,9 @@ function startGenerate() {
     st.pickedAt = new Date();
     st.currentNums = Lottery.pick(st.curLot);
     var target = Lottery.targetDrawDate(st.curLot, st.pickedAt);
+    st.resultAt = Date.now();
     ga('generate_numbers', { lottery_type: st.curLot, cat_type: (_useExistingCat && _sameCatData) ? 'existing' : 'new',
+      name_length: (st.catName || '').length, focus_found: st.focus ? 'yes' : 'no', aspect_default: _aspect,
       days_to_draw: target ? Math.max(0, Math.round((Date.parse(target + 'T20:00:00+08:00') - st.pickedAt.getTime()) / 864e5)) : undefined });
     st.saved = null; _cards = {};
     document.getElementById('card-img').removeAttribute('src');
@@ -1562,7 +1577,9 @@ var _nameCheckTimer = null;
 var _sameCatData = null;      // 查到的同名貓
 var _useExistingCat = false;  // 是否沿用那隻貓
 
+var _nameStarted = false;
 function onNameInput(v) {
+  if (!_nameStarted && v) { _nameStarted = true; ga('cat_name_input_start', { has_photo: window._state.hasPhoto ? 'yes' : 'no' }); }
   updateGenBtn();
   document.getElementById('same-cat-block').style.display = 'none';
   _sameCatData = null; _useExistingCat = false;
@@ -1573,6 +1590,7 @@ function onNameInput(v) {
       if (found && document.getElementById('cat-name-input').value.trim() === v.trim()) {
         _sameCatData = found;
         showSameCatBlock(found);
+        ga('same_cat_prompt_show');
       }
     }, 500);
   }
@@ -1612,6 +1630,7 @@ window.openCardModal = async function (drawId) {
   var d = (window._myDraws || []).find(function (x) { return x.id === drawId; });
   if (!d) return;
   _modal = { draw: d, photo: null, aspect: _modal.aspect || '9:16', cards: {} };
+  ga('card_modal_open', { lottery_type: d.lotType, checked: d.checkedAt ? 'yes' : 'no', won: Safe.int(d.prizeLevel) > 0 ? 'yes' : 'no' });
   document.getElementById('m-card-img').removeAttribute('src');
   document.getElementById('card-modal').classList.remove('hidden');
   document.getElementById('m-card-loading').classList.add('show');
@@ -1672,6 +1691,7 @@ function toggleCat(id) {
   if (!el) return;
   var isOpen = el.style.display !== 'none';
   el.style.display = isOpen ? 'none' : 'block';
+  ga('profile_cat_toggle', { state: isOpen ? 'collapse' : 'expand' });
   // 找對應箭頭
   var arrowId = id.replace('cat-draws-', 'cat-arrow-');
   var arrow = document.getElementById(arrowId);

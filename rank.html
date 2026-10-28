@@ -90,8 +90,8 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .cat-marker:hover{transform:scale(1.25)}
 .cat-marker.won{background:#EF9F27}
 </style>
-<link rel="stylesheet" href="css/mobile.css?v=20261028"/>
-<script src="js/analytics.js?v=20261028"></script>
+<link rel="stylesheet" href="css/mobile.css?v=20261028b"/>
+<script src="js/analytics.js?v=20261028b"></script>
 </head>
 <body>
 
@@ -139,7 +139,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
         <div class="leg" style="font-size:10px">圓圈大小 = 貓咪數量</div>
       </div>
     </div>
-    <div id="leafmap"></div>
+    <div id="leafmap" data-ga-section="map"></div>
   </div>
 
   <div class="cc-banner" id="cc-banner">
@@ -154,15 +154,15 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
   </div>
   <p class="tab-note" id="tab-note"></p>
 
-  <div id="rank-list">
+  <div id="rank-list" data-ga-section="rank_list">
     <div class="loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
 </div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="js/safe.js?v=20261028"></script>
-<script src="js/lottery.js?v=20261028"></script>
+<script src="js/safe.js?v=20261028b"></script>
+<script src="js/lottery.js?v=20261028b"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
@@ -178,8 +178,9 @@ const NOTES = {
   latest: '最近的台灣大樂透選號，開獎後自動對獎。',
 };
 
-let me = null, cats = [], latest = [], tab = 'prize', ccFilter = 'all';
-onAuthStateChanged(auth, u => { me = u; window.LC && LC.setUser(u ? u.uid : null); render(); });
+let me = null, cats = [], latest = [], tab = 'prize', ccFilter = 'all', ready = false;
+// 登入狀態可能比資料先回來：資料讀完（ready）之前不畫列表
+onAuthStateChanged(auth, u => { me = u; window.LC && LC.setUser(u ? u.uid : null); if (ready) render(); });
 
 // ── 讀資料：貓咪（含後端算好的統計）、最近 100 筆選號 ─────────
 async function load() {
@@ -330,8 +331,10 @@ window.clearCC = function () {
   document.getElementById('cc-banner').classList.remove('show');
   render();
 };
+ready = true;
 render();
+window.LC && LC.track('rank_loaded', { cat_count: twCats.length, latest_count: latest.length, country_count: Object.keys(byCC).length });
 </script>
-<script type="module" src="js/navuser.js?v=20261028"></script>
+<script type="module" src="js/navuser.js?v=20261028b"></script>
 </body>
 </html>
