@@ -129,10 +129,10 @@ input[type=file]{display:none}
 .card-loading.show{display:flex}
 .card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
 </style>
-<link rel="stylesheet" href="css/mobile.css?v=20261028c"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261029"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap"/>
-<script src="js/analytics.js?v=20261028c"></script>
+<script src="js/analytics.js?v=20261029"></script>
 </head>
 <body>
 
@@ -358,10 +358,10 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
-<script src="js/safe.js?v=20261028c"></script>
-<script src="js/lottery.js?v=20261028c"></script>
-<script src="js/focus.js?v=20261028c"></script>
-<script src="js/card.js?v=20261028c"></script>
+<script src="js/safe.js?v=20261029"></script>
+<script src="js/lottery.js?v=20261029"></script>
+<script src="js/focus.js?v=20261029"></script>
+<script src="js/card.js?v=20261029"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
@@ -863,6 +863,7 @@ const I18N = {
     result_view_rank:'查看排行榜紀錄（不儲存本次）',
     result_later:'稍後再說',
     result_join_guest:'登入後加入排行榜 + 自動對獎',
+    guest_hint:'🐾 登入後，你的貓會出現在<b>排行榜</b>和<b>貓咪牆</b>，開獎後自動幫你對獎。沒登入的話，關掉頁面號碼就不見了。',
     name_title:'幫你的貓取個名字',
     name_label:'貓咪暱稱',
     name_hint:'這個名字會印在圖卡上，也會顯示在排行榜',
@@ -951,6 +952,7 @@ const I18N = {
     result_view_rank:'View leaderboard (don\'t save this draw)',
     result_later:'Maybe later',
     result_join_guest:'Sign in to join the leaderboard + auto-check',
+    guest_hint:'🐾 Sign in and your cat appears on the <b>leaderboard</b> and the <b>Cat Wall</b>, with results checked automatically after each draw. Without signing in, your numbers are gone once you close the page.',
     name_title:'Name Your Cat',
     name_label:'Cat Nickname',
     name_hint:'This name will be printed on the card and shown on the leaderboard',
@@ -1039,6 +1041,7 @@ const I18N = {
     result_view_rank:'ランキングを見る（保存しない）',
     result_later:'後で',
     result_join_guest:'ログインしてランキング参加 + 自動照合',
+    guest_hint:'🐾 ログインすると、あなたの猫が<b>ランキング</b>と<b>ねこウォール</b>に登場し、抽選後に自動で当選を確認します。ログインしないと、ページを閉じた時点で番号は消えます。',
     name_title:'猫に名前をつけよう',
     name_label:'猫のニックネーム',
     name_hint:'この名前はカードとランキングに表示されます',
@@ -1392,7 +1395,9 @@ function renderResultAction() {
       + '<p style="font-size:11px;color:#888780;line-height:1.6;margin:-2px 0 10px;text-align:center">' + Safe.esc(t('name_agree')) + '</p>'
       + '<button class="btn-outline" onclick="newRound()">' + Safe.esc(t('again_btn')) + '</button>';
   } else {
-    el.innerHTML = '<button class="btn" onclick="goToLogin()">' + Safe.esc(t('result_join_guest')) + '</button>'
+    // 未登入：說清楚登入的好處（排行榜、貓咪牆、自動對獎），文字是固定字串、不含使用者輸入
+    el.innerHTML = '<p style="font-size:12px;color:#534AB7;background:#F4F2FB;border:0.5px solid #CECBF6;border-radius:10px;padding:10px 12px;line-height:1.7;margin:0 0 10px">' + t('guest_hint') + '</p>'
+      + '<button class="btn" onclick="goToLogin()">' + Safe.esc(t('result_join_guest')) + '</button>'
       + '<button class="btn-outline" onclick="newRound()">' + Safe.esc(t('again_btn')) + '</button>';
   }
 }
