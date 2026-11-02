@@ -111,7 +111,7 @@ service cloud.firestore {
              'schema', 'uid', 'catId', 'catName', 'lotType', 'lotName', 'lotFlag',
              'numbers', 'special', 'targetDrawDate', 'tracked', 'purchased', 'focus',
              'country', 'countryCode', 'city', 'date',
-             'photoThumb', 'createdAt', 'prizeLevel', 'prizeAmount'])
+             'photoThumb', 'createdAt', 'prizeLevel', 'prizeAmount', 'cardColor'])
         && request.resource.data.schema == 2
         && validName(request.resource.data.catName)
         && validPhoto(request.resource.data.photoThumb)
@@ -120,6 +120,7 @@ service cloud.firestore {
         && numbersOk(request.resource.data)
         && request.resource.data.purchased == false
         && focusOk(request.resource.data.get('focus', null))
+        && request.resource.data.get('cardColor', 'red') in ['red', 'orange', 'yellow', 'green', 'blue', 'indigo', 'purple']
         && validText(request.resource.data.lotName)
         && validText(request.resource.data.lotFlag)
         && validText(request.resource.data.country)
