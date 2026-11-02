@@ -176,15 +176,12 @@
       var n = balls.length, gapB = (IW - n * ballD) / Math.max(1, n - 1);
       if (gapB > 30) gapB = 30;
       var rowW = n * ballD + (n - 1) * gapB, bx = L + (IW - rowW) / 2;
-      balls.forEach(function (b, i) {
-        var cxB = bx + i * (ballD + gapB) + ballD / 2, cyB = ballsTop + ballD / 2;
-        ctx.fillStyle = b.sp ? C.ballDark : C.ball;
-        ctx.beginPath(); ctx.arc(cxB, cyB, ballD / 2, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = C.ballText; ctx.font = font('900', Math.round(ballD * 0.5));
-        ctx.textBaseline = 'middle';
-        ctx.fillText(String(b.n).padStart(2, '0'), cxB, cyB + ballD * 0.03);
-        ctx.textBaseline = 'alphabetic';
+      // 號碼球位置留給動畫用；hideBalls 時只畫底圖（影片每一格再把球疊上去）
+      cv._balls = balls.map(function (b, i) {
+        return { n: b.n, sp: b.sp, cx: bx + i * (ballD + gapB) + ballD / 2, cy: ballsTop + ballD / 2, d: ballD };
       });
+      cv._theme = C;
+      if (!opts.hideBalls) cv._balls.forEach(function (b) { drawBall(ctx, b, C, 1, 0); });
 
       // 分隔線、開獎資訊、警語
       ctx.fillStyle = C.line; ctx.fillRect(L, div1, IW, 4); ctx.fillRect(L, div2, IW, 4);
@@ -199,6 +196,103 @@
       ctx.textAlign = 'left';
       return cv;
     });
+  }
+
+  function drawBall(ctx, b, C, scale, dy) {
+    ctx.save();
+    ctx.translate(b.cx, b.cy + dy); ctx.scale(scale, scale);
+    ctx.fillStyle = b.sp ? C.ballDark : C.ball;
+    ctx.beginPath(); ctx.arc(0, 0, b.d / 2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C.ballText; ctx.font = font('900', Math.round(b.d * 0.5));
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(String(b.n).padStart(2, '0'), 0, b.d * 0.03);
+    ctx.restore();
+  }
+
+  // ── 影片：號碼球一顆一顆跳進來 ───────────────────────────
+  // 時間軸（毫秒）：開頭停 START，每顆間隔 STEP，每顆落下 DROP，最後停 HOLD
+  var ANIM = { START: 400, STEP: 380, DROP: 520, HOLD: 1800 };
+  function animLength(nBalls) { return ANIM.START + Math.max(0, nBalls - 1) * ANIM.STEP + ANIM.DROP + ANIM.HOLD; }
+
+  // 落下＋彈跳：p 0→1，回傳 { dy（往上為負，單位為球徑）, scale }
+  function bounce(p) {
+    if (p <= 0) return null;
+    if (p >= 1) return { dy: 0, sc: 1 };
+    if (p < 0.55) { var q = p / 0.55; return { dy: -(1 - q * q) * 2.2, sc: 0.9 + 0.1 * q }; }   // 從上方加速落下
+    if (p < 0.7) { var r = (p - 0.55) / 0.15; return { dy: 0, sc: 1 + 0.14 * Math.sin(r * Math.PI) }; }  // 落地壓扁回彈
+    var u = (p - 0.7) / 0.3; return { dy: -Math.sin(u * Math.PI) * 0.28, sc: 1 };                      // 小彈一下
+  }
+
+  // 依時間 t 畫一格：底圖＋已出現的球
+  function drawFrame(ctx, base, t) {
+    ctx.drawImage(base, 0, 0);
+    base._balls.forEach(function (b, i) {
+      var p = (t - ANIM.START - i * ANIM.STEP) / ANIM.DROP;
+      var f = bounce(p);
+      if (!f) return;
+      var sc = f.sc;
+      ctx.save();
+      if (f.dy === 0 && p >= 0.55 && p < 0.7) {   // 壓扁：橫向放大、縱向縮小
+        ctx.translate(b.cx, b.cy + b.d / 2); ctx.scale(sc, 2 - sc); ctx.translate(-b.cx, -(b.cy + b.d / 2));
+        sc = 1;
+      }
+      drawBall(ctx, b, base._theme, sc, f.dy * b.d);
+      ctx.restore();
+    });
+  }
+
+  // 可錄影片的格式：優先 MP4（IG、LINE 都吃），沒有才用 WebM
+  function videoType() {
+    if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return null;
+    var types = ['video/mp4;codecs=avc1.42E01E', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+    for (var i = 0; i < types.length; i++) if (MediaRecorder.isTypeSupported(types[i])) return types[i];
+    return null;
+  }
+
+  /**
+   * 錄成影片：opts 與 render 相同，另可傳 canvas（顯示錄製過程用）
+   * 回傳 Promise<{ blob, type, ext, ms }>；瀏覽器不支援時 reject
+   */
+  function renderVideo(opts) {
+    var type = videoType();
+    if (!type) return Promise.reject(new Error('unsupported'));
+    var o = {}; for (var k in opts) o[k] = opts[k];
+    o.hideBalls = true;
+    return render(o).then(function (base) {
+      var cv = opts.canvas || document.createElement('canvas');
+      cv.width = base.width; cv.height = base.height;
+      var ctx = cv.getContext('2d');
+      drawFrame(ctx, base, 0);
+      var stream = cv.captureStream(30);
+      var rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 8000000 });
+      var chunks = [];
+      rec.ondataavailable = function (e) { if (e.data && e.data.size) chunks.push(e.data); };
+      var total = animLength(base._balls.length), t0 = null;
+      return new Promise(function (resolve, reject) {
+        rec.onstop = function () {
+          var mt = type.split(';')[0];
+          resolve({ blob: new Blob(chunks, { type: mt }), type: mt, ext: mt === 'video/mp4' ? 'mp4' : 'webm', ms: total });
+        };
+        rec.onerror = function (e) { reject(e.error || e); };
+        rec.start(250);
+        function tick(now) {
+          if (t0 === null) t0 = now;
+          var t = now - t0;
+          drawFrame(ctx, base, t);
+          if (t < total) requestAnimationFrame(tick); else setTimeout(function () { rec.stop(); }, 120);
+        }
+        requestAnimationFrame(tick);
+      });
+    });
+  }
+
+  function shareFile(blob, filename, title) {
+    var file = new File([blob], filename, { type: blob.type });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      return navigator.share({ files: [file], title: title }).then(function () { return 'shared'; },
+        function (e) { return e && e.name === 'AbortError' ? 'cancelled' : download(blob, filename); });
+    }
+    return Promise.resolve(download(blob, filename));
   }
 
   function toBlob(canvas) {
@@ -225,5 +319,6 @@
     return 'downloaded';
   }
 
-  window.Card = { render: render, share: share, toBlob: toBlob, SIZES: SIZES, THEMES: THEMES, themeName: themeName };
+  window.Card = { render: render, share: share, toBlob: toBlob, SIZES: SIZES, THEMES: THEMES, themeName: themeName,
+                  renderVideo: renderVideo, videoType: videoType, drawFrame: drawFrame, animLength: animLength, shareFile: shareFile };
 })();
