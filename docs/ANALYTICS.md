@@ -111,3 +111,10 @@
 
 ## 改 css／js 檔時
 頁面引用都帶版本號（例如 `js/analytics.js?v=20261028b`），改了檔案要一起把四個頁面的版本號換掉，不然使用者會讀到瀏覽器快取的舊檔。
+
+### 影片（11/2 追加）
+| 事件 | 參數 |
+|---|---|
+| `video_made` | 影片錄好：`source`（result／records）；`aspect`；`video_format`（mp4／webm）；`file_size_kb`；`make_ms`；`lottery_type` |
+| `video_error` | 錄製失敗：`source`；`error_message` |
+| `share`（`content_type` = video） | 分享或下載影片：`method`；`aspect`；`source`；`card_color`；`video_format` |
