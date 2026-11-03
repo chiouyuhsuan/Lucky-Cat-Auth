@@ -1,0 +1,50 @@
+/* ─────────────────────────────────────────────────────────────
+   LuckyCat 全站風格設定（顏色、字體、圓角）
+   四個頁面（首頁、排行榜、貓咪牆、關於）都讀這一份。
+   要換整站風格：改這裡的數值，或另外寫一份同樣變數名稱的風格檔蓋過去。
+   注意：圖卡（js/card.js）有自己的七色，不受這份影響。
+   ───────────────────────────────────────────────────────────── */
+:root {
+  /* 主色 */
+  --lc-primary:       #534AB7;   /* 主要按鈕、選中狀態、連結 */
+  --lc-primary-2:     #7F77DD;   /* 次要強調、邊框、頭像底色 */
+  --lc-primary-deep:  #3C3489;   /* 深一階：按鈕 hover、Logo 字 */
+  --lc-primary-soft:  #EEEDFE;   /* 淺底：hover、標籤底 */
+  --lc-line:          #CECBF6;   /* 卡片與分隔線的邊框 */
+  --lc-faint:         #AFA9EC;   /* 很淡的紫：次要文字、未選中 */
+
+  /* 文字與底色 */
+  --lc-ink:           #26215C;   /* 主要文字、標題 */
+  --lc-muted:         #888780;   /* 說明文字 */
+  --lc-bg:            #F4F2FB;   /* 頁面底色 */
+  --lc-surface:       #FFFFFF;   /* 卡片底色 */
+  --lc-nav-bg:        #FAF0FB;   /* 頂部選單底色 */
+
+  /* 點綴 */
+  --lc-accent:        #EF9F27;   /* 橘色強調（中獎、亮點） */
+  --lc-accent-deep:   #BA7517;
+  --lc-pink:          #F4C0D1;
+
+  /* 狀態色 */
+  --lc-ok:            #27500A;   /* 成功文字 */
+  --lc-ok-2:          #3B6D11;
+  --lc-ok-bg:         #EAF3DE;
+  --lc-warn:          #633806;
+  --lc-warn-bg:       #FAEEDA;
+  --lc-danger:        #791F1F;
+  --lc-danger-bg:     #FCEBEB;
+
+  /* 深色頁（貓咪牆） */
+  --lc-dark-bg:       #1A1A2E;
+
+  /* 字體 */
+  --lc-font-body:     'Noto Sans TC', sans-serif;
+  --lc-font-display:  'Nunito', sans-serif;   /* Logo、大標題、數字 */
+
+  /* 圓角 */
+  --lc-r-sm:   8px;    /* 小按鈕、選單項目 */
+  --lc-r-md:  12px;    /* 一般按鈕、卡片 */
+  --lc-r-lg:  16px;    /* 大卡片 */
+  --lc-r-xl:  24px;    /* 主視覺區塊 */
+  --lc-r-pill: 20px;   /* 膠囊標籤 */
+}

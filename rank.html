@@ -7,91 +7,92 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;background:#F4F2FB;color:#26215C;min-height:100vh}
-.topnav{background:#FAF0FB;border-bottom:0.5px solid #CECBF6;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000}
+body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;background:var(--lc-bg);color:var(--lc-ink);min-height:100vh}
+.topnav{background:var(--lc-nav-bg);border-bottom:0.5px solid var(--lc-line);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:1000}
 .logo{display:flex;align-items:center;gap:8px;text-decoration:none}
-.logo-icon{width:32px;height:32px;background:#7F77DD;border-radius:10px;display:flex;align-items:center;justify-content:center}
-.logo-text{font-size:16px;font-weight:500;color:#3C3489}
+.logo-icon{width:32px;height:32px;background:var(--lc-primary-2);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-text{font-size:16px;font-weight:500;color:var(--lc-primary-deep)}
 .nav-links{display:flex;gap:4px}
-.nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:#534AB7;text-decoration:none}
-.nav-link:hover,.nav-link.active{background:#EEEDFE;font-weight:500}
-.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;font-family:inherit}
+.nav-link{padding:6px 12px;border-radius:var(--lc-r-sm);font-size:13px;color:var(--lc-primary);text-decoration:none}
+.nav-link:hover,.nav-link.active{background:var(--lc-primary-soft);font-weight:500}
+.nav-cta{padding:7px 14px;background:var(--lc-primary);color:var(--lc-primary-soft);border:none;border-radius:var(--lc-r-sm);font-size:13px;font-weight:500;cursor:pointer;text-decoration:none;font-family:inherit}
 .wrap{max-width:900px;margin:0 auto;padding:20px 16px 60px}
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 @media(max-width:580px){.stats-row{grid-template-columns:repeat(2,1fr)}}
-.stat-card{background:#fff;border:0.5px solid #CECBF6;border-radius:12px;padding:14px;text-align:center}
+.stat-card{background:#fff;border:0.5px solid var(--lc-line);border-radius:var(--lc-r-md);padding:14px;text-align:center}
 .stat-val{font-size:22px;font-weight:500;margin-bottom:2px}
-.stat-lbl{font-size:11px;color:#888780}
+.stat-lbl{font-size:11px;color:var(--lc-muted)}
 
 /* MAP */
-.map-wrap{background:#fff;border:0.5px solid #CECBF6;border-radius:16px;overflow:hidden;margin-bottom:20px}
-.map-topbar{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid #CECBF6;flex-wrap:wrap;gap:8px}
+.map-wrap{background:#fff;border:0.5px solid var(--lc-line);border-radius:var(--lc-r-lg);overflow:hidden;margin-bottom:20px}
+.map-topbar{padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:0.5px solid var(--lc-line);flex-wrap:wrap;gap:8px}
 .map-title{font-size:14px;font-weight:500}
-.map-legend{display:flex;gap:14px;font-size:11px;color:#888780}
+.map-legend{display:flex;gap:14px;font-size:11px;color:var(--lc-muted)}
 .leg{display:flex;align-items:center;gap:5px}
 .leg-dot{width:10px;height:10px;border-radius:50%;display:inline-block}
 #leafmap{width:100%;height:380px;z-index:1}
 @media(max-width:580px){#leafmap{height:240px}}
 
 /* country banner */
-.cc-banner{display:none;background:#EEEDFE;border-radius:12px;padding:11px 16px;margin-bottom:14px;align-items:center;justify-content:space-between}
+.cc-banner{display:none;background:var(--lc-primary-soft);border-radius:var(--lc-r-md);padding:11px 16px;margin-bottom:14px;align-items:center;justify-content:space-between}
 .cc-banner.show{display:flex}
-.cc-close{font-size:12px;color:#888780;cursor:pointer;padding:4px 10px;border:0.5px solid #AFA9EC;border-radius:20px;background:transparent;font-family:inherit}
+.cc-close{font-size:12px;color:var(--lc-muted);cursor:pointer;padding:4px 10px;border:0.5px solid var(--lc-faint);border-radius:var(--lc-r-pill);background:transparent;font-family:inherit}
 
 /* FILTERS */
 .filter-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
 .f-group{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.f-lbl{font-size:12px;color:#888780;white-space:nowrap}
-.chip{padding:5px 13px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;transition:all .13s;font-family:inherit}
-.chip:hover{background:#EEEDFE}
-.chip.on{background:#534AB7;color:#EEEDFE;border-color:#534AB7}
-.f-sep{width:1px;height:20px;background:#CECBF6}
-.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
+.f-lbl{font-size:12px;color:var(--lc-muted);white-space:nowrap}
+.chip{padding:5px 13px;border-radius:var(--lc-r-pill);font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--lc-line);background:#fff;color:var(--lc-primary);transition:all .13s;font-family:inherit}
+.chip:hover{background:var(--lc-primary-soft)}
+.chip.on{background:var(--lc-primary);color:var(--lc-primary-soft);border-color:var(--lc-primary)}
+.f-sep{width:1px;height:20px;background:var(--lc-line)}
+.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--lc-r-pill)}
 
 /* RANK */
 .rank-list{display:flex;flex-direction:column;gap:8px}
-.rc{background:#fff;border:0.5px solid #CECBF6;border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
-.rc:hover{border-color:#AFA9EC}
-.rc.mine{border:1.5px solid #7F77DD;background:#EEEDFE}
+.rc{background:#fff;border:0.5px solid var(--lc-line);border-radius:14px;padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+.rc:hover{border-color:var(--lc-faint)}
+.rc.mine{border:1.5px solid var(--lc-primary-2);background:var(--lc-primary-soft)}
 .rc-num{font-size:15px;font-weight:500;min-width:26px;flex-shrink:0;padding-top:2px}
-.rc-photo{width:54px;height:54px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#FAC775;border:1.5px solid #EF9F27;display:flex;align-items:center;justify-content:center;font-size:26px}
+.rc-photo{width:54px;height:54px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#FAC775;border:1.5px solid var(--lc-accent);display:flex;align-items:center;justify-content:center;font-size:26px}
 .rc-photo img{width:100%;height:100%;object-fit:cover}
 .rc-body{flex:1;min-width:0}
 .rc-name{font-size:15px;font-weight:500;margin-bottom:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.rc-meta{font-size:12px;color:#888780;margin-bottom:8px}
+.rc-meta{font-size:12px;color:var(--lc-muted);margin-bottom:8px}
 .balls{display:flex;gap:5px;flex-wrap:wrap}
-.b{width:28px;height:28px;border-radius:50%;background:#7F77DD;color:#EEEDFE;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.b.sp{background:#EF9F27;color:#412402}
+.b{width:28px;height:28px;border-radius:50%;background:var(--lc-primary-2);color:var(--lc-primary-soft);font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.b.sp{background:var(--lc-accent);color:#412402}
 .rc-right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}
-.badge-me{font-size:10px;background:#7F77DD;color:#EEEDFE;padding:2px 8px;border-radius:10px}
-.empty{text-align:center;padding:48px 16px;color:#888780}
+.badge-me{font-size:10px;background:var(--lc-primary-2);color:var(--lc-primary-soft);padding:2px 8px;border-radius:10px}
+.empty{text-align:center;padding:48px 16px;color:var(--lc-muted)}
 .loading{display:flex;gap:6px;justify-content:center;padding:40px}
 @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
-.dot{width:8px;height:8px;border-radius:50%;background:#7F77DD}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--lc-primary-2)}
 .dot:nth-child(1){animation:bounce 1.2s infinite 0s}
 .dot:nth-child(2){animation:bounce 1.2s infinite .2s}
 .dot:nth-child(3){animation:bounce 1.2s infinite .4s}
 
 /* TABS */
 .tabs{display:flex;gap:6px;margin-bottom:8px}
-.tab{flex:1;padding:10px 6px;border-radius:12px;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
-.tab.on{background:#534AB7;color:#fff;border-color:#534AB7}
-.tab-note{font-size:12px;color:#888780;margin:0 2px 12px}
-.rc-stats{font-size:12px;color:#534AB7}
+.tab{flex:1;padding:10px 6px;border-radius:var(--lc-r-md);border:0.5px solid var(--lc-line);background:#fff;color:var(--lc-primary);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
+.tab.on{background:var(--lc-primary);color:#fff;border-color:var(--lc-primary)}
+.tab-note{font-size:12px;color:var(--lc-muted);margin:0 2px 12px}
+.rc-stats{font-size:12px;color:var(--lc-primary)}
 .rc-big{font-size:18px;font-weight:700;white-space:nowrap}
-.rc-sub{font-size:11px;color:#888780}
-.b.hit{background:#3B6D11;color:#fff}
+.rc-sub{font-size:11px;color:var(--lc-muted)}
+.b.hit{background:var(--lc-ok-2);color:#fff}
 
 /* 底圖調淡，讓貓咪圓圈比較明顯 */
 .leaflet-tile-pane{filter:saturate(.55) brightness(1.06)}
 
 /* Leaflet custom marker */
-.cat-marker{background:#7F77DD;border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;transition:transform .15s}
+.cat-marker{background:var(--lc-primary-2);border:2.5px solid #fff;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;box-shadow:0 2px 6px rgba(0,0,0,.25);cursor:pointer;transition:transform .15s}
 .cat-marker:hover{transform:scale(1.25)}
-.cat-marker.won{background:#EF9F27}
+.cat-marker.won{background:var(--lc-accent)}
 </style>
-<link rel="stylesheet" href="css/mobile.css?v=20261102b"/>
-<script src="js/analytics.js?v=20261102b"></script>
+<link rel="stylesheet" href="css/theme.css?v=20261103"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261103"/>
+<script src="js/analytics.js?v=20261103"></script>
 </head>
 <body>
 
@@ -121,21 +122,21 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 
 <div class="wrap">
   <h1 style="font-size:22px;font-weight:500;margin-bottom:4px">全球幸運貓排行榜</h1>
-  <p style="font-size:14px;color:#534AB7;margin-bottom:20px">台灣大樂透 · 點擊地圖標記可篩選國家</p>
+  <p style="font-size:14px;color:var(--lc-primary);margin-bottom:20px">台灣大樂透 · 點擊地圖標記可篩選國家</p>
 
   <div class="stats-row">
-    <div class="stat-card"><div class="stat-val" style="color:#534AB7" id="s-cats">—</div><div class="stat-lbl">參賽貓咪</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:#3B6D11" id="s-prize">—</div><div class="stat-lbl">累積獎金</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--lc-primary)" id="s-cats">—</div><div class="stat-lbl">參賽貓咪</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--lc-ok-2)" id="s-prize">—</div><div class="stat-lbl">累積獎金</div></div>
     <div class="stat-card"><div class="stat-val" style="color:#993C1D" id="s-countries">—</div><div class="stat-lbl">參與國家</div></div>
-    <div class="stat-card"><div class="stat-val" style="color:#BA7517" id="s-wins">—</div><div class="stat-lbl">中獎次數</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:var(--lc-accent-deep)" id="s-wins">—</div><div class="stat-lbl">中獎次數</div></div>
   </div>
 
   <div class="map-wrap">
     <div class="map-topbar">
       <span class="map-title">貓咪世界分佈</span>
       <div class="map-legend">
-        <div class="leg"><div class="leg-dot" style="background:#7F77DD"></div>有貓咪</div>
-        <div class="leg"><div class="leg-dot" style="background:#EF9F27"></div>已中獎</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--lc-primary-2)"></div>有貓咪</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--lc-accent)"></div>已中獎</div>
         <div class="leg" style="font-size:10px">圓圈大小 = 貓咪數量</div>
       </div>
     </div>
@@ -143,7 +144,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
   </div>
 
   <div class="cc-banner" id="cc-banner">
-    <span style="font-size:14px;font-weight:500;color:#3C3489" id="banner-txt"></span>
+    <span style="font-size:14px;font-weight:500;color:var(--lc-primary-deep)" id="banner-txt"></span>
     <button class="cc-close" onclick="clearCC()">清除篩選 ✕</button>
   </div>
 
@@ -161,8 +162,8 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<script src="js/safe.js?v=20261102b"></script>
-<script src="js/lottery.js?v=20261102b"></script>
+<script src="js/safe.js?v=20261103"></script>
+<script src="js/lottery.js?v=20261103"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
@@ -233,7 +234,7 @@ if (window.L) {
   Object.entries(byCC).forEach(([cc, g]) => {
     if (!CENT[cc]) return;
     const m = L.circleMarker(CENT[cc], { radius: Math.min(10 + Math.sqrt(g.cats) * 8, 40), fillColor: g.wins ? '#EF9F27' : '#7F77DD',
-      color: '#fff', weight: 2.5, opacity: 1, fillOpacity: 0.82 }).addTo(map);
+      color:'#fff', weight: 2.5, opacity: 1, fillOpacity: 0.82 }).addTo(map);
     m.bindTooltip(`<strong>${flagEmoji(cc)} ${esc(g.name)}</strong><br>${g.cats} 隻貓咪 · ${g.wins} 次中獎`
       + (g.prize ? `<br>累積獎金 ${money(g.prize)}` : ''), { direction: 'top', offset: [0, -4] });
     m.on('click', () => {
@@ -281,9 +282,9 @@ function drawRow(d, i) {
   const WD = '日一二三四五六';
   const when = lab ? `${lab.md}（${WD[lab.wd]}）開獎` : esc(d.date || '');
   const lv = int(d.prizeLevel);
-  const status = !d.checkedAt ? '<span class="tag" style="background:#FAEEDA;color:#633806">待開獎</span>'
-    : lv > 0 ? `<div style="font-size:13px;font-weight:600;color:#3B6D11">${money(d.prizeAmount)}</div><span class="tag" style="background:#EAF3DE;color:#27500A">${LV[lv]}</span>`
-    : `<span class="tag" style="background:#FCEBEB;color:#791F1F">未中獎</span>`;
+  const status = !d.checkedAt ? '<span class="tag" style="background:var(--lc-warn-bg);color:var(--lc-warn)">待開獎</span>'
+    : lv > 0 ? `<div style="font-size:13px;font-weight:600;color:var(--lc-ok-2)">${money(d.prizeAmount)}</div><span class="tag" style="background:var(--lc-ok-bg);color:var(--lc-ok)">${LV[lv]}</span>`
+    : `<span class="tag" style="background:var(--lc-danger-bg);color:var(--lc-danger)">未中獎</span>`;
   return `<div class="rc ${isMe ? 'mine' : ''}">
     <div class="rc-photo">${photoHtml(d.photoThumb, d.catName)}</div>
     <div class="rc-body">
@@ -335,6 +336,6 @@ ready = true;
 render();
 window.LC && LC.track('rank_loaded', { cat_count: twCats.length, latest_count: latest.length, country_count: Object.keys(byCC).length });
 </script>
-<script type="module" src="js/navuser.js?v=20261102b"></script>
+<script type="module" src="js/navuser.js?v=20261103"></script>
 </body>
 </html>
