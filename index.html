@@ -6,95 +6,95 @@
 <title>LuckyCat — 讓你的貓咪幫你選號碼</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;background:#F4F2FB;min-height:100vh;color:#26215C}
-.topnav{background:#FAF0FB;border-bottom:0.5px solid #CECBF6;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;background:var(--lc-bg);min-height:100vh;color:var(--lc-ink)}
+.topnav{background:var(--lc-nav-bg);border-bottom:0.5px solid var(--lc-line);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .logo{display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none}
-.logo-icon{width:32px;height:32px;background:#7F77DD;border-radius:10px;display:flex;align-items:center;justify-content:center}
-.logo-text{font-size:16px;font-weight:500;color:#3C3489}
+.logo-icon{width:32px;height:32px;background:var(--lc-primary-2);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.logo-text{font-size:16px;font-weight:500;color:var(--lc-primary-deep)}
 .nav-links{display:flex;gap:4px}
-.nav-link{padding:6px 12px;border-radius:8px;font-size:13px;color:#534AB7;cursor:pointer;border:none;background:transparent;font-family:inherit;text-decoration:none}
-.nav-link:hover,.nav-link.active{background:#EEEDFE;font-weight:500}
-.nav-cta{padding:7px 14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
-.nav-cta:hover{background:#3C3489}
+.nav-link{padding:6px 12px;border-radius:var(--lc-r-sm);font-size:13px;color:var(--lc-primary);cursor:pointer;border:none;background:transparent;font-family:inherit;text-decoration:none}
+.nav-link:hover,.nav-link.active{background:var(--lc-primary-soft);font-weight:500}
+.nav-cta{padding:7px 14px;background:var(--lc-primary);color:var(--lc-primary-soft);border:none;border-radius:var(--lc-r-sm);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit}
+.nav-cta:hover{background:var(--lc-primary-deep)}
 .nav-user{display:flex;align-items:center;gap:8px}
-.nav-user-photo{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid #7F77DD}
-.nav-user-avatar{width:28px;height:28px;border-radius:50%;background:#7F77DD;color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.nav-user-name{font-size:13px;color:#534AB7;font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.nav-user-menu{display:flex;align-items:center;gap:6px;cursor:pointer;position:relative;padding:4px 8px;border-radius:8px;transition:background .15s}
-.nav-user-menu:hover{background:#EEEDFE}
-.nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:0.5px solid #CECBF6;border-radius:12px;box-shadow:0 8px 24px rgba(83,74,183,.15);min-width:160px;overflow:hidden;display:none;z-index:200}
+.nav-user-photo{width:28px;height:28px;border-radius:50%;object-fit:cover;border:1.5px solid var(--lc-primary-2)}
+.nav-user-avatar{width:28px;height:28px;border-radius:50%;background:var(--lc-primary-2);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.nav-user-name{font-size:13px;color:var(--lc-primary);font-weight:500;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav-user-menu{display:flex;align-items:center;gap:6px;cursor:pointer;position:relative;padding:4px 8px;border-radius:var(--lc-r-sm);transition:background .15s}
+.nav-user-menu:hover{background:var(--lc-primary-soft)}
+.nav-dropdown{position:absolute;top:calc(100% + 6px);right:0;background:#fff;border:0.5px solid var(--lc-line);border-radius:var(--lc-r-md);box-shadow:0 8px 24px rgba(83,74,183,.15);min-width:160px;overflow:hidden;display:none;z-index:200}
 .nav-dropdown.open{display:block}
-.nav-dropdown-item{padding:10px 14px;font-size:13px;color:#26215C;cursor:pointer;transition:background .15s}
-.nav-dropdown-item:hover{background:#F4F2FB}
-.nav-dropdown-divider{height:0.5px;background:#CECBF6}
+.nav-dropdown-item{padding:10px 14px;font-size:13px;color:var(--lc-ink);cursor:pointer;transition:background .15s}
+.nav-dropdown-item:hover{background:var(--lc-bg)}
+.nav-dropdown-divider{height:0.5px;background:var(--lc-line)}
 /* LANG SWITCHER */
-.lang-switcher{display:flex;align-items:center;gap:2px;background:#F4F2FB;border:0.5px solid #CECBF6;border-radius:20px;padding:3px;margin-right:8px}
-.lang-btn{padding:3px 8px;border-radius:16px;font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#888780;font-family:inherit;transition:all .15s}
-.lang-btn.active{background:#534AB7;color:#fff}
+.lang-switcher{display:flex;align-items:center;gap:2px;background:var(--lc-bg);border:0.5px solid var(--lc-line);border-radius:var(--lc-r-pill);padding:3px;margin-right:8px}
+.lang-btn{padding:3px 8px;border-radius:var(--lc-r-lg);font-size:11px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--lc-muted);font-family:inherit;transition:all .15s}
+.lang-btn.active{background:var(--lc-primary);color:#fff}
 .page{display:none;max-width:680px;margin:0 auto;padding:20px 16px 48px}
 .page.active{display:block}
-.btn{display:block;width:100%;padding:14px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
-.btn:hover{background:#3C3489}
+.btn{display:block;width:100%;padding:14px;background:var(--lc-primary);color:var(--lc-primary-soft);border:none;border-radius:var(--lc-r-md);font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit}
+.btn:hover{background:var(--lc-primary-deep)}
 .btn.disabled{opacity:.45;pointer-events:none}
-.btn-outline{display:block;width:100%;padding:14px;background:transparent;color:#534AB7;border:0.5px solid #7F77DD;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit;text-decoration:none}
-.btn-outline:hover{background:#EEEDFE}
-.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px}
-.sec-title{font-size:13px;font-weight:500;color:#888780;letter-spacing:.03em;margin-bottom:10px}
+.btn-outline{display:block;width:100%;padding:14px;background:transparent;color:var(--lc-primary);border:0.5px solid var(--lc-primary-2);border-radius:var(--lc-r-md);font-size:15px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:8px;font-family:inherit;text-decoration:none}
+.btn-outline:hover{background:var(--lc-primary-soft)}
+.tag{display:inline-block;font-size:11px;font-weight:500;padding:3px 10px;border-radius:var(--lc-r-pill)}
+.sec-title{font-size:13px;font-weight:500;color:var(--lc-muted);letter-spacing:.03em;margin-bottom:10px}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
-.stat-card{background:#fff;border:0.5px solid #CECBF6;border-radius:12px;padding:14px}
-.hero{background:#EEEDFE;border-radius:16px;padding:28px 20px 24px;text-align:center;margin-bottom:20px}
-.hero-tag{display:inline-block;background:#7F77DD;color:#EEEDFE;font-size:11px;font-weight:500;padding:4px 12px;border-radius:20px;margin-bottom:12px}
-.hero-btn{display:inline-block;padding:14px 32px;background:#534AB7;color:#EEEDFE;border:none;border-radius:12px;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit}
-.hero-btn:hover{background:#3C3489}
-.rank-item{display:flex;align-items:center;gap:10px;background:#fff;border:0.5px solid #CECBF6;border-radius:12px;padding:12px 14px;margin-bottom:8px}
-.rank-avatar{width:42px;height:42px;border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:#FAC775;border:1.5px solid #EF9F27}
+.stat-card{background:#fff;border:0.5px solid var(--lc-line);border-radius:var(--lc-r-md);padding:14px}
+.hero{background:var(--lc-primary-soft);border-radius:var(--lc-r-lg);padding:28px 20px 24px;text-align:center;margin-bottom:20px}
+.hero-tag{display:inline-block;background:var(--lc-primary-2);color:var(--lc-primary-soft);font-size:11px;font-weight:500;padding:4px 12px;border-radius:var(--lc-r-pill);margin-bottom:12px}
+.hero-btn{display:inline-block;padding:14px 32px;background:var(--lc-primary);color:var(--lc-primary-soft);border:none;border-radius:var(--lc-r-md);font-size:15px;font-weight:500;cursor:pointer;font-family:inherit}
+.hero-btn:hover{background:var(--lc-primary-deep)}
+.rank-item{display:flex;align-items:center;gap:10px;background:#fff;border:0.5px solid var(--lc-line);border-radius:var(--lc-r-md);padding:12px 14px;margin-bottom:8px}
+.rank-avatar{width:42px;height:42px;border-radius:var(--lc-r-sm);overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:#FAC775;border:1.5px solid var(--lc-accent)}
 .rank-avatar img{width:100%;height:100%;object-fit:cover}
-.loc-notice{background:#EEEDFE;border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.upload-zone{border:2px dashed #AFA9EC;border-radius:14px;background:#FBEAF0;cursor:pointer;margin-bottom:14px;overflow:hidden;position:relative}
+.loc-notice{background:var(--lc-primary-soft);border-radius:10px;padding:10px 14px;display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.upload-zone{border:2px dashed var(--lc-faint);border-radius:14px;background:#FBEAF0;cursor:pointer;margin-bottom:14px;overflow:hidden;position:relative}
 .upload-placeholder{padding:36px 20px;text-align:center}
-.upload-icon-circle{width:52px;height:52px;background:#7F77DD;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
-.preview-frame{width:100%;aspect-ratio:1/1;background:#1a1a2e;display:flex;align-items:center;justify-content:center;position:relative}
+.upload-icon-circle{width:52px;height:52px;background:var(--lc-primary-2);border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center}
+.preview-frame{width:100%;aspect-ratio:1/1;background:var(--lc-dark-bg);display:flex;align-items:center;justify-content:center;position:relative}
 .preview-frame img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-.preview-change{position:absolute;bottom:10px;right:10px;background:rgba(83,74,183,.88);color:#EEEDFE;font-size:12px;padding:7px 14px;border-radius:8px;cursor:pointer;border:none;font-family:inherit}
-.lot-opt{padding:13px 14px;background:#fff;border-radius:10px;border:0.5px solid #CECBF6;display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px}
+.preview-change{position:absolute;bottom:10px;right:10px;background:rgba(83,74,183,.88);color:var(--lc-primary-soft);font-size:12px;padding:7px 14px;border-radius:var(--lc-r-sm);cursor:pointer;border:none;font-family:inherit}
+.lot-opt{padding:13px 14px;background:#fff;border-radius:10px;border:0.5px solid var(--lc-line);display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:8px}
 .lot-opt:hover{background:#F8F6FF}
-.lot-opt.sel{background:#EEEDFE;border-color:#7F77DD}
-.radio{width:18px;height:18px;border-radius:50%;border:1.5px solid #CECBF6;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.radio.sel{background:#7F77DD;border-color:#7F77DD}
-.loading-page{text-align:center;padding:60px 20px;background:#EEEDFE;border-radius:16px}
+.lot-opt.sel{background:var(--lc-primary-soft);border-color:var(--lc-primary-2)}
+.radio{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--lc-line);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.radio.sel{background:var(--lc-primary-2);border-color:var(--lc-primary-2)}
+.loading-page{text-align:center;padding:60px 20px;background:var(--lc-primary-soft);border-radius:var(--lc-r-lg)}
 @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
-.dot{width:9px;height:9px;border-radius:50%;background:#7F77DD;display:inline-block}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--lc-primary-2);display:inline-block}
 .dot:nth-child(1){animation:bounce 1.2s ease-in-out infinite 0s}
 .dot:nth-child(2){animation:bounce 1.2s ease-in-out infinite .2s}
 .dot:nth-child(3){animation:bounce 1.2s ease-in-out infinite .4s}
-.ball{width:38px;height:38px;border-radius:50%;background:#7F77DD;color:#EEEDFE;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;transform:scale(0);opacity:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .3s}
-.ball.sp{background:#EF9F27;color:#412402}
+.ball{width:38px;height:38px;border-radius:50%;background:var(--lc-primary-2);color:var(--lc-primary-soft);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;transform:scale(0);opacity:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .3s}
+.ball.sp{background:var(--lc-accent);color:#412402}
 .ball.show{transform:scale(1);opacity:1}
-.share-card{border-radius:16px;overflow:hidden;position:relative;aspect-ratio:1/1;background:#00AADD;margin-bottom:14px}
+.share-card{border-radius:var(--lc-r-lg);overflow:hidden;position:relative;aspect-ratio:1/1;background:#00AADD;margin-bottom:14px}
 .share-card-bg{position:absolute;inset:0;background:#00AADD}
 .dots-pattern{position:absolute;inset:0;opacity:.25;background-image:radial-gradient(circle,#fff 1.5px,transparent 1.5px);background-size:18px 18px}
 .share-cat-img{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;overflow:hidden}
 .share-cat-img img{width:100%;height:100%;object-fit:cover;object-position:center top}
 .share-overlay{position:absolute;inset:0;pointer-events:none}
 .share-date-txt{position:absolute;top:16px;right:16px;font-size:13px;font-weight:700;color:#fff;letter-spacing:.05em;text-shadow:0 1px 3px rgba(0,0,0,.3)}
-.share-name-block{position:absolute;top:38px;right:12px;background:#1a1a2e;padding:8px 16px 6px;border-radius:6px;transform:rotate(-1deg)}
+.share-name-block{position:absolute;top:38px;right:12px;background:var(--lc-dark-bg);padding:8px 16px 6px;border-radius:6px;transform:rotate(-1deg)}
 .share-name-txt{font-size:28px;font-weight:900;color:#fff;letter-spacing:.08em;line-height:1;text-transform:uppercase}
-.share-won-block{position:absolute;top:106px;right:12px;background:#1a1a2e;padding:5px 14px 4px;border-radius:6px;transform:rotate(-1deg)}
-.share-won-txt{font-size:16px;font-weight:800;color:#EF9F27;letter-spacing:.06em}
+.share-won-block{position:absolute;top:106px;right:12px;background:var(--lc-dark-bg);padding:5px 14px 4px;border-radius:6px;transform:rotate(-1deg)}
+.share-won-txt{font-size:16px;font-weight:800;color:var(--lc-accent);letter-spacing:.06em}
 .sparkle{position:absolute;top:14px;left:18px}
 .lightning{position:absolute;bottom:60px;right:12px;font-size:52px;line-height:1}
 .share-numbers-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.35);padding:10px 12px;display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}
-.share-ball{width:38px;height:38px;border-radius:50%;background:#EF9F27;border:2.5px solid #fff;color:#26215C;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.share-ball.special{background:#fff;color:#534AB7}
-.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;border-radius:12px;font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;border:0.5px solid #CECBF6;width:100%;background:#fff;color:#26215C;font-family:inherit}
+.share-ball{width:38px;height:38px;border-radius:50%;background:var(--lc-accent);border:2.5px solid #fff;color:var(--lc-ink);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.share-ball.special{background:#fff;color:var(--lc-primary)}
+.social-btn{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;border-radius:var(--lc-r-md);font-size:14px;font-weight:500;cursor:pointer;margin-bottom:8px;border:0.5px solid var(--lc-line);width:100%;background:#fff;color:var(--lc-ink);font-family:inherit}
 .social-btn:hover{background:#F8F6FF}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#26215C;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--lc-ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
 .toast.show{opacity:1}
 .verify-bar{display:none;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px}
-.verify-bar.checking{display:flex;background:#EEEDFE;color:#3C3489}
-.verify-bar.pass{display:flex;background:#EAF3DE;color:#27500A}
-.verify-bar.fail{display:flex;background:#FCEBEB;color:#791F1F}
-.verify-spin{width:16px;height:16px;border:2px solid #7F77DD;border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+.verify-bar.checking{display:flex;background:var(--lc-primary-soft);color:var(--lc-primary-deep)}
+.verify-bar.pass{display:flex;background:var(--lc-ok-bg);color:var(--lc-ok)}
+.verify-bar.fail{display:flex;background:var(--lc-danger-bg);color:var(--lc-danger)}
+.verify-spin{width:16px;height:16px;border:2px solid var(--lc-primary-2);border-top-color:transparent;border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* MODAL */
@@ -102,37 +102,38 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .modal-overlay.hidden{display:none}
 .modal-box{background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:680px;padding:20px 20px 36px;animation:slideUp .25s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:36px;height:4px;background:#CECBF6;border-radius:2px;margin:0 auto 18px}
-.modal-title{font-size:17px;font-weight:500;color:#26215C;margin-bottom:6px}
-.modal-sub{font-size:13px;color:#888780;margin-bottom:18px;line-height:1.6}
+.modal-handle{width:36px;height:4px;background:var(--lc-line);border-radius:2px;margin:0 auto 18px}
+.modal-title{font-size:17px;font-weight:500;color:var(--lc-ink);margin-bottom:6px}
+.modal-sub{font-size:13px;color:var(--lc-muted);margin-bottom:18px;line-height:1.6}
 .modal-divider{display:flex;align-items:center;gap:8px;margin:10px 0}
-.modal-divider-line{flex:1;height:.5px;background:#CECBF6}
-.modal-skip{text-align:center;font-size:13px;color:#888780;cursor:pointer;padding:10px;margin-top:4px}
-.modal-skip:hover{color:#534AB7}
+.modal-divider-line{flex:1;height:.5px;background:var(--lc-line)}
+.modal-skip{text-align:center;font-size:13px;color:var(--lc-muted);cursor:pointer;padding:10px;margin-top:4px}
+.modal-skip:hover{color:var(--lc-primary)}
 
 /* EMAIL AUTH */
-.auth-tabs{display:flex;gap:0;margin-bottom:16px;border:0.5px solid #CECBF6;border-radius:10px;overflow:hidden}
-.auth-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border:none;background:#F8F6FF;color:#888780;font-family:inherit}
-.auth-tab.active{background:#7F77DD;color:#EEEDFE}
-input[type=email],input[type=password],input[type=text]{width:100%;padding:12px 14px;border:0.5px solid #CECBF6;border-radius:10px;background:#F8F6FF;font-size:15px;color:#26215C;margin-bottom:8px;font-family:inherit}
-input[type=email]:focus,input[type=password]:focus,input[type=text]:focus{outline:none;border-color:#7F77DD}
+.auth-tabs{display:flex;gap:0;margin-bottom:16px;border:0.5px solid var(--lc-line);border-radius:10px;overflow:hidden}
+.auth-tab{flex:1;padding:10px;text-align:center;font-size:13px;font-weight:500;cursor:pointer;border:none;background:#F8F6FF;color:var(--lc-muted);font-family:inherit}
+.auth-tab.active{background:var(--lc-primary-2);color:var(--lc-primary-soft)}
+input[type=email],input[type=password],input[type=text]{width:100%;padding:12px 14px;border:0.5px solid var(--lc-line);border-radius:10px;background:#F8F6FF;font-size:15px;color:var(--lc-ink);margin-bottom:8px;font-family:inherit}
+input[type=email]:focus,input[type=password]:focus,input[type=text]:focus{outline:none;border-color:var(--lc-primary-2)}
 input[type=file]{display:none}
-.err-msg{font-size:12px;color:#791F1F;margin-bottom:8px;display:none;padding:8px 12px;background:#FCEBEB;border-radius:8px}
+.err-msg{font-size:12px;color:var(--lc-danger);margin-bottom:8px;display:none;padding:8px 12px;background:var(--lc-danger-bg);border-radius:var(--lc-r-sm)}
 .err-msg.show{display:block}
 /* 圖卡 */
 .aspect-tabs{display:flex;gap:6px;margin-bottom:10px}
-.aspect-tab{flex:1;padding:8px;border-radius:10px;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;font-size:13px;font-family:inherit;cursor:pointer}
-.aspect-tab.on{background:#534AB7;color:#fff;border-color:#534AB7}
+.aspect-tab{flex:1;padding:8px;border-radius:10px;border:0.5px solid var(--lc-line);background:#fff;color:var(--lc-primary);font-size:13px;font-family:inherit;cursor:pointer}
+.aspect-tab.on{background:var(--lc-primary);color:#fff;border-color:var(--lc-primary)}
 .card-frame{position:relative;background:#F6A85C;border-radius:14px;overflow:hidden;margin-bottom:12px;min-height:200px;display:flex;align-items:center;justify-content:center}
 .card-frame img{display:block;width:100%;height:auto;max-height:72vh;object-fit:contain}
 .card-loading{position:absolute;inset:0;display:none;align-items:center;justify-content:center;gap:7px;background:rgba(255,247,234,.7)}
 .card-loading.show{display:flex}
-.card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
+.card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:var(--lc-r-sm);cursor:pointer;background:#fff;color:var(--lc-accent-deep);border:1px solid #F3B36E;margin-left:auto}
 </style>
-<link rel="stylesheet" href="css/mobile.css?v=20261102b"/>
+<link rel="stylesheet" href="css/theme.css?v=20261103"/>
+<link rel="stylesheet" href="css/mobile.css?v=20261103"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap"/>
-<script src="js/analytics.js?v=20261102b"></script>
+<script src="js/analytics.js?v=20261103"></script>
 </head>
 <body>
 
@@ -183,7 +184,7 @@ input[type=file]{display:none}
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="1" y="3" width="16" height="12" rx="2" stroke="#534AB7" stroke-width="1.3"/><path d="M1 5l8 5 8-5" stroke="#534AB7" stroke-width="1.3" stroke-linecap="round"/></svg>
       Email 註冊 / 登入
     </button>
-    <div class="modal-divider"><div class="modal-divider-line"></div><span style="font-size:12px;color:#888780">或</span><div class="modal-divider-line"></div></div>
+    <div class="modal-divider"><div class="modal-divider-line"></div><span style="font-size:12px;color:var(--lc-muted)">或</span><div class="modal-divider-line"></div></div>
     <div class="modal-skip" onclick="ga('login_prompt_choice',{choice:'skip'}); closeModal('login-prompt-modal'); showPage('upload')">不用，直接抽號 →</div>
   </div>
 </div>
@@ -193,16 +194,16 @@ input[type=file]{display:none}
   <div class="hero">
     <span class="hero-tag" data-i18n="hero_tag">全球幸運貓排行榜</span>
     <img src="images/malu-loading.webp" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
-    <h1 style="font-size:26px;font-weight:500;color:#26215C;line-height:1.3;margin-bottom:8px" data-i18n="hero_title">讓你的貓咪<br>幫你選號碼</h1>
-    <p style="font-size:14px;color:#534AB7;margin-bottom:20px" data-i18n="hero_sub">上傳完全免費 · 全球統計 · 即時排行</p>
+    <h1 style="font-size:26px;font-weight:500;color:var(--lc-ink);line-height:1.3;margin-bottom:8px" data-i18n="hero_title">讓你的貓咪<br>幫你選號碼</h1>
+    <p style="font-size:14px;color:var(--lc-primary);margin-bottom:20px" data-i18n="hero_sub">上傳完全免費 · 全球統計 · 即時排行</p>
     <button class="hero-btn" onclick="handleUploadClick()" data-i18n="hero_btn">上傳我的貓咪</button>
   </div>
   <div class="stat-grid" data-ga-section="home_stats">
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_cats_lbl">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div></div>
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_draws_lbl">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div></div>
+    <div class="stat-card"><div style="font-size:12px;color:var(--lc-muted);margin-bottom:4px" data-i18n="stat_cats_lbl">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div></div>
+    <div class="stat-card"><div style="font-size:12px;color:var(--lc-muted);margin-bottom:4px" data-i18n="stat_draws_lbl">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div></div>
   </div>
   <div class="sec-title" data-i18n="home_latest">最新幸運貓</div>
-  <div id="home-rank-list" data-ga-section="home_list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
+  <div id="home-rank-list" data-ga-section="home_list"><div style="text-align:center;padding:20px;color:var(--lc-muted);font-size:13px">載入中...</div></div>
   <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none;margin-top:8px"><span data-i18n="home_rank_link">查看完整排行榜 →</span></a>
 </div>
 
@@ -219,7 +220,7 @@ input[type=file]{display:none}
     <div class="err-msg" id="login-err"></div>
     <button class="btn" onclick="loginWithEmail()">登入</button>
     <div style="text-align:center;margin-top:4px">
-      <span style="font-size:12px;color:#7F77DD;cursor:pointer" onclick="showForgotPassword()">忘記密碼？</span>
+      <span style="font-size:12px;color:var(--lc-primary-2);cursor:pointer" onclick="showForgotPassword()">忘記密碼？</span>
     </div>
   </div>
   <div id="auth-register-form" style="display:none">
@@ -229,7 +230,7 @@ input[type=file]{display:none}
     <div class="err-msg" id="reg-err"></div>
     <button class="btn" onclick="registerWithEmail()">建立帳號</button>
   </div>
-  <div class="modal-divider" style="margin:14px 0"><div class="modal-divider-line"></div><span style="font-size:12px;color:#888780">或</span><div class="modal-divider-line"></div></div>
+  <div class="modal-divider" style="margin:14px 0"><div class="modal-divider-line"></div><span style="font-size:12px;color:var(--lc-muted)">或</span><div class="modal-divider-line"></div></div>
   <button class="social-btn" onclick="loginWithGoogle()">
     <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.566 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
     以 Google 繼續
@@ -245,7 +246,7 @@ input[type=file]{display:none}
     <div class="modal-sub" data-i18n="forgot_sub">輸入你的 Email，我們會寄送重設密碼連結給你</div>
     <input type="email" id="forgot-email" placeholder="Email"/>
     <div class="err-msg" id="forgot-err"></div>
-    <div class="verify-bar" id="forgot-success" style="display:none;background:#EAF3DE;color:#27500A;padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px">✅ 重設連結已寄出，請檢查你的信箱</div>
+    <div class="verify-bar" id="forgot-success" style="display:none;background:var(--lc-ok-bg);color:var(--lc-ok);padding:10px 14px;border-radius:10px;margin-bottom:10px;font-size:13px">✅ 重設連結已寄出，請檢查你的信箱</div>
     <button class="btn" onclick="sendForgotPassword()">寄送重設連結</button>
     <div class="modal-skip" onclick="closeModal('forgot-modal')">取消</div>
   </div>
@@ -255,8 +256,8 @@ input[type=file]{display:none}
 <div class="page" id="page-upload">
   <h2 style="font-size:20px;font-weight:500;margin-bottom:14px" data-i18n="upload_title">上傳你的貓咪</h2>
   <div class="loc-notice">
-    <div style="width:8px;height:8px;background:#7F77DD;border-radius:50%;flex-shrink:0"></div>
-    <span style="font-size:12px;color:#3C3489" id="loc-text">正在偵測位置...</span>
+    <div style="width:8px;height:8px;background:var(--lc-primary-2);border-radius:50%;flex-shrink:0"></div>
+    <span style="font-size:12px;color:var(--lc-primary-deep)" id="loc-text">正在偵測位置...</span>
   </div>
   <input type="file" id="file-in" accept="image/*" onchange="handleFile(this)"/>
   <div class="upload-zone" id="upload-zone">
@@ -264,9 +265,9 @@ input[type=file]{display:none}
       <div class="upload-icon-circle">
         <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 5v12M8 10l5-5 5 5" stroke="#EEEDFE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h18" stroke="#EEEDFE" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
-      <p style="font-size:15px;font-weight:500;color:#3C3489;margin:0 0 4px" data-i18n="upload_hint">點擊上傳貓咪照片</p>
-      <p style="font-size:13px;color:#534AB7;margin:0 0 10px" data-i18n="upload_hint2">JPG、PNG · 最大 10MB</p>
-      <span class="tag" style="background:#EAF3DE;color:#27500A" data-i18n="upload_free">完全免費 · 無需付費</span>
+      <p style="font-size:15px;font-weight:500;color:var(--lc-primary-deep);margin:0 0 4px" data-i18n="upload_hint">點擊上傳貓咪照片</p>
+      <p style="font-size:13px;color:var(--lc-primary);margin:0 0 10px" data-i18n="upload_hint2">JPG、PNG · 最大 10MB</p>
+      <span class="tag" style="background:var(--lc-ok-bg);color:var(--lc-ok)" data-i18n="upload_free">完全免費 · 無需付費</span>
     </div>
     <div id="preview-frame" data-ga-section="upload_preview" class="preview-frame" style="display:none">
       <img id="preview-img" alt="貓咪預覽"/>
@@ -276,15 +277,15 @@ input[type=file]{display:none}
   <div id="verify-bar" class="verify-bar"></div>
   <div class="sec-title" data-i18n="name_label">貓咪暱稱</div>
   <input type="text" id="cat-name-input" data-i18n-ph="name_ph" placeholder="例如：Malu、胖虎、奶油..." maxlength="20" oninput="onNameInput(this.value)"/>
-  <p style="font-size:12px;color:#AFA9EC;margin:0 0 14px" data-i18n="name_hint">這個名字會印在圖卡上，也會顯示在排行榜</p>
+  <p style="font-size:12px;color:var(--lc-faint);margin:0 0 14px" data-i18n="name_hint">這個名字會印在圖卡上，也會顯示在排行榜</p>
   <!-- 同名貓詢問區塊（動態顯示）-->
-  <div id="same-cat-block" style="display:none;background:#FFF8EC;border:1px solid #F0C866;border-radius:12px;padding:14px;margin-bottom:14px">
-    <p style="font-size:13px;font-weight:500;color:#633806;margin:0 0 10px">🐱 你有一隻同名的貓咪，是這隻嗎？</p>
+  <div id="same-cat-block" style="display:none;background:#FFF8EC;border:1px solid #F0C866;border-radius:var(--lc-r-md);padding:14px;margin-bottom:14px">
+    <p style="font-size:13px;font-weight:500;color:var(--lc-warn);margin:0 0 10px">🐱 你有一隻同名的貓咪，是這隻嗎？</p>
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
-      <div id="same-cat-photo" style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>
+      <div id="same-cat-photo" style="width:48px;height:48px;border-radius:var(--lc-r-sm);overflow:hidden;background:var(--lc-primary-soft);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>
       <div>
-        <p id="same-cat-name-txt" style="font-size:14px;font-weight:500;color:#26215C;margin:0 0 2px"></p>
-        <p id="same-cat-stats" style="font-size:12px;color:#888780;margin:0"></p>
+        <p id="same-cat-name-txt" style="font-size:14px;font-weight:500;color:var(--lc-ink);margin:0 0 2px"></p>
+        <p id="same-cat-stats" style="font-size:12px;color:var(--lc-muted);margin:0"></p>
       </div>
     </div>
     <div style="display:flex;gap:8px">
@@ -295,15 +296,15 @@ input[type=file]{display:none}
 
   <div class="sec-title" data-i18n="upload_lot">選擇樂透類型</div>
   <div id="lot-tw" class="lot-opt sel" onclick="selectLot('tw')">
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇹🇼</span><div><p style="font-size:14px;font-weight:500;margin:0">台灣大樂透</p><p style="font-size:12px;color:#534AB7;margin:0">週二、週五 · 49 選 6</p></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇹🇼</span><div><p style="font-size:14px;font-weight:500;margin:0">台灣大樂透</p><p style="font-size:12px;color:var(--lc-primary);margin:0">週二、週五 · 49 選 6</p></div></div>
     <div id="r-tw" class="radio sel"><div style="width:8px;height:8px;border-radius:50%;background:#fff"></div></div>
   </div>
   <div id="lot-us" class="lot-opt" onclick="selectLot('us')">
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇺🇸</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">US Powerball</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:#888780;margin:0">週一、三、六 · 5/69 + Powerball</p></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇺🇸</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">US Powerball</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:var(--lc-muted);margin:0">週一、三、六 · 5/69 + Powerball</p></div></div>
     <div id="r-us" class="radio"></div>
   </div>
   <div id="lot-jp" class="lot-opt" onclick="selectLot('jp')">
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇯🇵</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">日本 ロト6</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:#888780;margin:0">週一、週四 · 43 選 6</p></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇯🇵</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">日本 ロト6</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:var(--lc-muted);margin:0">週一、週四 · 43 選 6</p></div></div>
     <div id="r-jp" class="radio"></div>
   </div>
   <button id="gen-btn" class="btn disabled" style="margin-top:10px" onclick="startGenerate()">請先上傳貓咪照片</button>
@@ -314,16 +315,16 @@ input[type=file]{display:none}
   <div class="loading-page">
     <img src="images/malu-loading.webp" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
     <div style="display:flex;gap:7px;justify-content:center;margin:20px 0 10px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-    <p style="font-size:16px;font-weight:500;color:#3C3489" data-i18n="loading_title">正在幫你搜尋幸運號碼</p>
-    <p style="font-size:13px;color:#7F77DD;margin-top:6px" data-i18n="loading_sub">胖橘貓已收到你的照片，全力奔跑中...</p>
-    <p id="loading-lot-name" style="font-size:12px;color:#AFA9EC;margin-top:10px"></p>
+    <p style="font-size:16px;font-weight:500;color:var(--lc-primary-deep)" data-i18n="loading_title">正在幫你搜尋幸運號碼</p>
+    <p style="font-size:13px;color:var(--lc-primary-2);margin-top:6px" data-i18n="loading_sub">胖橘貓已收到你的照片，全力奔跑中...</p>
+    <p id="loading-lot-name" style="font-size:12px;color:var(--lc-faint);margin-top:10px"></p>
   </div>
 </div>
 
 <!-- RESULT：產生號碼後直接顯示圖卡 -->
 <div class="page" id="page-result">
   <h2 style="font-size:20px;font-weight:500;margin-bottom:12px" data-i18n="result_title">你的幸運號碼</h2>
-  <div id="result-saved" style="display:none;background:#EAF3DE;color:#27500A;border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.6"></div>
+  <div id="result-saved" style="display:none;background:var(--lc-ok-bg);color:var(--lc-ok);border-radius:var(--lc-r-md);padding:12px 14px;margin-bottom:12px;font-size:13px;line-height:1.6"></div>
   <div class="aspect-tabs">
     <button class="aspect-tab on" id="aspect-9x16" onclick="setAspect('9:16')"><span data-i18n="aspect_story">限動</span> 9:16</button>
     <button class="aspect-tab" id="aspect-4x5" onclick="setAspect('4:5')"><span data-i18n="aspect_post">貼文</span> 4:5</button>
@@ -360,10 +361,10 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
-<script src="js/safe.js?v=20261102b"></script>
-<script src="js/lottery.js?v=20261102b"></script>
-<script src="js/focus.js?v=20261102b"></script>
-<script src="js/card.js?v=20261102b"></script>
+<script src="js/safe.js?v=20261103"></script>
+<script src="js/lottery.js?v=20261103"></script>
+<script src="js/focus.js?v=20261103"></script>
+<script src="js/card.js?v=20261103"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
@@ -418,11 +419,11 @@ onAuthStateChanged(auth, user => {
     navRight.innerHTML = '<div class="nav-user-menu" id="nav-user-menu" onclick="window.toggleUserMenu()">'
       + photo
       + '<span class="nav-user-name">' + esc(name) + '</span>'
-      + '<span style="font-size:10px;color:#888780;margin-left:2px">▾</span>'
+      + '<span style="font-size:10px;color:var(--lc-muted);margin-left:2px">▾</span>'
       + '<div class="nav-dropdown" id="nav-dropdown">'
       + '<div class="nav-dropdown-item" onclick="event.stopPropagation();window.showPage(\'profile\')">🐱 我的貓咪紀錄</div>'
       + '<div class="nav-dropdown-divider"></div>'
-      + '<div class="nav-dropdown-item" style="color:#791F1F" onclick="event.stopPropagation();window._logout()">登出</div>'
+      + '<div class="nav-dropdown-item" style="color:var(--lc-danger)" onclick="event.stopPropagation();window._logout()">登出</div>'
       + '</div></div>';
   } else {
     navRight.innerHTML = '<button class="nav-cta" onclick="handleUploadClick()">開始選號</button>';
@@ -599,7 +600,7 @@ async function loadHomeData() {
     snap.forEach(d => items.push({id:d.id,...d.data()}));
     const el = document.getElementById('home-rank-list');
     if (!items.length) {
-      el.innerHTML = '<div style="text-align:center;padding:20px;color:#888780;font-size:13px">還沒有貓咪，成為第一個！</div>';
+      el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--lc-muted);font-size:13px">還沒有貓咪，成為第一個！</div>';
       return;
     }
     const rankColors = ['#BA7517','#888780','#993C1D'];
@@ -611,8 +612,8 @@ async function loadHomeData() {
         + '<span style="font-size:13px;font-weight:500;color:' + (rankColors[i]||'#AFA9EC') + ';min-width:20px">' + (i+1) + '</span>'
         + '<div class="rank-avatar">' + photo + '</div>'
         + '<div style="flex:1"><p style="font-size:14px;font-weight:500;margin:0">' + esc(item.catName) + '</p>'
-        + '<p style="font-size:12px;color:#888780;margin:0">' + esc(loc) + ' · ' + esc(item.lotName) + '</p></div>'
-        + '<span class="tag" style="background:#FAEEDA;color:#633806">' + esc(item.date) + '</span>'
+        + '<p style="font-size:12px;color:var(--lc-muted);margin:0">' + esc(loc) + ' · ' + esc(item.lotName) + '</p></div>'
+        + '<span class="tag" style="background:var(--lc-warn-bg);color:var(--lc-warn)">' + esc(item.date) + '</span>'
         + '</div>';
     }).join('');
   } catch {}
@@ -627,9 +628,9 @@ function pct(x) { return (Math.round(x * 1000) / 10) + '%'; }
 const T = (k) => window.t(k);
 
 function statBox(label, value, sub, color) {
-  return '<div style="flex:1;min-width:0"><div style="font-size:11px;color:#888780;margin-bottom:2px">' + esc(label) + '</div>'
+  return '<div style="flex:1;min-width:0"><div style="font-size:11px;color:var(--lc-muted);margin-bottom:2px">' + esc(label) + '</div>'
     + '<div style="font-size:18px;font-weight:600;color:' + (color || '#26215C') + '">' + esc(value) + '</div>'
-    + (sub ? '<div style="font-size:11px;color:#AFA9EC;margin-top:1px">' + esc(sub) + '</div>' : '') + '</div>';
+    + (sub ? '<div style="font-size:11px;color:var(--lc-faint);margin-top:1px">' + esc(sub) + '</div>' : '') + '</div>';
 }
 
 function summaryHtml(s) {
@@ -645,7 +646,7 @@ function summaryHtml(s) {
   const realCard = '<div class="stat-card" style="margin-bottom:18px">'
     + '<div class="sec-title" style="margin-bottom:8px">💰 ' + esc(T('pf_real_title')) + '</div>'
     + (r.bought === 0
-      ? '<div style="font-size:12px;color:#888780">' + esc(T('pf_real_empty')) + '</div>'
+      ? '<div style="font-size:12px;color:var(--lc-muted)">' + esc(T('pf_real_empty')) + '</div>'
       : '<div style="display:flex;gap:8px">'
         + statBox(T('pf_bought'), String(r.bought), r.boughtPending ? T('pf_pending_n').replace('{n}', r.boughtPending) : '')
         + statBox(T('pf_cost'), money(r.cost), '')
@@ -663,7 +664,7 @@ function ballsHtml(d) {
   const base = 'width:30px;height:30px;font-size:11px;';
   let h = (d.numbers || []).map(function (n) {
     n = int(n);
-    const style = win.has(n) ? 'background:#3B6D11;color:#fff;' : ws === n ? 'background:#EF9F27;color:#412402;' : '';
+    const style = win.has(n) ? 'background:var(--lc-ok-2);color:#fff;' : ws === n ? 'background:var(--lc-accent);color:#412402;' : '';
     return '<div class="ball show" style="' + base + style + '">' + ball(n) + '</div>';
   }).join('');
   const legacy = d.schema == null && d.lotType === 'tw';
@@ -693,10 +694,10 @@ function purchaseHtml(d) {
   if (!open) {
     return '<span style="font-size:11px;color:' + (on ? '#27500A' : '#888780') + '">🔒 ' + esc(on ? T('pf_bought_yes') : T('pf_bought_no')) + '</span>';
   }
-  return '<button class="buy-btn" data-id="' + esc(d.id) + '" data-on="' + (on ? 1 : 0) + '" style="font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;'
-    + (on ? 'background:#3B6D11;color:#fff;border:1px solid #3B6D11' : 'background:#fff;color:#534AB7;border:1px solid #AFA9EC') + '">'
+  return '<button class="buy-btn" data-id="' + esc(d.id) + '" data-on="' + (on ? 1 : 0) + '" style="font-family:inherit;font-size:12px;padding:5px 10px;border-radius:var(--lc-r-sm);cursor:pointer;'
+    + (on ? 'background:var(--lc-ok-2);color:#fff;border:1px solid var(--lc-ok-2)' : 'background:#fff;color:var(--lc-primary);border:1px solid var(--lc-faint)') + '">'
     + (on ? '✓ ' + esc(T('pf_bought_yes')) : esc(T('pf_buy_btn'))) + '</button>'
-    + '<span style="font-size:10px;color:#AFA9EC;margin-left:6px">' + esc(T('pf_buy_until')) + '</span>';
+    + '<span style="font-size:10px;color:var(--lc-faint);margin-left:6px">' + esc(T('pf_buy_until')) + '</span>';
 }
 
 function drawRowHtml(d) {
@@ -704,10 +705,10 @@ function drawRowHtml(d) {
   const when = target ? drawDateText(target) : esc(d.date || '');
   const period = d.drawPeriod ? ' · ' + T('pf_period').replace('{p}', esc(d.drawPeriod)) : '';
   const match = d.checkedAt && d.matchCount != null
-    ? '<span style="font-size:11px;color:#888780;margin-left:6px">' + esc(T('pf_match').replace('{n}', int(d.matchCount))) + (d.matchSpecial ? ' ＋' + esc(T('pf_sp')) : '') + '</span>' : '';
-  return '<div style="padding:10px 0;border-bottom:0.5px solid #F4F2FB">'
+    ? '<span style="font-size:11px;color:var(--lc-muted);margin-left:6px">' + esc(T('pf_match').replace('{n}', int(d.matchCount))) + (d.matchSpecial ? ' ＋' + esc(T('pf_sp')) : '') + '</span>' : '';
+  return '<div style="padding:10px 0;border-bottom:0.5px solid var(--lc-bg)">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
-    + '<span style="font-size:12px;color:#534AB7">' + esc(d.lotFlag) + ' ' + when + '<span style="color:#AFA9EC">' + period + '</span></span>'
+    + '<span style="font-size:12px;color:var(--lc-primary)">' + esc(d.lotFlag) + ' ' + when + '<span style="color:var(--lc-faint)">' + period + '</span></span>'
     + statusTag(d) + '</div>'
     + '<div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">' + ballsHtml(d) + match + '</div>'
     + '<div style="margin-top:8px;display:flex;align-items:center;gap:8px">' + purchaseHtml(d)
@@ -721,13 +722,13 @@ window._renderProfile = async function() {
   if (!user) {
     el.innerHTML = '<div style="text-align:center;padding:48px 0">'
       + '<div style="font-size:52px;margin-bottom:14px">🐱</div>'
-      + '<p style="font-size:16px;font-weight:500;color:#26215C;margin:0 0 6px">' + esc(T('pf_need_login')) + '</p>'
-      + '<p style="font-size:13px;color:#888780;margin:0 0 20px">' + esc(T('pf_need_login_sub')) + '</p>'
+      + '<p style="font-size:16px;font-weight:500;color:var(--lc-ink);margin:0 0 6px">' + esc(T('pf_need_login')) + '</p>'
+      + '<p style="font-size:13px;color:var(--lc-muted);margin:0 0 20px">' + esc(T('pf_need_login_sub')) + '</p>'
       + '<button class="btn" style="max-width:200px;margin:0 auto" onclick="window.showPage(\'email-auth\')">' + esc(T('auth_title')) + '</button>'
       + '</div>';
     return;
   }
-  el.innerHTML = '<div style="text-align:center;padding:24px;color:#888780;font-size:13px">' + esc(T('loading')) + '</div>';
+  el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--lc-muted);font-size:13px">' + esc(T('loading')) + '</div>';
 
   let cats = [], draws = [];
   try {
@@ -739,7 +740,7 @@ window._renderProfile = async function() {
     ds.forEach(d => draws.push({ id: d.id, ...d.data() }));
   } catch (e) {
     console.error('renderProfile error:', e);
-    el.innerHTML = '<div style="text-align:center;padding:16px;color:#791F1F;font-size:13px">' + esc(T('pf_load_failed')) + '</div>';
+    el.innerHTML = '<div style="text-align:center;padding:16px;color:var(--lc-danger);font-size:13px">' + esc(T('pf_load_failed')) + '</div>';
     return;
   }
   const ms = x => (x && x.toMillis) ? x.toMillis() : 0;
@@ -769,34 +770,34 @@ window._renderProfile = async function() {
 
   const displayName = user.displayName || user.email || '';
   const avatar = img(user.photoURL)
-    ? '<img src="' + img(user.photoURL) + '" style="width:48px;height:48px;border-radius:50%;border:2px solid #7F77DD;object-fit:cover" onerror="this.style.display=\'none\'"/>'
-    : '<div style="width:48px;height:48px;border-radius:50%;background:#EEEDFE;border:2px solid #7F77DD;display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>';
+    ? '<img src="' + img(user.photoURL) + '" style="width:48px;height:48px;border-radius:50%;border:2px solid var(--lc-primary-2);object-fit:cover" onerror="this.style.display=\'none\'"/>'
+    : '<div style="width:48px;height:48px;border-radius:50%;background:var(--lc-primary-soft);border:2px solid var(--lc-primary-2);display:flex;align-items:center;justify-content:center;font-size:22px">🐱</div>';
 
-  let html = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
-    + avatar + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + esc(displayName) + '</p>'
-    + '<p style="font-size:12px;color:#888780;margin:0">' + esc(user.email) + '</p></div></div>'
+  let html = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:var(--lc-r-md);padding:14px;margin-bottom:16px;border:0.5px solid var(--lc-line)">'
+    + avatar + '<div><p style="font-size:15px;font-weight:500;color:var(--lc-ink);margin:0 0 2px">' + esc(displayName) + '</p>'
+    + '<p style="font-size:12px;color:var(--lc-muted);margin:0">' + esc(user.email) + '</p></div></div>'
     + summaryHtml(window.Lottery.summarize(draws))
     + '<div class="sec-title">' + esc(T('profile_my_cats')) + '</div>';
 
   if (!draws.length) {
-    html += '<div style="text-align:center;padding:24px;color:#888780;font-size:13px">' + esc(T('pf_empty')) + '</div>';
+    html += '<div style="text-align:center;padding:24px;color:var(--lc-muted);font-size:13px">' + esc(T('pf_empty')) + '</div>';
   }
   list.forEach((g, idx) => {
     if (!g.draws.length) return;
     const s = window.Lottery.summarize(g.draws).cat;
     const src = img(g.cat.photoThumb);
-    html += '<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;margin-bottom:10px;overflow:hidden">'
+    html += '<div style="background:#fff;border:0.5px solid var(--lc-line);border-radius:14px;margin-bottom:10px;overflow:hidden">'
       + '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="toggleCat(\'cat-draws-' + idx + '\')">'
-      + '<div style="width:48px;height:48px;border-radius:8px;overflow:hidden;background:#EEEDFE;border:1.5px solid #CECBF6;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">'
+      + '<div style="width:48px;height:48px;border-radius:var(--lc-r-sm);overflow:hidden;background:var(--lc-primary-soft);border:1.5px solid var(--lc-line);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px">'
       + (src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱') + '</div>'
       + '<div style="flex:1;min-width:0">'
-      + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + esc(g.cat.catName) + '</p>'
-      + '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#888780">'
+      + '<p style="font-size:15px;font-weight:500;color:var(--lc-ink);margin:0 0 4px">' + esc(g.cat.catName) + '</p>'
+      + '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--lc-muted)">'
       + '<span>' + esc(T('pf_cat_line').replace('{d}', g.draws.length).replace('{c}', s.checked).replace('{w}', s.wins).replace('{r}', pct(s.winRate))) + '</span>'
-      + (s.prize ? '<span style="color:#BA7517;font-weight:500">' + money(s.prize) + '</span>' : '')
+      + (s.prize ? '<span style="color:var(--lc-accent-deep);font-weight:500">' + money(s.prize) + '</span>' : '')
       + '</div></div>'
-      + '<span style="font-size:12px;color:#AFA9EC" id="cat-arrow-' + idx + '">' + (idx === 0 ? '▲' : '▼') + '</span></div>'
-      + '<div id="cat-draws-' + idx + '" style="display:' + (idx === 0 ? 'block' : 'none') + ';padding:0 16px 4px;border-top:0.5px solid #F4F2FB">'
+      + '<span style="font-size:12px;color:var(--lc-faint)" id="cat-arrow-' + idx + '">' + (idx === 0 ? '▲' : '▼') + '</span></div>'
+      + '<div id="cat-draws-' + idx + '" style="display:' + (idx === 0 ? 'block' : 'none') + ';padding:0 16px 4px;border-top:0.5px solid var(--lc-bg)">'
       + g.draws.map(drawRowHtml).join('') + '</div></div>';
   });
   el.innerHTML = html;
@@ -1414,7 +1415,7 @@ function renderResultAction() {
   banner.style.display = 'none';
   if (user) {
     el.innerHTML = '<button class="btn" id="save-btn" onclick="saveCurrent()">' + Safe.esc(t('result_join')) + '</button>'
-      + '<p style="font-size:11px;color:#888780;line-height:1.6;margin:-2px 0 10px;text-align:center">' + Safe.esc(t('name_agree')) + '</p>'
+      + '<p style="font-size:11px;color:var(--lc-muted);line-height:1.6;margin:-2px 0 10px;text-align:center">' + Safe.esc(t('name_agree')) + '</p>'
       + '<button class="btn-outline" onclick="newRound()">' + Safe.esc(t('again_btn')) + '</button>';
   } else {
     el.innerHTML = '<button class="btn" onclick="goToLogin()">' + Safe.esc(t('result_join_guest')) + '</button>'
@@ -1711,12 +1712,12 @@ function videoOpts(src) {
     return { key: 'r|' + _aspect + '|' + (st.currentNums ? st.currentNums.main.join(',') : '') + '|' + _curLang,
       name: st.catName, date: pickDateOf(st.pickedAt), aspect: _aspect, lot: st.curLot,
       opts: { aspect: _aspect, photo: st.cardPhotoImg, focus: st.focus, numbers: st.currentNums.main, special: st.currentNums.special,
-              text: cardText(st.curLot, st.catName, pickDateOf(st.pickedAt), Lottery.targetDrawDate(st.curLot, st.pickedAt)), date: pickDateOf(st.pickedAt), theme: resultColor() }, color: resultColor() };
+              text: cardText(st.curLot, st.catName, pickDateOf(st.pickedAt), Lottery.targetDrawDate(st.curLot, st.pickedAt)), date: pickDateOf(st.pickedAt), theme: resultColor() }, color:resultColor() };
   }
   var d = _modal.draw, a = _modal.aspect, legacy = d.schema == null, dd = String(d.date || '').replace(/\./g, '/');
   return { key: 'm|' + a + '|' + d.id + '|' + _curLang, name: d.catName, date: dd, aspect: a, lot: d.lotType,
     opts: { aspect: a, photo: _modal.photo, focus: d.focus || null, numbers: d.numbers || [], special: (legacy && d.lotType === 'tw') ? [] : (d.special || []),
-            text: cardText(d.lotType, d.catName, dd, d.targetDrawDate || d.drawDate || null), date: dd, theme: drawColor(d) }, color: drawColor(d) };
+            text: cardText(d.lotType, d.catName, dd, d.targetDrawDate || d.drawDate || null), date: dd, theme: drawColor(d) }, color:drawColor(d) };
 }
 function videoBtnLabel(btn, state) {
   btn.textContent = t(state === 'busy' ? 'video_making' : state === 'ready' ? 'video_ready' : 'video_btn');
