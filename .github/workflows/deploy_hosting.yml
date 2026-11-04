@@ -1,0 +1,34 @@
+name: 發布網站到 Firebase Hosting
+
+# 合併到 main 且網頁檔有變動時，把網站發布到 https://pangfu-pangji.web.app
+# 只上傳網頁需要的檔案（html、css、js、images），scripts、docs、tests 不會公開
+on:
+  push:
+    branches: [main]
+    paths: ['*.html', 'css/**', 'js/**', 'images/**', 'firebase.json']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-hosting
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 整理要上傳的檔案
+        run: |
+          mkdir -p _site
+          cp *.html _site/
+          cp -r css js images _site/
+          ls -R _site | head -50
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: pangfu-pangji
+          channelId: live
