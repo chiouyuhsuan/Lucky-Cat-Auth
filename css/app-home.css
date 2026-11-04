@@ -1,0 +1,84 @@
+/* 新版流程（手機版）：首頁 index.html 各分頁的版面 */
+body{font-family:'Noto Sans TC','PingFang TC',sans-serif}
+.page{max-width:none;padding:14px 18px 28px}
+.btn{height:54px;padding:0 16px;border-radius:14px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.btn-outline{border:1px solid var(--line);background:#fff;border-radius:12px;font-weight:700;color:var(--purple)}
+.sec-title{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:0;margin-bottom:8px}
+
+/* ── 首頁 ── */
+.hm-next{background:var(--ink);color:#fff;border-radius:22px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.hm-next-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:12px;color:var(--line)}
+.hm-count{font-family:'Nunito',sans-serif;font-weight:900;font-size:40px;line-height:1.1;letter-spacing:1px;font-variant-numeric:tabular-nums}
+.hm-count small{font-size:18px;margin-left:2px;font-family:'Noto Sans TC',sans-serif;font-weight:700}
+.hm-stats{display:flex;gap:18px;border-top:1px solid rgba(206,203,246,.25);padding-top:10px}
+.hm-stats div{display:flex;align-items:baseline;gap:8px;font-size:12px;color:var(--line)}
+.hm-stats b{font-family:'Nunito',sans-serif;font-weight:900;font-size:20px;color:#fff}
+
+.hm-hero{display:flex;gap:16px;align-items:center;margin-bottom:18px}
+.hm-mini{flex:0 0 138px;height:174px;border-radius:12px;overflow:hidden;position:relative;transform:rotate(-3deg);
+         box-shadow:0 8px 20px rgba(38,33,92,.18);background:var(--purple-pale)}
+.hm-mini img{width:100%;height:100%;object-fit:cover;display:block}
+.hm-mini-balls{position:absolute;left:0;right:0;bottom:0;display:flex;flex-wrap:wrap;justify-content:center;gap:3px;padding:6px 4px;background:rgba(38,33,92,.45)}
+.hm-mini-balls i{font-style:normal;width:19px;height:19px;border-radius:50%;background:#EF9F27;border:1.5px solid #fff;color:var(--ink);
+                 font-size:9px;font-weight:800;display:grid;place-items:center}
+.hm-mini-balls:empty{display:none}
+.hm-hero-txt{display:flex;flex-direction:column;gap:8px;min-width:0}
+.hm-hero-txt .hero-tag{align-self:flex-start;margin:0;font-size:11px;padding:3px 10px}
+.hm-hero-txt h1{font-size:24px;line-height:1.3;font-weight:900;color:var(--ink)}
+.hm-hero-txt p{font-size:12px;line-height:1.6;color:var(--ink-soft)}
+.hm-hero-txt .hero-btn{height:46px;padding:0 18px;border-radius:12px;font-weight:700;font-size:15px}
+
+.hm-last{background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.hm-last[hidden]{display:none}
+.hm-last-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:13px}
+.hm-last-top span{font-size:12px;color:var(--ink-soft)}
+.hm-last-balls{display:flex;gap:5px;flex-wrap:wrap}
+.hm-last-balls i{font-style:normal;width:34px;height:34px;border-radius:50%;background:var(--purple-pale);display:grid;place-items:center;
+                 font-family:'Nunito',sans-serif;font-weight:900;font-size:13px;color:var(--ink)}
+.hm-last-balls i.sp{background:#EF9F27;color:#fff}
+
+.hm-sec-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+.hm-sec-head h2{font-size:15px;font-weight:700;color:var(--ink)}
+.hm-sec-head a{font-size:12px;color:var(--purple);text-decoration:none}
+.hm-cats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.hm-cat{display:flex;flex-direction:column;gap:3px;text-decoration:none;color:var(--ink);min-width:0}
+.hm-cat img,.hm-cat-ph{width:100%;aspect-ratio:1/1;border-radius:14px;object-fit:cover;background:var(--purple-pale);display:grid;place-items:center;font-size:26px}
+.hm-cat b{font-size:12px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hm-cat span{font-size:10px;color:var(--muted)}
+.hm-empty{grid-column:1/-1;text-align:center;padding:20px;color:var(--muted);font-size:13px}
+
+/* ── 選號流程 ── */
+.step-head{display:flex;align-items:center;justify-content:space-between;margin:-4px 0 8px}
+.step-back{width:36px;height:36px;border-radius:50%;border:0;background:#fff;color:var(--purple);display:grid;place-items:center;cursor:pointer;
+           box-shadow:0 1px 0 var(--line)}
+.step-no{font-family:'Nunito',sans-serif;font-weight:900;font-size:14px;color:var(--muted)}
+.step-no b{color:var(--ink)}
+.step-bar{height:4px;border-radius:2px;background:#fff;margin-bottom:16px;overflow:hidden}
+.step-bar div{height:4px;background:var(--purple);border-radius:2px;transition:width .3s}
+.step-title{font-size:24px;font-weight:900;color:var(--ink);margin-bottom:12px}
+.step2-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.step2-head img{width:72px;height:72px;border-radius:18px;object-fit:cover;background:var(--purple-pale);flex:none}
+.step2-head .step-title{margin:0;font-size:22px}
+.loc-notice{border-radius:12px;padding:8px 12px}
+.upload-zone{border-radius:22px;border-color:#AFA9EC;background:#fff}
+.preview-frame{aspect-ratio:4/5;background:#1a1a2e}
+.preview-change{border-radius:999px;background:rgba(255,255,255,.92);color:var(--purple);font-weight:700}
+.verify-bar{border-radius:999px}
+#cat-name-input{height:54px;border-radius:14px;border:2px solid var(--purple);background:#fff;font-size:18px;font-weight:700}
+.lot-opt{border-radius:16px;padding:14px}
+.lot-opt.sel{border:2px solid var(--purple)}
+.other-lots{font-family:inherit;font-size:13px;color:var(--purple);background:none;border:0;padding:4px 0 10px;cursor:pointer}
+
+/* ── 產生中、結果 ── */
+.loading-page{background:#fff;border-radius:22px;border:1px solid var(--line)}
+#page-result h2{font-size:22px !important;font-weight:900 !important}
+.card-frame{border-radius:16px;box-shadow:0 12px 30px rgba(38,33,92,.22)}
+.aspect-tab{border-radius:999px}
+.res-share{display:flex;gap:10px;margin-bottom:10px}
+.res-share .btn-outline{flex:1;margin:0;min-height:48px;padding:8px 10px;font-size:13px;line-height:1.35}
+#result-action .btn{margin-bottom:8px}
+
+/* ── 我的帳戶、登入 ── */
+#page-profile h2,#page-email-auth h2{font-size:24px !important;font-weight:900 !important}
+.stat-card{border-radius:16px}
+.social-btn{border-radius:14px;height:50px}

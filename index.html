@@ -130,8 +130,10 @@ input[type=file]{display:none}
 .card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
 </style>
 <link rel="stylesheet" href="css/mobile.css?v=20261102b"/>
+<link rel="stylesheet" href="css/app.css?v=20261105"/>
+<link rel="stylesheet" href="css/app-home.css?v=20261105"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Nunito:wght@800;900&display=swap"/>
 <script src="js/analytics.js?v=20261102b"></script>
 </head>
 <body>
@@ -190,20 +192,35 @@ input[type=file]{display:none}
 
 <!-- HOME -->
 <div class="page active" id="page-home">
-  <div class="hero">
-    <span class="hero-tag" data-i18n="hero_tag">全球幸運貓排行榜</span>
-    <img src="images/malu-loading.webp" style="width:130px;height:97px;object-fit:contain;image-rendering:pixelated;display:block;margin:10px auto" onerror="this.style.display='none'"/>
-    <h1 style="font-size:26px;font-weight:500;color:#26215C;line-height:1.3;margin-bottom:8px" data-i18n="hero_title">讓你的貓咪<br>幫你選號碼</h1>
-    <p style="font-size:14px;color:#534AB7;margin-bottom:20px" data-i18n="hero_sub">上傳完全免費 · 全球統計 · 即時排行</p>
-    <button class="hero-btn" onclick="handleUploadClick()" data-i18n="hero_btn">上傳我的貓咪</button>
+  <section class="hm-next" data-ga-section="home_stats">
+    <div class="hm-next-top"><span data-i18n="lot_tw_name">台灣大樂透</span><span id="hm-draw"></span></div>
+    <div class="hm-count" id="hm-count">--:--:--</div>
+    <div class="hm-stats">
+      <div><span data-i18n="stat_cats_lbl">全球貓咪</span><b id="stat-cats">—</b></div>
+      <div><span data-i18n="stat_draws_lbl">累計選號</span><b id="stat-draws">—</b></div>
+    </div>
+  </section>
+  <section class="hm-hero">
+    <div class="hm-mini" id="hm-mini" aria-hidden="true">
+      <img id="hm-mini-img" src="images/cat-pangji.webp" alt=""/>
+      <div class="hm-mini-balls" id="hm-mini-balls"></div>
+    </div>
+    <div class="hm-hero-txt">
+      <span class="hero-tag" data-i18n="hero_tag">全球幸運貓排行榜</span>
+      <h1 data-i18n="hero_title">讓你的貓咪<br>幫你選號碼</h1>
+      <p data-i18n="hero_sub">上傳完全免費 · 全球統計 · 即時排行</p>
+      <button class="hero-btn" onclick="handleUploadClick()" data-i18n="hero_btn">上傳我的貓咪</button>
+    </div>
+  </section>
+  <section class="hm-last" id="hm-last" hidden>
+    <div class="hm-last-top"><b id="hm-last-title"></b><span id="hm-last-date"></span></div>
+    <div class="hm-last-balls" id="hm-last-balls"></div>
+  </section>
+  <div class="hm-sec-head">
+    <h2 data-i18n="home_latest">最新幸運貓</h2>
+    <a href="rank.html" data-i18n="home_rank_link">查看完整排行榜 →</a>
   </div>
-  <div class="stat-grid" data-ga-section="home_stats">
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_cats_lbl">全球貓咪</div><div style="font-size:22px;font-weight:500" id="stat-cats">—</div></div>
-    <div class="stat-card"><div style="font-size:12px;color:#888780;margin-bottom:4px" data-i18n="stat_draws_lbl">累計選號</div><div style="font-size:22px;font-weight:500" id="stat-draws">—</div></div>
-  </div>
-  <div class="sec-title" data-i18n="home_latest">最新幸運貓</div>
-  <div id="home-rank-list" data-ga-section="home_list"><div style="text-align:center;padding:20px;color:#888780;font-size:13px">載入中...</div></div>
-  <a class="btn-outline" href="rank.html" style="display:block;text-align:center;text-decoration:none;margin-top:8px"><span data-i18n="home_rank_link">查看完整排行榜 →</span></a>
+  <div id="home-rank-list" class="hm-cats" data-ga-section="home_list"><div class="hm-empty" data-i18n="loading">載入中...</div></div>
 </div>
 
 <!-- EMAIL AUTH -->
@@ -253,7 +270,13 @@ input[type=file]{display:none}
 
 <!-- UPLOAD -->
 <div class="page" id="page-upload">
-  <h2 style="font-size:20px;font-weight:500;margin-bottom:14px" data-i18n="upload_title">上傳你的貓咪</h2>
+  <div class="step-head">
+    <button type="button" class="step-back" id="step-back" onclick="upBack()" aria-label="back"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <span class="step-no"><b id="step-no">1</b> / 3</span>
+  </div>
+  <div class="step-bar"><div id="step-bar-fill" style="width:33%"></div></div>
+  <div id="up-step1">
+  <h2 class="step-title" data-i18n="upload_title">上傳你的貓咪</h2>
   <div class="loc-notice">
     <div style="width:8px;height:8px;background:#7F77DD;border-radius:50%;flex-shrink:0"></div>
     <span style="font-size:12px;color:#3C3489" id="loc-text">正在偵測位置...</span>
@@ -274,6 +297,13 @@ input[type=file]{display:none}
     </div>
   </div>
   <div id="verify-bar" class="verify-bar"></div>
+  <button id="next-btn" class="btn disabled" onclick="upStep(2)" data-i18n="step_next">下一步</button>
+  </div>
+  <div id="up-step2" style="display:none">
+  <div class="step2-head">
+    <img id="step2-thumb" alt=""/>
+    <h2 class="step-title" data-i18n="name_title">幫你的貓取個名字</h2>
+  </div>
   <div class="sec-title" data-i18n="name_label">貓咪暱稱</div>
   <input type="text" id="cat-name-input" data-i18n-ph="name_ph" placeholder="例如：Malu、胖虎、奶油..." maxlength="20" oninput="onNameInput(this.value)"/>
   <p style="font-size:12px;color:#AFA9EC;margin:0 0 14px" data-i18n="name_hint">這個名字會印在圖卡上，也會顯示在排行榜</p>
@@ -298,6 +328,8 @@ input[type=file]{display:none}
     <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇹🇼</span><div><p style="font-size:14px;font-weight:500;margin:0">台灣大樂透</p><p style="font-size:12px;color:#534AB7;margin:0">週二、週五 · 49 選 6</p></div></div>
     <div id="r-tw" class="radio sel"><div style="width:8px;height:8px;border-radius:50%;background:#fff"></div></div>
   </div>
+  <button type="button" class="other-lots" id="other-lots-btn" onclick="toggleOtherLots()"><span data-i18n="other_lots">其他國家樂透</span> ▾</button>
+  <div id="other-lots" style="display:none">
   <div id="lot-us" class="lot-opt" onclick="selectLot('us')">
     <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇺🇸</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">US Powerball</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:#888780;margin:0">週一、三、六 · 5/69 + Powerball</p></div></div>
     <div id="r-us" class="radio"></div>
@@ -306,7 +338,9 @@ input[type=file]{display:none}
     <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇯🇵</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">日本 ロト6</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:#888780;margin:0">週一、週四 · 43 選 6</p></div></div>
     <div id="r-jp" class="radio"></div>
   </div>
-  <button id="gen-btn" class="btn disabled" style="margin-top:10px" onclick="startGenerate()">請先上傳貓咪照片</button>
+  </div>
+  <button id="gen-btn" class="btn disabled" style="margin-top:14px" onclick="startGenerate()">請先上傳貓咪照片</button>
+  </div>
 </div>
 
 <!-- LOADING -->
@@ -332,8 +366,10 @@ input[type=file]{display:none}
     <img id="card-img" alt="lucky numbers card" data-ga-section="result_card"/>
     <div id="card-loading" class="card-loading"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
-  <button class="btn" id="share-btn" onclick="shareCard()" data-i18n="share_btn">分享／下載圖卡</button>
-  <button class="btn-outline video-btn" id="video-btn" onclick="videoCard('result')" style="display:none">🎬 存成影片（限動用）</button>
+  <div class="res-share">
+    <button class="btn-outline" id="share-btn" onclick="shareCard()" data-i18n="share_btn">分享／下載圖卡</button>
+    <button class="btn-outline video-btn" id="video-btn" onclick="videoCard('result')" style="display:none">🎬 存成影片（限動用）</button>
+  </div>
   <div id="result-action" data-ga-section="result_actions"></div>
 </div>
 
@@ -593,29 +629,40 @@ async function loadHomeData() {
     document.getElementById('stat-draws').textContent = draws.data().count.toLocaleString();
   } catch(e) { console.warn('loadHomeData error:', e); }
   try {
-    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(3));
+    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(4));
     const snap = await getDocs(q);
     const items = [];
     snap.forEach(d => items.push({id:d.id,...d.data()}));
     const el = document.getElementById('home-rank-list');
     if (!items.length) {
-      el.innerHTML = '<div style="text-align:center;padding:20px;color:#888780;font-size:13px">還沒有貓咪，成為第一個！</div>';
-      return;
+      el.innerHTML = '<div class="hm-empty">' + esc(window.t('pf_empty')) + '</div>';
+    } else {
+      el.innerHTML = items.map(item => {
+        const src = img(item.photoThumb);
+        return '<a class="hm-cat" href="rank.html">'
+          + (src ? '<img src="' + src + '" alt="" loading="lazy"/>' : '<span class="hm-cat-ph">🐱</span>')
+          + '<b>' + esc(item.catName) + '</b><span>' + esc(item.date) + '</span></a>';
+      }).join('');
+      // 首頁示意小卡：最新一隻貓的照片和號碼
+      const top = items[0], topSrc = img(top.photoThumb);
+      if (topSrc) document.getElementById('hm-mini-img').src = topSrc;
+      document.getElementById('hm-mini-balls').innerHTML = (top.numbers || []).slice(0, 6).map(n => '<i>' + ball(n) + '</i>').join('');
     }
-    const rankColors = ['#BA7517','#888780','#993C1D'];
-    el.innerHTML = items.map((item,i) => {
-      const src = img(item.photoThumb);
-      const photo = src ? '<img src="' + src + '" style="width:100%;height:100%;object-fit:cover"/>' : '🐱';
-      const loc = [item.city, item.country].filter(Boolean).join(', ');
-      return '<div class="rank-item">'
-        + '<span style="font-size:13px;font-weight:500;color:' + (rankColors[i]||'#AFA9EC') + ';min-width:20px">' + (i+1) + '</span>'
-        + '<div class="rank-avatar">' + photo + '</div>'
-        + '<div style="flex:1"><p style="font-size:14px;font-weight:500;margin:0">' + esc(item.catName) + '</p>'
-        + '<p style="font-size:12px;color:#888780;margin:0">' + esc(loc) + ' · ' + esc(item.lotName) + '</p></div>'
-        + '<span class="tag" style="background:#FAEEDA;color:#633806">' + esc(item.date) + '</span>'
-        + '</div>';
-    }).join('');
-  } catch {}
+  } catch (e) { console.warn('home latest error:', e); }
+  // 上一期開獎號碼：取最近一筆已對獎的選號
+  try {
+    const snap = await getDocs(query(collection(db,'draws'), orderBy('checkedAt','desc'), limit(1)));
+    if (!snap.empty) {
+      const d = snap.docs[0].data();
+      if ((d.winNumbers || []).length) {
+        document.getElementById('hm-last-title').textContent = window.t('lot_tw_name') + (d.drawPeriod ? ' · ' + window.t('pf_period').replace('{p}', d.drawPeriod) : '');
+        document.getElementById('hm-last-date').textContent = d.drawDate ? window.drawDateText(d.drawDate) : '';
+        document.getElementById('hm-last-balls').innerHTML = d.winNumbers.map(n => '<i>' + ball(n) + '</i>').join('')
+          + (d.winSpecial != null ? '<i class="sp">' + ball(d.winSpecial) + '</i>' : '');
+        document.getElementById('hm-last').hidden = false;
+      }
+    }
+  } catch (e) { console.warn('home last draw error:', e); }
 }
 loadHomeData();
 
@@ -927,6 +974,7 @@ const I18N = {
     done_title:'{name} 已加入排行榜！', done_country:'現在代表 {country} 參賽',
     done_sub_untracked:'這組號碼僅供娛樂，不會自動對獎',
     status_pending:'待開獎', status_no_win:'未中獎', status_win:'中獎',
+    step_next:'下一步', other_lots:'其他國家樂透', cd_day:'天',
   },
   en: {
     nav_home:'Home', nav_upload:'Upload', nav_rank:'Leaderboard',
@@ -1016,6 +1064,7 @@ const I18N = {
     done_title:'{name} joined the leaderboard!', done_country:'Now representing {country}',
     done_sub_untracked:'Just for fun — these numbers are not auto-checked',
     status_pending:'Pending', status_no_win:'No Win', status_win:'Won',
+    step_next:'Next', other_lots:'Other countries', cd_day:'d',
   },
   ja: {
     nav_home:'ホーム', nav_upload:'アップロード', nav_rank:'ランキング',
@@ -1105,6 +1154,7 @@ const I18N = {
     done_title:'{name} がランキングに参加しました！', done_country:'{country} 代表として参戦中',
     done_sub_untracked:'お楽しみ用の番号のため、自動照合は行いません',
     status_pending:'抽選待ち', status_no_win:'外れ', status_win:'当選',
+    step_next:'次へ', other_lots:'他の国の宝くじ', cd_day:'日',
   }
 };
 
@@ -1193,8 +1243,50 @@ function showPage(name) {
   if (name === 'profile' && window._renderProfile) window._renderProfile();
   if (name === 'result') renderResultAction();
   if (name === 'upload' && window.Focus) Focus.preload();
+  if (name === 'upload') upStep(window._state && window._state.hasPhoto ? 2 : 1);
 }
 window.showPage = showPage;
+window.drawDateText = drawDateText;
+
+// ── 首頁：下一期大樂透倒數（台灣時間 20:30 開獎）──────────
+function tickCountdown() {
+  var iso = Lottery.targetDrawDate('tw', new Date());
+  var el = document.getElementById('hm-count');
+  if (!iso || !el) return;
+  document.getElementById('hm-draw').textContent = drawDateText(iso) + ' 20:30';
+  var left = Math.max(0, Math.floor((Date.parse(iso + 'T20:30:00+08:00') - Date.now()) / 1000));
+  var pad = function (n) { return String(n).padStart(2, '0'); };
+  var d = Math.floor(left / 86400), h = Math.floor(left % 86400 / 3600), m = Math.floor(left % 3600 / 60), sec = left % 60;
+  el.innerHTML = (d ? d + '<small>' + Safe.esc(t('cd_day')) + '</small> ' : '') + pad(h) + ':' + pad(m) + ':' + pad(sec);
+}
+setInterval(tickCountdown, 1000);
+document.addEventListener('DOMContentLoaded', tickCountdown);
+
+// ── 選號流程：第 1 步照片、第 2 步取名與樂透 ─────────────
+var _upStep = 1;
+function upStep(n) {
+  var st = window._state;
+  if (n === 2 && !(st && st.hasPhoto)) return;
+  _upStep = n;
+  document.getElementById('up-step1').style.display = n === 1 ? '' : 'none';
+  document.getElementById('up-step2').style.display = n === 2 ? '' : 'none';
+  document.getElementById('step-no').textContent = n;
+  document.getElementById('step-bar-fill').style.width = (n === 1 ? 33 : 66) + '%';
+  if (n === 2) {
+    document.getElementById('step2-thumb').src = document.getElementById('preview-img').src;
+    ga('upload_step', { step: 2 });
+  }
+  window.scrollTo(0, 0);
+}
+function upBack() {
+  if (_upStep === 2) upStep(1); else showPage('home');
+}
+function toggleOtherLots() {
+  var box = document.getElementById('other-lots');
+  var open = box.style.display === 'none';
+  box.style.display = open ? '' : 'none';
+  ga('ui_click', { element: 'other_lots', state: open ? 'open' : 'close' });
+}
 
 window.toggleUserMenu = function() {
   var dd = document.getElementById('nav-dropdown');
@@ -1534,6 +1626,8 @@ function updateGenBtn() {
   var st = window._state, btn = document.getElementById('gen-btn');
   var name = document.getElementById('cat-name-input').value.trim();
   var ready = st.hasPhoto && name;
+  var nb = document.getElementById('next-btn');
+  if (nb) nb.classList.toggle('disabled', !st.hasPhoto);
   btn.classList.toggle('disabled', !ready);
   btn.textContent = !st.hasPhoto ? t('upload_btn_default') : !name ? t('need_name') : t('upload_btn_ready');
 }
@@ -1803,11 +1897,12 @@ function toggleCat(id) {
       // _state.user 已被 onAuthStateChanged 設定（包含 null）
       if (window._authReady || waited >= 3000) {
         clearInterval(interval);
-        showPage(goto);
+        if (goto === 'upload') handleUploadClick(); else showPage(goto);
       }
     }, 100);
   }
 })();
 </script>
+<script src="js/tabbar.js?v=20261105"></script>
 </body>
 </html>
