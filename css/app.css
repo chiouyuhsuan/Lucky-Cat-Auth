@@ -1,0 +1,42 @@
+/* 新版流程（手機版）共用外框：四個頁面都載入，放在各頁 <style> 之後
+   - 全站寬度固定成手機寬（最寬 480px），電腦上置中
+   - 下方五個分頁鈕取代上方選單（js/tabbar.js 產生），上方只留 Logo、語言、關於、帳號 */
+:root{
+  --app-w:480px;
+  --tab-h:64px;
+  --ink:#26215C; --ink-soft:#5A5677; --muted:#888780;
+  --purple:#534AB7; --purple-deep:#3C3489; --purple-mid:#7F77DD;
+  --purple-pale:#EEEDFE; --line:#CECBF6; --page:#F4F2FB;
+}
+html{background:#E7E4F5}
+body{max-width:var(--app-w);margin:0 auto !important;min-height:100vh;
+     padding-bottom:calc(var(--tab-h) + 24px + env(safe-area-inset-bottom));
+     box-shadow:0 0 0 1px rgba(83,74,183,.08),0 20px 60px rgba(38,33,92,.10)}
+
+/* 上方：只留 Logo、語言、關於、帳號 */
+.topnav{height:56px !important;padding:0 14px !important;flex-wrap:nowrap !important;row-gap:0 !important}
+.topnav .nav-links{order:0 !important;width:auto !important;overflow:visible !important;padding:0 !important;margin-left:auto;margin-right:4px}
+.topnav .nav-link{display:none}
+.topnav .nav-link[href="about.html"]{display:inline-block;padding:5px 8px;font-size:12px}
+.topnav .nav-cta{display:none}
+.topnav .logo-text{font-weight:900;letter-spacing:.01em}
+.topnav .lang-switcher{margin-right:2px}
+.topnav .nav-user-name{display:none}
+.nav-dropdown{right:-6px}
+
+/* 下方分頁鈕 */
+.tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--app-w);z-index:400;
+        display:flex;justify-content:space-around;align-items:flex-end;box-sizing:border-box;
+        padding:8px 6px calc(10px + env(safe-area-inset-bottom));background:#fff;border-top:1px solid var(--line)}
+.tabbar a{display:flex;flex-direction:column;align-items:center;gap:3px;width:20%;font-size:11px;line-height:1.2;
+          color:var(--muted);text-decoration:none;font-family:inherit;background:none;border:0;cursor:pointer;white-space:nowrap}
+.tabbar a.on{color:var(--purple);font-weight:700}
+.tabbar svg{width:24px;height:24px}
+.tabbar .tab-main{color:var(--purple);font-weight:700}
+.tabbar .tab-main span{width:54px;height:54px;margin-top:-28px;border-radius:50%;background:var(--purple);color:#fff;
+          display:grid;place-items:center;box-shadow:0 6px 16px rgba(83,74,183,.35)}
+.tabbar .tab-main svg{width:26px;height:26px}
+
+/* 視窗、提示跟著手機寬度 */
+.modal-box{max-width:var(--app-w) !important}
+.toast{bottom:calc(var(--tab-h) + 28px) !important}
