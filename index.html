@@ -283,7 +283,7 @@ input[type=file]{display:none}
   </div>
   <input type="file" id="file-in" accept="image/*" onchange="handleFile(this)"/>
   <div class="upload-zone" id="upload-zone">
-    <div class="upload-placeholder" id="upload-placeholder" onclick="document.getElementById('file-in').click()">
+    <div class="upload-placeholder" id="upload-placeholder" onclick="document.getElementById('file-in').click(); preloadFocusNow()">
       <div class="upload-icon-circle">
         <svg width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M13 5v12M8 10l5-5 5 5" stroke="#EEEDFE" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 20h18" stroke="#EEEDFE" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
@@ -1242,11 +1242,26 @@ function showPage(name) {
   window.scrollTo(0, 0);
   if (name === 'profile' && window._renderProfile) window._renderProfile();
   if (name === 'result') renderResultAction();
-  if (name === 'upload' && window.Focus) Focus.preload();
+  if (name === 'upload') preloadFocusSoon();
   if (name === 'upload') upStep(window._state && window._state.hasPhoto ? 2 : 1);
   if (name === 'upload' || name === 'loading') loadLoadingCat();
 }
 window.showPage = showPage;
+
+// 貓咪辨識模型（約 2MB）載入時會卡住畫面一下。
+// 不在切換頁面的瞬間載入：等使用者按下選照片（相簿開著時載入，感覺不到），
+// 或停在上傳頁 2.5 秒還沒選，再趁空檔載入
+var _focusTimer = null;
+function preloadFocusNow() {
+  clearTimeout(_focusTimer);
+  if (window.Focus) Focus.preload();
+}
+function preloadFocusSoon() {
+  clearTimeout(_focusTimer);
+  _focusTimer = setTimeout(function () {
+    if (window.requestIdleCallback) requestIdleCallback(preloadFocusNow, { timeout: 2000 }); else preloadFocusNow();
+  }, 2500);
+}
 window.drawDateText = drawDateText;
 
 // 胖橘貓動圖（約 340KB）只在進入選號流程才下載，首頁不載入，省流量
@@ -1309,6 +1324,17 @@ document.addEventListener('click', function(e) {
 
 // 點擊上傳按鈕：未登入先問，已登入直接進
 function handleUploadClick() {
+  // 剛打開網頁時登入狀態還沒確認：先等一下（最多 3 秒），避免已登入的人也跳出登入提示
+  if (!window._authReady) {
+    var waited = 0, iv = setInterval(function () {
+      waited += 100;
+      if (window._authReady || waited >= 3000) { clearInterval(iv); handleUploadClick.go(); }
+    }, 100);
+    return;
+  }
+  handleUploadClick.go();
+}
+handleUploadClick.go = function () {
   if (window._state && window._state.user) {
     showPage('upload');
   } else {
