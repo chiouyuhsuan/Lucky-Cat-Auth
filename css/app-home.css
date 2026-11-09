@@ -83,3 +83,7 @@ body{font-family:'Noto Sans TC','PingFang TC',sans-serif}
 #page-profile h2,#page-email-auth h2{font-size:24px !important;font-weight:900 !important}
 .stat-card{border-radius:16px}
 .social-btn{border-radius:14px;height:50px}
+
+/* 結果頁：未登入提醒 */
+.guest-hint{background:var(--purple-pale);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px;font-size:13px;line-height:1.6;color:var(--ink)}
+.guest-hint b{color:var(--purple)}
