@@ -41,9 +41,3 @@ body{max-width:var(--app-w);margin:0 auto !important;min-height:100vh;
 .modal-box{max-width:var(--app-w) !important}
 .toast{bottom:calc(var(--tab-h) + 28px) !important}
 
-/* App 內建瀏覽器提醒（Threads、IG、FB、LINE） */
-.inapp-note{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;background:#FFF4D6;border-bottom:1px solid #F0C866;
-            color:#633806;font-size:12px;line-height:1.6}
-.inapp-note span{flex:1}
-.inapp-note button{flex:none;font-family:inherit;font-size:12px;font-weight:700;color:#633806;background:#fff;border:1px solid #F0C866;
-            border-radius:999px;padding:3px 10px;cursor:pointer}

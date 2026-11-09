@@ -29,6 +29,8 @@
 |---|---|---|
 | `page_view` | 首頁內換頁（上傳、等待、結果、紀錄、登入） | `page_name`：upload／loading／result／profile／email-auth／home |
 | `login_prompt_show` | 未登入按「開始選號」跳出登入提示 | |
+| `in_app_browser` | 在 App 內建瀏覽器（Threads、IG、FB、LINE）打開任何一頁 | `app`：threads／instagram／facebook／line／webview；`page`：home／rank／wall／other |
+| `ui_click`（`element` = `tabbar_*`） | 點下方分頁鈕 | `element`：tabbar_home／tabbar_rank／tabbar_upload／tabbar_wall／tabbar_me |
 | `login_prompt_choice` | 在登入提示做選擇 | `choice`：google／email／skip |
 | `select_lottery` | 選樂透 | `lottery_type`：tw／us／jp |
 | `photo_upload` | 照片檢查完成 | `result`：pass／not_animal／bad_file；`focus_found`：yes／no；`detected_by`；`file_type`；`file_size_kb`；`photo_shape` |
