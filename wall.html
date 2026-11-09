@@ -38,16 +38,13 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 .stat-lbl{font-size:11px;color:rgba(255,255,255,.4);margin-top:2px}
 
 /* FILTERS */
-.filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 20px 24px;max-width:680px;margin:0 auto}
+.filters{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:18px 16px 16px;max-width:680px;margin:0 auto}
 .filter-btn{padding:6px 14px;border-radius:20px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
 .filter-btn:hover,.filter-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
 
 /* MASONRY WALL */
 .cat-wall{column-count:2;column-gap:8px;padding:0 10px 60px;max-width:1200px;margin:0 auto}
-@media(min-width:480px){.cat-wall{column-count:3}}
-@media(min-width:720px){.cat-wall{column-count:4}}
-@media(min-width:960px){.cat-wall{column-count:5}}
-@media(min-width:1200px){.cat-wall{column-count:6}}
+/* 全站固定手機寬度（最寬 480px）：照片固定兩欄，電腦上也一樣大 */
 
 .cat-card{break-inside:avoid;margin-bottom:8px;border-radius:12px;overflow:hidden;position:relative;cursor:pointer;background:#2a2a3e}
 .cat-card:hover .cat-overlay{opacity:1}
@@ -118,17 +115,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
   <div id="nav-right"><a class="nav-cta" href="index.html">開始選號</a></div>
 </nav>
 
-<div class="wall-header">
-  <div class="wall-badge">🐾 全球貓咪照片牆</div>
-  <h1 class="wall-title">每一隻貓都是<span class="accent">幸運的故事</span></h1>
-  <p class="wall-sub">來自世界各地的貓咪，在這裡聚集</p>
-  <div class="stats-bar">
-    <div class="stat-item"><div class="stat-num" id="wall-count">—</div><div class="stat-lbl">全球貓咪</div></div>
-    <div class="stat-item"><div class="stat-num" id="wall-countries">—</div><div class="stat-lbl">參與國家</div></div>
-    <div class="stat-item"><div class="stat-num" id="wall-winners">—</div><div class="stat-lbl">中獎次數</div></div>
-  </div>
-</div>
-
 <div class="filters">
   <button class="filter-btn active" onclick="setFilter('all', this)">全部</button>
   <button class="filter-btn" onclick="setFilter('won', this)">🏆 中獎貓</button>
@@ -169,15 +155,8 @@ let allDraws = [], filter = 'all', renderSeq = 0;
 
 async function loadWall() {
   try {
-    const [snap, catsSnap] = await Promise.all([
-      getDocs(query(collection(db, 'draws'), orderBy('createdAt', 'desc'), limit(500))),
-      getDocs(collection(db, 'cats')),
-    ]);
+    const snap = await getDocs(query(collection(db, 'draws'), orderBy('createdAt', 'desc'), limit(500)));
     snap.forEach(d => { const x = d.data(); if (img(x.photoThumb)) allDraws.push({ id: d.id, ...x }); });
-    const cats = []; catsSnap.forEach(d => cats.push(d.data()));
-    document.getElementById('wall-count').textContent = cats.length.toLocaleString();
-    document.getElementById('wall-countries').textContent = new Set(cats.map(c => safeCC(c.countryCode)).filter(Boolean)).size;
-    document.getElementById('wall-winners').textContent = cats.reduce((s, c) => s + int((c.stats || {}).wins), 0);
     render();
   } catch (e) {
     console.error(e);
