@@ -87,4 +87,36 @@
   document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.lang-btn')) setTimeout(render, 0); });
   render();
   window.Tabbar = { render: render };
+
+  // ── App 內建瀏覽器提醒 ─────────────────────────────────
+  // 從 Threads、IG、FB、LINE 點連結進來時，是在 App 內建的瀏覽器開啟：
+  // Google 不允許在這裡登入，關掉 App 後登入狀態也常被清掉（看起來像被登出），效能也比較差
+  var IN_APP = /Barcelona|Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line\/|; wv\)/i;
+  var NOTE = {
+    zh: { msg: '你正在 App 內建的瀏覽器裡開啟。Google 登入可能失敗、也容易被登出，建議點右上角「⋯」選「在瀏覽器中開啟」。', close: '知道了' },
+    en: { msg: "You're in an in-app browser. Google sign-in may fail and you may get signed out. Tap \u201c\u22ef\u201d at the top right and choose \u201cOpen in browser\u201d.", close: 'Got it' },
+    ja: { msg: 'アプリ内ブラウザで開いています。Google ログインに失敗したり、ログアウトされやすくなります。右上の「⋯」から「ブラウザで開く」を選んでください。', close: '閉じる' },
+  };
+  var dismissed = false;
+  try { dismissed = sessionStorage.getItem('lc_inapp_ok') === '1'; } catch (e) {}
+  if (IN_APP.test(navigator.userAgent) && !dismissed) {
+    var bar = document.createElement('div');
+    bar.className = 'inapp-note';
+    bar.setAttribute('role', 'status');
+    var paint = function () {
+      var t = NOTE[lang()];
+      bar.innerHTML = '<span></span><button type="button"></button>';
+      bar.querySelector('span').textContent = t.msg;
+      bar.querySelector('button').textContent = t.close;
+    };
+    paint();
+    document.body.insertBefore(bar, document.body.firstChild);
+    bar.addEventListener('click', function (e) {
+      if (!e.target.closest('button')) return;
+      bar.remove();
+      try { sessionStorage.setItem('lc_inapp_ok', '1'); } catch (err) {}
+    });
+    document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.lang-btn')) setTimeout(paint, 0); });
+    if (window.LC) window.LC.track('in_app_browser', { app: (navigator.userAgent.match(/Barcelona|Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line/i) || ['webview'])[0] });
+  }
 })();
