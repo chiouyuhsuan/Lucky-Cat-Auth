@@ -121,7 +121,6 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
   <button class="filter-btn" onclick="setFilter('tw', this)">🇹🇼 台灣</button>
   <button class="filter-btn" onclick="setFilter('recent', this)">🆕 最新上傳</button>
 </div>
-<p id="dedupe-note" style="text-align:center;font-size:12px;color:rgba(255,255,255,.55);margin:-6px 0 12px"></p>
 
 <div id="cat-wall" class="cat-wall" data-ga-section="wall_grid">
   <div class="loading-wall" style="column-span:all">
@@ -200,8 +199,6 @@ async function render() {
     const g = shown[int(card.dataset.idx)];
     window.openLightbox(g.item, g.dupes.length + 1);
   }));
-  document.getElementById('dedupe-note').textContent =
-    groups.length < items.length ? `已隱藏 ${items.length - groups.length} 張重複照片` : '';
 }
 
 window.setFilter = function (f, btn) {
