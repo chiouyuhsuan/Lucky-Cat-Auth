@@ -87,4 +87,13 @@
   document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.lang-btn')) setTimeout(render, 0); });
   render();
   window.Tabbar = { render: render };
+
+  // ── App 內建瀏覽器（Threads、IG、FB、LINE）：只記 GA，不顯示提醒 ─────
+  // App 內建瀏覽器裡 Google 不允許登入、關掉 App 後登入狀態常被清掉，先記錄有多少人從這裡開
+  var IN_APP = /Barcelona|Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line\/|; wv\)/i;
+  if (IN_APP.test(navigator.userAgent) && window.LC) {
+    var m = navigator.userAgent.match(/Barcelona|Instagram|FBAN|FBAV|FB_IAB|FBIOS|Line/i);
+    var app = m ? ({ barcelona: 'threads', fban: 'facebook', fbav: 'facebook', fb_iab: 'facebook', fbios: 'facebook' }[m[0].toLowerCase()] || m[0].toLowerCase()) : 'webview';
+    window.LC.track('in_app_browser', { app: app, page: here || 'other' });
+  }
 })();

@@ -40,3 +40,4 @@ body{max-width:var(--app-w);margin:0 auto !important;min-height:100vh;
 /* 視窗、提示跟著手機寬度 */
 .modal-box{max-width:var(--app-w) !important}
 .toast{bottom:calc(var(--tab-h) + 28px) !important}
+
