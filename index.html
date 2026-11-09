@@ -131,7 +131,7 @@ input[type=file]{display:none}
 </style>
 <link rel="stylesheet" href="css/mobile.css?v=20261102b"/>
 <link rel="stylesheet" href="css/app.css?v=20261105"/>
-<link rel="stylesheet" href="css/app-home.css?v=20261105"/>
+<link rel="stylesheet" href="css/app-home.css?v=20261109"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Nunito:wght@800;900&display=swap"/>
 <script src="js/analytics.js?v=20261102b"></script>
@@ -202,7 +202,7 @@ input[type=file]{display:none}
   </section>
   <section class="hm-hero">
     <div class="hm-mini" id="hm-mini" aria-hidden="true">
-      <img id="hm-mini-img" src="images/cat-pangji.webp" alt=""/>
+      <img id="hm-mini-img" alt=""/>
       <div class="hm-mini-balls" id="hm-mini-balls"></div>
     </div>
     <div class="hm-hero-txt">
@@ -346,7 +346,7 @@ input[type=file]{display:none}
 <!-- LOADING -->
 <div class="page" id="page-loading">
   <div class="loading-page">
-    <img src="images/malu-loading.webp" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
+    <img id="loading-cat" data-src="images/malu-loading.webp?v=20261109" alt="" style="width:180px;height:135px;object-fit:contain;image-rendering:pixelated;display:block;margin:0 auto" onerror="this.style.display='none'"/>
     <div style="display:flex;gap:7px;justify-content:center;margin:20px 0 10px"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
     <p style="font-size:16px;font-weight:500;color:#3C3489" data-i18n="loading_title">正在幫你搜尋幸運號碼</p>
     <p style="font-size:13px;color:#7F77DD;margin-top:6px" data-i18n="loading_sub">胖橘貓已收到你的照片，全力奔跑中...</p>
@@ -1244,9 +1244,16 @@ function showPage(name) {
   if (name === 'result') renderResultAction();
   if (name === 'upload' && window.Focus) Focus.preload();
   if (name === 'upload') upStep(window._state && window._state.hasPhoto ? 2 : 1);
+  if (name === 'upload' || name === 'loading') loadLoadingCat();
 }
 window.showPage = showPage;
 window.drawDateText = drawDateText;
+
+// 胖橘貓動圖（約 340KB）只在進入選號流程才下載，首頁不載入，省流量
+function loadLoadingCat() {
+  var im = document.getElementById('loading-cat');
+  if (im && !im.getAttribute('src')) im.src = im.dataset.src;
+}
 
 // ── 首頁：下一期大樂透倒數（台灣時間 20:30 開獎）──────────
 function tickCountdown() {
