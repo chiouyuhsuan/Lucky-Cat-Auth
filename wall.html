@@ -168,11 +168,17 @@ async function loadWall() {
   }
 }
 
+// 會自動對獎：大樂透、11/11 之後的 Powerball
+function tracked(d) { return (d.lotType === 'tw' && d.tracked !== false) || (d.lotType === 'us' && d.tracked === true && d.schema === 2); }
+function lvName(d, lv) {
+  return d.lotType === 'us' ? ({ 1: '頭獎', 2: '5 碼', 3: '4 碼＋Powerball', 4: '4 碼', 5: '3 碼＋Powerball', 6: '3 碼', 7: '2 碼＋Powerball', 8: '1 碼＋Powerball', 9: 'Powerball' })[lv] : LV[lv];
+}
+window.lcTracked = tracked; window.lcLvName = lvName;   // 給下方燈箱用
 function statusOf(d) {
-  if (d.lotType !== 'tw' || d.tracked === false) return '';
+  if (!tracked(d)) return '';
   if (!d.checkedAt) return '<span class="cat-prize pending">⏳ 待開獎</span>';
   const lv = int(d.prizeLevel);
-  return lv > 0 ? '<span class="cat-prize won">🏆 ' + LV[lv] + '</span>' : '';
+  return lv > 0 ? '<span class="cat-prize won">🏆 ' + lvName(d, lv) + '</span>' : '';
 }
 
 async function render() {
@@ -226,13 +232,13 @@ function openLightbox(item, times) {
   document.getElementById('lightbox-name').textContent = item.catName || '貓咪';
   var loc = [item.city, item.country].filter(Boolean).join('・');
   var lv = Safe.int(item.prizeLevel);
-  var tracked = item.lotType === 'tw' && item.tracked !== false;
-  var prize = !tracked ? '  僅娛樂' : lv > 0 ? '  🏆 ' + LV[lv] : item.checkedAt ? '  未中獎' : '  ⏳ 待開獎';
+  var isTracked = window.lcTracked(item);
+  var prize = !isTracked ? '  僅娛樂' : lv > 0 ? '  🏆 ' + window.lcLvName(item, lv) : item.checkedAt ? '  未中獎' : '  ⏳ 待開獎';
   document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize
     + (times > 1 ? '  ·  同一張照片選號 ' + times + ' 次' : '');
   document.getElementById('lightbox').classList.add('show');
   window._lbOpenAt = Date.now();
-  window.LC && LC.track('wall_photo_open', { lottery_type: item.lotType || 'unknown', status: !tracked ? 'untracked' : lv > 0 ? 'won' : item.checkedAt ? 'lost' : 'pending', same_photo_times: times || 1 });
+  window.LC && LC.track('wall_photo_open', { lottery_type: item.lotType || 'unknown', status: !isTracked ? 'untracked' : lv > 0 ? 'won' : item.checkedAt ? 'lost' : 'pending', same_photo_times: times || 1 });
   document.body.style.overflow = 'hidden';
 }
 
