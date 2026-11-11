@@ -333,7 +333,7 @@ input[type=file]{display:none}
   <button type="button" class="other-lots" id="other-lots-btn" onclick="toggleOtherLots()"><span data-i18n="other_lots">其他國家樂透</span> ▾</button>
   <div id="other-lots" style="display:none">
   <div id="lot-us" class="lot-opt" onclick="selectLot('us')">
-    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇺🇸</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">US Powerball</p><span class="tag" style="background:#F1EFE8;color:#5F5E5A;margin-left:6px;font-size:10px" data-i18n="untracked_tag">僅娛樂・不自動對獎</span><p style="font-size:12px;color:#888780;margin:0">週一、三、六 · 5/69 + Powerball</p></div></div>
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:20px">🇺🇸</span><div><p style="font-size:14px;font-weight:500;margin:0;display:inline">US Powerball</p><p style="font-size:12px;color:#888780;margin:0">週一、三、六 · 5/69 + Powerball</p></div></div>
     <div id="r-us" class="radio"></div>
   </div>
   <div id="lot-jp" class="lot-opt" onclick="selectLot('jp')">
@@ -400,7 +400,7 @@ input[type=file]{display:none}
 <div class="toast" id="toast"></div>
 
 <script src="js/safe.js?v=20261102b"></script>
-<script src="js/lottery.js?v=20261102b"></script>
+<script src="js/lottery.js?v=20261111"></script>
 <script src="js/focus.js?v=20261102b"></script>
 <script src="js/card.js?v=20261102b"></script>
 <script type="module">
@@ -602,7 +602,7 @@ window._saveDraw = async function(catName, existingCatId) {
     uid: user.uid, catId: catRef.id, catName,
     lotType: curLot, lotName: window.t('lot_' + curLot + '_name'), lotFlag: lot.flag,
     numbers: currentNums.main, special: currentNums.special,
-    targetDrawDate,                         // 大樂透：'YYYY-MM-DD'；美日：null（不對獎）
+    targetDrawDate,                         // 大樂透：台灣開獎日；Powerball：美國開獎日；日本：null（不對獎）
     focus: window._state.focus || null,     // 自動對焦位置（0~1），重新產生圖卡時裁切一致
     cardColor: window._state.cardColor,     // 圖卡顏色（每次選號換下一色），重開圖卡時顏色一致
     tracked: lot.tracked,                   // 是否自動對獎、計入中獎率
@@ -683,18 +683,18 @@ function statBox(label, value, sub, color) {
     + (sub ? '<div style="font-size:11px;color:#AFA9EC;margin-top:1px">' + esc(sub) + '</div>' : '') + '</div>';
 }
 
-function summaryHtml(s) {
-  const c = s.cat, r = s.real;
+function summaryHtml(s, lot) {
+  const c = s.cat, r = s.real, us = lot === 'us';
   const catCard = '<div class="stat-card" style="margin-bottom:10px">'
-    + '<div class="sec-title" style="margin-bottom:8px">🐱 ' + esc(T('pf_cat_title')) + '</div>'
+    + '<div class="sec-title" style="margin-bottom:8px">🐱 ' + esc(T(us ? 'pf_cat_title_us' : 'pf_cat_title')) + '</div>'
     + '<div style="display:flex;gap:8px">'
     + statBox(T('pf_checked'), c.checked + ' / ' + c.draws, c.draws - c.checked ? T('pf_pending_n').replace('{n}', c.draws - c.checked) : '')
-    + statBox(T('pf_wins'), String(c.wins), c.bestLevel ? T('pf_best').replace('{lv}', T('lv_' + c.bestLevel)) : '', c.wins ? '#27500A' : '')
+    + statBox(T('pf_wins'), String(c.wins), c.bestLevel ? T('pf_best').replace('{lv}', lvName(lot, c.bestLevel)) : '', c.wins ? '#27500A' : '')
     + statBox(T('pf_rate'), pct(c.winRate), '')
     + statBox(T('pf_prize'), money(c.prize), T('pf_sim'), c.prize ? '#BA7517' : '')
     + '</div></div>';
   const realCard = '<div class="stat-card" style="margin-bottom:18px">'
-    + '<div class="sec-title" style="margin-bottom:8px">💰 ' + esc(T('pf_real_title')) + '</div>'
+    + '<div class="sec-title" style="margin-bottom:8px">💰 ' + esc(T(us ? 'pf_real_title_us' : 'pf_real_title')) + '</div>'
     + (r.bought === 0
       ? '<div style="font-size:12px;color:#888780">' + esc(T('pf_real_empty')) + '</div>'
       : '<div style="display:flex;gap:8px">'
@@ -706,6 +706,11 @@ function summaryHtml(s) {
     + '</div>';
   return catCard + realCard;
 }
+
+// 獎項名稱：大樂透 lv_1..8；Powerball pb_lv_1..9
+function lvName(lot, lv) { return T((lot === 'us' ? 'pb_lv_' : 'lv_') + lv); }
+// 會自動對獎的紀錄：大樂透、11/11 之後的 Powerball（舊的 Powerball 是 tracked:false）
+function isTracked(d) { return (d.lotType === 'tw' || d.lotType === 'us') && d.tracked !== false && (d.lotType === 'tw' || d.schema === 2); }
 
 // 號碼球：開獎後把對中的主號標綠、對中的特別號標橘；舊紀錄貓自己選的特別號顯示為灰色不計
 function ballsHtml(d) {
@@ -719,6 +724,7 @@ function ballsHtml(d) {
   }).join('');
   const legacy = d.schema == null && d.lotType === 'tw';
   h += (d.special || []).map(function (n) {
+    if (d.lotType === 'us' && d.checkedAt && ws === int(n)) return '<div class="ball sp show" style="' + base + 'background:#3B6D11;color:#fff">' + ball(n) + '</div>';
     return legacy
       ? '<div class="ball show" title="' + esc(T('pf_legacy_sp')) + '" style="' + base + 'background:#F1EFE8;color:#B4B2A9;text-decoration:line-through">' + ball(n) + '</div>'
       : '<div class="ball sp show" style="' + base + '">' + ball(n) + '</div>';
@@ -728,17 +734,18 @@ function ballsHtml(d) {
 
 function statusTag(d) {
   const tag = (bg, fg, txt) => '<span class="tag" style="background:' + bg + ';color:' + fg + ';font-size:10px">' + esc(txt) + '</span>';
-  if (d.lotType !== 'tw' || d.tracked === false) return tag('#F1EFE8', '#5F5E5A', T('untracked_tag'));
+  if (!isTracked(d)) return tag('#F1EFE8', '#5F5E5A', T('untracked_tag'));
   if (!d.checkedAt) return tag('#FAEEDA', '#633806', T('status_pending'));
   const lv = int(d.prizeLevel);
-  return lv > 0 ? tag('#EAF3DE', '#27500A', T('lv_' + lv) + ' ' + money(d.prizeAmount)) : tag('#FCEBEB', '#791F1F', T('status_no_win'));
+  const amt = d.lotType === 'us' && d.prizeAmountUsd != null ? 'US$' + int(d.prizeAmountUsd).toLocaleString() + '（' + money(d.prizeAmount) + '）' : money(d.prizeAmount);
+  return lv > 0 ? tag('#EAF3DE', '#27500A', lvName(d.lotType, lv) + ' ' + amt) : tag('#FCEBEB', '#791F1F', T('status_no_win'));
 }
 
 // 「我買了」按鈕：開獎隔天 24:00 前可切換（對獎後也能補登），之後鎖定只顯示結果
 function purchaseHtml(d) {
-  if (d.lotType !== 'tw' || d.tracked === false) return '';
+  if (!isTracked(d)) return '';
   if (d.schema !== 2) return '<span style="font-size:11px;color:#B4B2A9">' + esc(T('pf_buy_unknown')) + '</span>';
-  const dl = window.Lottery.purchaseDeadline(d.targetDrawDate);
+  const dl = window.Lottery.purchaseDeadline(d.targetDrawDate, d.lotType);
   const open = dl && Date.now() < dl.getTime();
   const on = d.purchased === true;
   if (!open) {
@@ -753,9 +760,9 @@ function purchaseHtml(d) {
 function drawRowHtml(d) {
   const target = d.drawDate || d.targetDrawDate;   // 對獎後以官方實際開獎日為準
   const when = target ? drawDateText(target) : esc(d.date || '');
-  const period = d.drawPeriod ? ' · ' + T('pf_period').replace('{p}', esc(d.drawPeriod)) : '';
+  const period = d.drawPeriod && d.lotType !== 'us' ? ' · ' + T('pf_period').replace('{p}', esc(d.drawPeriod)) : '';
   const match = d.checkedAt && d.matchCount != null
-    ? '<span style="font-size:11px;color:#888780;margin-left:6px">' + esc(T('pf_match').replace('{n}', int(d.matchCount))) + (d.matchSpecial ? ' ＋' + esc(T('pf_sp')) : '') + '</span>' : '';
+    ? '<span style="font-size:11px;color:#888780;margin-left:6px">' + esc(T('pf_match').replace('{n}', int(d.matchCount))) + (d.matchSpecial ? ' ＋' + esc(d.lotType === 'us' ? 'Powerball' : T('pf_sp')) : '') + '</span>' : '';
   return '<div style="padding:10px 0;border-bottom:0.5px solid #F4F2FB">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px">'
     + '<span style="font-size:12px;color:#534AB7">' + esc(d.lotFlag) + ' ' + when + '<span style="color:#AFA9EC">' + period + '</span></span>'
@@ -826,7 +833,8 @@ window._renderProfile = async function() {
   let html = '<div style="display:flex;align-items:center;gap:12px;background:#F8F6FF;border-radius:12px;padding:14px;margin-bottom:16px;border:0.5px solid #CECBF6">'
     + avatar + '<div><p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 2px">' + esc(displayName) + '</p>'
     + '<p style="font-size:12px;color:#888780;margin:0">' + esc(user.email) + '</p></div></div>'
-    + summaryHtml(window.Lottery.summarize(draws))
+    + summaryHtml(window.Lottery.summarize(draws, 'tw'), 'tw')
+    + (draws.some(d => d.lotType === 'us' && isTracked(d)) ? summaryHtml(window.Lottery.summarize(draws, 'us'), 'us') : '')
     + '<div class="sec-title">' + esc(T('profile_my_cats')) + '</div>';
 
   if (!draws.length) {
@@ -834,7 +842,8 @@ window._renderProfile = async function() {
   }
   list.forEach((g, idx) => {
     if (!g.draws.length) return;
-    const s = window.Lottery.summarize(g.draws).cat;
+    const s = window.Lottery.summarize(g.draws, 'tw').cat;
+    const su = window.Lottery.summarize(g.draws, 'us').cat;
     const src = img(g.cat.photoThumb);
     html += '<div style="background:#fff;border:0.5px solid #CECBF6;border-radius:14px;margin-bottom:10px;overflow:hidden">'
       + '<div style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer" onclick="toggleCat(\'cat-draws-' + idx + '\')">'
@@ -843,8 +852,9 @@ window._renderProfile = async function() {
       + '<div style="flex:1;min-width:0">'
       + '<p style="font-size:15px;font-weight:500;color:#26215C;margin:0 0 4px">' + esc(g.cat.catName) + '</p>'
       + '<div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:#888780">'
-      + '<span>' + esc(T('pf_cat_line').replace('{d}', g.draws.length).replace('{c}', s.checked).replace('{w}', s.wins).replace('{r}', pct(s.winRate))) + '</span>'
+      + (s.draws ? '<span>' + esc(T('pf_cat_line').replace('{d}', s.draws).replace('{c}', s.checked).replace('{w}', s.wins).replace('{r}', pct(s.winRate))) + '</span>' : '')
       + (s.prize ? '<span style="color:#BA7517;font-weight:500">' + money(s.prize) + '</span>' : '')
+      + (su.draws ? '<span>Powerball ' + esc(T('pf_cat_line_us').replace('{c}', su.checked).replace('{w}', su.wins)) + '</span>' : '')
       + '</div></div>'
       + '<span style="font-size:12px;color:#AFA9EC" id="cat-arrow-' + idx + '">' + (idx === 0 ? '▲' : '▼') + '</span></div>'
       + '<div id="cat-draws-' + idx + '" style="display:' + (idx === 0 ? 'block' : 'none') + ';padding:0 16px 4px;border-top:0.5px solid #F4F2FB">'
@@ -958,6 +968,8 @@ const I18N = {
     verify_pass_focus:'找到貓咪了！圖卡會以牠為中心 🎉',
     same_cat_stats:'已選號 {d} 次 · 中獎 {w} 次', same_cat_yes_toast:'✓ 將累積到 {name} 的紀錄', same_cat_no_toast:'將建立新的貓咪檔案',
     pf_cat_title:'貓的命中率（所有大樂透選號）', pf_checked:'已對獎', pf_pending_n:'{n} 筆待開獎',
+    pf_cat_title_us:'貓的命中率（所有 Powerball 選號）', pf_real_title_us:'Powerball 實際損益（只算勾選「我買了」，1 美元＝31 台幣）', pf_cat_line_us:'已對 {c} · 中 {w} 次',
+    pb_lv_1:'頭獎', pb_lv_2:'5 碼', pb_lv_3:'4 碼＋Powerball', pb_lv_4:'4 碼', pb_lv_5:'3 碼＋Powerball', pb_lv_6:'3 碼', pb_lv_7:'2 碼＋Powerball', pb_lv_8:'1 碼＋Powerball', pb_lv_9:'Powerball',
     pf_wins:'中獎次數', pf_best:'最佳：{lv}', pf_rate:'中獎率', pf_prize:'累積獎金', pf_sim:'若每注都買',
     pf_real_title:'我的實際損益（只算勾選「我買了」）', pf_real_empty:'還沒有標記買過的號碼。開獎隔天 24:00 前，在下方號碼旁按「我買了」。',
     pf_bought:'買了幾注', pf_cost:'花費', pf_won:'中獎獎金', pf_win_n:'中 {n} 次', pf_profit:'損益',
@@ -1049,6 +1061,8 @@ const I18N = {
     verify_pass_focus:'Found your cat! The card will center on it 🎉',
     same_cat_stats:'{d} picks · {w} wins', same_cat_yes_toast:"✓ Will add to {name}'s record", same_cat_no_toast:'A new cat profile will be created',
     pf_cat_title:"Cat's hit rate (all Taiwan Lotto picks)", pf_checked:'Checked', pf_pending_n:'{n} pending',
+    pf_cat_title_us:"Cat's hit rate (all Powerball picks)", pf_real_title_us:'Powerball real profit (only "I bought it", US$1 = NT$31)', pf_cat_line_us:'{c} checked · {w} wins',
+    pb_lv_1:'Jackpot', pb_lv_2:'Match 5', pb_lv_3:'Match 4 + Powerball', pb_lv_4:'Match 4', pb_lv_5:'Match 3 + Powerball', pb_lv_6:'Match 3', pb_lv_7:'Match 2 + Powerball', pb_lv_8:'Match 1 + Powerball', pb_lv_9:'Powerball',
     pf_wins:'Wins', pf_best:'Best: {lv}', pf_rate:'Win rate', pf_prize:'Total prize', pf_sim:'if every pick was bought',
     pf_real_title:'My real profit (only tickets marked "I bought")', pf_real_empty:'No tickets marked yet. Tap "I bought it" next to a pick by midnight the day after the draw.',
     pf_bought:'Tickets', pf_cost:'Spent', pf_won:'Won', pf_win_n:'{n} wins', pf_profit:'Profit',
@@ -1140,6 +1154,8 @@ const I18N = {
     verify_pass_focus:'猫を見つけました！カードは猫を中心にします 🎉',
     same_cat_stats:'{d} 回選択 · {w} 回当選', same_cat_yes_toast:'✓ {name} の記録に追加します', same_cat_no_toast:'新しい猫のプロフィールを作成します',
     pf_cat_title:'猫の的中率（台湾宝くじ全体）', pf_checked:'照合済み', pf_pending_n:'{n} 件抽選待ち',
+    pf_cat_title_us:'猫の的中率（Powerball 全体）', pf_real_title_us:'Powerball の実際の損益（「購入した」のみ、1 ドル＝31 台湾ドル）', pf_cat_line_us:'照合 {c} · 当選 {w}',
+    pb_lv_1:'1等', pb_lv_2:'5 個一致', pb_lv_3:'4 個＋Powerball', pb_lv_4:'4 個一致', pb_lv_5:'3 個＋Powerball', pb_lv_6:'3 個一致', pb_lv_7:'2 個＋Powerball', pb_lv_8:'1 個＋Powerball', pb_lv_9:'Powerball',
     pf_wins:'当選回数', pf_best:'最高：{lv}', pf_rate:'当選率', pf_prize:'累計賞金', pf_sim:'全部購入した場合',
     pf_real_title:'実際の損益（「購入した」のみ）', pf_real_empty:'まだ購入済みの番号がありません。抽選翌日24:00までに番号の横の「購入した」を押してください。',
     pf_bought:'購入口数', pf_cost:'支出', pf_won:'当選金', pf_win_n:'{n} 回当選', pf_profit:'損益',

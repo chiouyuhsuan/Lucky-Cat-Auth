@@ -105,3 +105,49 @@ def parse_official(item):
         'prizes': prizes,
         'prizesFinal': final,
     }
+
+
+# ── 美國 Powerball ──────────────────────────────────────
+# 白球 1–69 選 5、紅球（Powerball）1–26 選 1；美東時間週一、三、六 22:59 開獎
+# 獎金（未加 Power Play，美元）：https://www.powerball.com/powerball-prize-chart
+USD_TWD = 31  # 固定匯率（與 js/lottery.js 相同）
+
+PB_PRIZE_NAMES = {1: '頭獎', 2: '5 碼', 3: '4 碼＋Powerball', 4: '4 碼', 5: '3 碼＋Powerball',
+                  6: '3 碼', 7: '2 碼＋Powerball', 8: '1 碼＋Powerball', 9: 'Powerball'}
+# 頭獎是浮動獎金，公開資料沒有金額 → 記 0，摘要另外標示
+PB_PRIZE_USD = {1: 0, 2: 1_000_000, 3: 50_000, 4: 100, 5: 100, 6: 7, 7: 7, 8: 4, 9: 4}
+
+
+def pb_prize_level(numbers, special, win_numbers, win_special):
+    """
+    numbers: 玩家 5 個白球；special: 玩家 Powerball（list，取第 1 個）
+    回傳 (等級 0-9, 對中白球數, 是否對中 Powerball)
+    """
+    mine = set(int(n) for n in numbers)
+    if len(mine) != 5:
+        raise ValueError(f'Powerball 白球必須是 5 個不重複的號碼：{numbers}')
+    if not special:
+        raise ValueError('沒有 Powerball 號碼')
+    matched = len(mine & set(int(n) for n in win_numbers))
+    pb = int(special[0]) == int(win_special)
+    table = {(5, True): 1, (5, False): 2, (4, True): 3, (4, False): 4, (3, True): 5,
+             (3, False): 6, (2, True): 7, (1, True): 8, (0, True): 9}
+    return table.get((matched, pb), 0), matched, pb
+
+
+def parse_ny_powerball(row):
+    """紐約州公開資料一筆 → {'date': date, 'numbers': [5], 'special': int}；格式不對丟 ValueError"""
+    d = date.fromisoformat(str(row['draw_date'])[:10])
+    nums = [int(x) for x in str(row['winning_numbers']).split()]
+    if len(nums) != 6 or len(set(nums[:5])) != 5 or not all(1 <= n <= 69 for n in nums[:5]) or not 1 <= nums[5] <= 26:
+        raise ValueError(f'號碼格式不對：{row.get("winning_numbers")}')
+    return {'date': d, 'numbers': sorted(nums[:5]), 'special': nums[5], 'multiplier': row.get('multiplier')}
+
+
+def pb_assign(target_date, draws):
+    """選號時算好的美國開獎日（'YYYY-MM-DD'）→ 那天（或之後第一次）的開獎；還沒開獎回傳 None"""
+    t = date.fromisoformat(target_date)
+    for d in draws:
+        if d['date'] >= t:
+            return d
+    return None

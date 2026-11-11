@@ -87,8 +87,12 @@ service cloud.firestore {
                 && d.targetDrawDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
           || (d.lotType == 'jp' && sixOk(d.numbers, 43) && d.special.size() == 0
                 && d.tracked == false && d.targetDrawDate == null)
+          // Powerball 自動對獎（11/11 起）：tracked 為 true、要有美國開獎日；舊版網頁存的不對獎格式也還接受
           || (d.lotType == 'us' && fiveOk(d.numbers, 69) && d.special.size() == 1
-                && ballOk(d.special, 0, 26) && d.tracked == false && d.targetDrawDate == null);
+                && ballOk(d.special, 0, 26)
+                && ((d.tracked == true && d.targetDrawDate is string
+                      && d.targetDrawDate.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'))
+                    || (d.tracked == false && d.targetDrawDate == null)));
     }
 
     // 自動對焦位置：null，或 0~1 的 x/y/w/h
@@ -99,8 +103,9 @@ service cloud.firestore {
     }
 
     // 開獎隔天 24:00（台灣時間）= 開獎日 UTC 00:00 + 40 小時（10/27 決定，原本是開獎日 20:00）
-    function purchaseDeadline(d) {
-      return timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) + duration.value(40, 'h');
+    // Powerball：美東開獎日 D 晚上開獎＝台灣 D+1 中午，隔天 24:00（台灣）= D 的 UTC 00:00 + 64 小時（11/11 決定）
+    function purchaseDeadline(d, lot) {
+      return timestamp.date(int(d[0:4]), int(d[5:7]), int(d[8:10])) + duration.value(lot == 'us' ? 64 : 40, 'h');
     }
 
     match /draws/{drawId} {
@@ -143,7 +148,7 @@ service cloud.firestore {
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['purchased', 'purchasedAt'])
         && request.resource.data.purchased is bool
         && request.resource.data.purchasedAt == request.time
-        && request.time < purchaseDeadline(resource.data.targetDrawDate);
+        && request.time < purchaseDeadline(resource.data.targetDrawDate, resource.data.lotType);
 
       allow delete: if false;
     }
@@ -172,6 +177,12 @@ service cloud.firestore {
 
     // ── 開獎結果（後端寫入）─────────────────────────────
     match /draws_results/{resultId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Powerball 開獎結果（後端寫入，11/11 起）
+    match /draws_results_us/{resultId} {
       allow read: if true;
       allow write: if false;
     }

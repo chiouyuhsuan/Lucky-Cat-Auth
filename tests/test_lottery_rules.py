@@ -117,3 +117,45 @@ class Assign(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+from lottery_rules import pb_prize_level, parse_ny_powerball, pb_assign, PB_PRIZE_USD
+
+
+class PowerballTest(unittest.TestCase):
+    WIN, SP = [13, 34, 41, 45, 48], 25   # 2026-11-09 開獎
+
+    def test_levels(self):
+        cases = [
+            ([13, 34, 41, 45, 48], [25], 1), ([13, 34, 41, 45, 48], [1], 2),
+            ([13, 34, 41, 45, 1], [25], 3), ([13, 34, 41, 45, 1], [2], 4),
+            ([13, 34, 41, 1, 2], [25], 5), ([13, 34, 41, 1, 2], [3], 6),
+            ([13, 34, 1, 2, 3], [25], 7), ([13, 1, 2, 3, 4], [25], 8),
+            ([1, 2, 3, 4, 5], [25], 9), ([13, 34, 1, 2, 3], [9], 0), ([1, 2, 3, 4, 5], [9], 0),
+        ]
+        for nums, sp, lv in cases:
+            self.assertEqual(pb_prize_level(nums, sp, self.WIN, self.SP)[0], lv, (nums, sp))
+
+    def test_bad_numbers(self):
+        with self.assertRaises(ValueError):
+            pb_prize_level([1, 1, 2, 3, 4], [5], self.WIN, self.SP)
+        with self.assertRaises(ValueError):
+            pb_prize_level([1, 2, 3, 4, 5], [], self.WIN, self.SP)
+
+    def test_parse_and_assign(self):
+        r = parse_ny_powerball({'draw_date': '2026-11-09T00:00:00.000', 'winning_numbers': '48 34 41 45 13 25', 'multiplier': '2'})
+        self.assertEqual(r['numbers'], [13, 34, 41, 45, 48]); self.assertEqual(r['special'], 25)
+        self.assertEqual(r['date'], date(2026, 11, 9))
+        with self.assertRaises(ValueError):
+            parse_ny_powerball({'draw_date': '2026-11-09', 'winning_numbers': '1 2 3 4 25'})
+        draws = [{'date': date(2026, 11, 7)}, {'date': date(2026, 11, 9)}]
+        self.assertEqual(pb_assign('2026-11-09', draws)['date'], date(2026, 11, 9))
+        self.assertEqual(pb_assign('2026-11-08', draws)['date'], date(2026, 11, 9))
+        self.assertIsNone(pb_assign('2026-11-11', draws))
+
+    def test_prize_table(self):
+        self.assertEqual(PB_PRIZE_USD[2], 1_000_000); self.assertEqual(PB_PRIZE_USD[9], 4)
+
+
+if __name__ == '__main__':
+    unittest.main()

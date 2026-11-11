@@ -22,9 +22,13 @@ from firebase_admin import credentials, firestore
 
 sys.path.insert(0, os.path.dirname(__file__))
 from lottery_rules import (TZ_TW, PRIZE_NAMES, prize_level, prize_amount,
-                           assign_draw, parse_official)
+                           assign_draw, parse_official,
+                           USD_TWD, PB_PRIZE_NAMES, PB_PRIZE_USD, pb_prize_level,
+                           parse_ny_powerball, pb_assign)
 
 API = 'https://api.taiwanlottery.com/TLCAPIWeB/Lottery/Lotto649Result'
+# 美國 Powerball：紐約州政府公開資料（官方開獎號碼，每期開獎後更新）
+PB_API = 'https://data.ny.gov/resource/d6yy-54nr.json'
 MAX_MONTHS = 24
 
 
@@ -88,6 +92,28 @@ def fetch_official(since):
 
 
 # ── 主流程 ──────────────────────────────────────────────
+def fetch_powerball(limit=60):
+    """最近 limit 期 Powerball 開獎，依日期由舊到新；回傳 (清單, 問題)"""
+    last = None
+    for attempt in range(4):
+        try:
+            r = requests.get(PB_API, params={'$order': 'draw_date DESC', '$limit': limit}, timeout=30,
+                             headers={'User-Agent': 'Mozilla/5.0 LuckyCat'})
+            r.raise_for_status()
+            rows, problems = [], []
+            for row in r.json():
+                try:
+                    rows.append(parse_ny_powerball(row))
+                except (ValueError, KeyError) as e:
+                    problems.append(f'Powerball {row.get("draw_date")}：{e}')
+            rows.sort(key=lambda d: d['date'])
+            return rows, problems
+        except Exception as e:
+            last = e
+            time.sleep(3 * (attempt + 1))
+    return [], [f'Powerball 開獎資料抓取失敗：{last}']
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--dry-run', action='store_true')
@@ -113,6 +139,9 @@ def main():
         return d.get('schema') is None and d.get('lotType') == 'tw'
 
     pending = [(i, r, d) for i, r, d in all_draws if is_pending_new(d)]
+    pending_us = [(i, r, d) for i, r, d in all_draws
+                  if d.get('schema') == 2 and d.get('lotType') == 'us' and d.get('tracked')
+                  and not d.get('checkedAt') and d.get('targetDrawDate')]
     legacy = [(i, r, d) for i, r, d in all_draws if is_legacy_tw(d)] if args.include_legacy else []
 
     # 2. 抓官方開獎：涵蓋最早一筆待對獎紀錄到今天（至少抓上個月起）
@@ -205,6 +234,55 @@ def main():
                    f'{"＋特別號" if has_sp else ""} → {PRIZE_NAMES.get(lv, "未中獎")}'
                    + (f' ${amt:,}' if amt else ''))
 
+    # 4p. 美國 Powerball：抓開獎 → 存開獎結果 → 對獎（獎金換算台幣存 prizeAmount，美元另存 prizeAmountUsd）
+    #     開獎結果存在另一個集合 draws_results_us，避免跟大樂透混在一起（首頁用期別排序取最新一期大樂透）
+    pb_draws, pb_problems = fetch_powerball()
+    out += ['', '### Powerball',
+            f'- 抓取 {len(pb_draws)} 期' + (f'，最新：{pb_draws[-1]["date"]} {pb_draws[-1]["numbers"]} + {pb_draws[-1]["special"]}' if pb_draws else '')]
+    out += [f'- ⚠️ {p}' for p in pb_problems]
+    if not dry and pb_draws:
+        batch = db.batch()
+        for d in pb_draws[-30:]:
+            batch.set(db.collection('draws_results_us').document(f'us_{d["date"]:%Y%m%d}'), {
+                'lotType': 'us', 'lotName': 'US Powerball', 'source': 'data.ny.gov',
+                'period': d['date'].strftime('%Y%m%d'), 'drawDate': d['date'].strftime('%Y/%m/%d'),
+                'numbers': d['numbers'], 'special': d['special'],
+                'prizesUsd': {str(k): v for k, v in PB_PRIZE_USD.items()}, 'usdTwd': USD_TWD,
+                'updatedAt': firestore.SERVER_TIMESTAMP,
+            })
+        batch.commit()
+    pb_stats = defaultdict(int)
+    for draw_id, ref, d in pending_us:
+        r = pb_assign(d['targetDrawDate'], pb_draws)
+        if not r:
+            pb_stats['尚未開獎'] += 1
+            continue
+        try:
+            lv, matched, pb = pb_prize_level(d.get('numbers') or [], d.get('special') or [], r['numbers'], r['special'])
+        except ValueError as e:
+            pb_stats['號碼格式錯誤'] += 1
+            log('[SKIP]', draw_id, e)
+            continue
+        usd = PB_PRIZE_USD.get(lv, 0)
+        pb_stats['已對獎'] += 1
+        if lv:
+            pb_stats['中獎'] += 1
+        out.append(f'- `{draw_id[:6]}` {r["date"]}：白球對中 {matched} 碼{"＋Powerball" if pb else ""} → '
+                   f'{PB_PRIZE_NAMES.get(lv, "未中獎")}' + (f' US${usd:,}（NT${usd * USD_TWD:,}）' if usd else '')
+                   + ('（⚠️ 頭獎，金額要人工確認）' if lv == 1 else ''))
+        if not dry:
+            ref.update({
+                'drawPeriod': r['date'].strftime('%Y%m%d'),
+                'drawDate': r['date'].isoformat(),
+                'winNumbers': r['numbers'], 'winSpecial': r['special'],
+                'matchCount': matched, 'matchSpecial': pb,
+                'prizeLevel': lv, 'prizeDesc': PB_PRIZE_NAMES.get(lv, '未中獎'),
+                'prizeAmount': usd * USD_TWD, 'prizeAmountUsd': usd,
+                'checkedAt': firestore.SERVER_TIMESTAMP,
+            })
+            d.update({'prizeLevel': lv, 'prizeAmount': usd * USD_TWD, 'checkedAt': True})
+    out.append(f'- 待對獎 {len(pending_us)} 筆：{dict(pb_stats) or "無"}')
+
     # 4a. 指定修正的舊紀錄（只處理舊格式、尚未對過獎的大樂透）
     if fix_ids:
         out += ['', '### 指定修正的舊紀錄']
@@ -258,8 +336,23 @@ def main():
         return ids[0] if len(ids) == 1 else None
 
     per_cat = defaultdict(lambda: {'twDraws': 0, 'checked': 0, 'wins': 0, 'prize': 0, 'bestLevel': 0})
+    # Powerball 另外統計（中獎率分開排）；獎金是台幣，排行榜的累積獎金會把兩種加起來
+    per_cat_us = defaultdict(lambda: {'draws': 0, 'checked': 0, 'wins': 0, 'prize': 0, 'bestLevel': 0})
     unlinked = 0
     for _, _, d in all_draws:
+        if d.get('lotType') == 'us' and d.get('tracked') and d.get('schema') == 2:
+            cid = cat_of(d)
+            if cid:
+                u = per_cat_us[cid]
+                u['draws'] += 1
+                if d.get('checkedAt'):
+                    u['checked'] += 1
+                    lv = int(d.get('prizeLevel') or 0)
+                    if lv > 0:
+                        u['wins'] += 1
+                        u['prize'] += int(d.get('prizeAmount') or 0)
+                        u['bestLevel'] = lv if not u['bestLevel'] else min(u['bestLevel'], lv)
+            continue
         if d.get('lotType') != 'tw' or d.get('tracked') is False:
             continue
         cid = cat_of(d)
@@ -280,11 +373,16 @@ def main():
     for cid, ref, c in cats:
         s = per_cat.get(cid, {'twDraws': 0, 'checked': 0, 'wins': 0, 'prize': 0, 'bestLevel': 0})
         s = dict(s, winRate=round(s['wins'] / s['checked'], 4) if s['checked'] else 0)
-        if c.get('stats') == s and c.get('totalWins') == s['wins'] and c.get('totalPrize') == s['prize']:
+        if cid in per_cat_us:
+            u = per_cat_us[cid]
+            s['us'] = dict(u, winRate=round(u['wins'] / u['checked'], 4) if u['checked'] else 0)
+        total_wins = s['wins'] + s.get('us', {}).get('wins', 0)
+        total_prize = s['prize'] + s.get('us', {}).get('prize', 0)
+        if c.get('stats') == s and c.get('totalWins') == total_wins and c.get('totalPrize') == total_prize:
             continue
         changed.append((cid, c, s))
         if not dry:
-            ref.update({'stats': s, 'totalWins': s['wins'], 'totalPrize': s['prize'],
+            ref.update({'stats': s, 'totalWins': total_wins, 'totalPrize': total_prize,
                         'lastCheckedAt': firestore.SERVER_TIMESTAMP})
     out += ['', '### 貓咪統計', f'- 需要更新 {len(changed)} 隻'
             + (f'；{unlinked} 筆大樂透選號對應不到貓（第 7 段處理）' if unlinked else '')]

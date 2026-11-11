@@ -79,6 +79,9 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 .tab{flex:1;padding:10px 6px;border-radius:12px;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit}
 .tab.on{background:#534AB7;color:#fff;border-color:#534AB7}
 .tab-note{font-size:12px;color:#888780;margin:0 2px 12px}
+.rate-lots{gap:6px;margin:0 0 8px}
+.rl{padding:5px 12px;border-radius:999px;border:0.5px solid #CECBF6;background:#fff;color:#534AB7;font-size:12px;cursor:pointer;font-family:inherit}
+.rl.on{background:#534AB7;color:#fff;border-color:#534AB7}
 .rc-stats{font-size:12px;color:#534AB7}
 .rc-big{font-size:18px;font-weight:700;white-space:nowrap}
 .rc-sub{font-size:11px;color:#888780}
@@ -155,6 +158,10 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
     <button class="tab" id="tab-rate" onclick="setTab('rate')">🎯 中獎率榜</button>
     <button class="tab" id="tab-latest" onclick="setTab('latest')">🆕 最新選號</button>
   </div>
+  <div class="rate-lots" id="rate-lots" style="display:none">
+    <button class="rl on" id="rl-tw" onclick="setRateLot('tw')">台灣大樂透</button>
+    <button class="rl" id="rl-us" onclick="setRateLot('us')">Powerball</button>
+  </div>
   <p class="tab-note" id="tab-note"></p>
 
   <div id="rank-list" data-ga-section="rank_list">
@@ -165,7 +172,7 @@ body{font-family:'Hiragino Sans','Noto Sans TC','PingFang TC',sans-serif;backgro
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script src="js/safe.js?v=20261102b"></script>
-<script src="js/lottery.js?v=20261102b"></script>
+<script src="js/lottery.js?v=20261111"></script>
 <script type="module">
 import { auth, db } from "./js/firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-auth.js";
@@ -175,13 +182,15 @@ const { esc, img, int, ball, cc: safeCC } = window.Safe;
 
 // 排行榜只算台灣大樂透（美日樂透之後再做）。不顯示任何人的「我買了」與損益。
 const LV = { 1: '頭獎', 2: '貳獎', 3: '參獎', 4: '肆獎', 5: '伍獎', 6: '陸獎', 7: '柒獎', 8: '普獎' };
+const PB_LV = { 1: '頭獎', 2: '5 碼', 3: '4 碼＋Powerball', 4: '4 碼', 5: '3 碼＋Powerball', 6: '3 碼', 7: '2 碼＋Powerball', 8: '1 碼＋Powerball', 9: 'Powerball' };
 const NOTES = {
-  prize: '依「若每注都買」的累積獎金排名；同金額時比中獎次數。',
+  prize: '依「若每注都買」的累積獎金排名（Powerball 以 1 美元＝31 台幣換算後合計）；同金額時比中獎次數。',
   rate: '中獎率 = 中獎次數 ÷ 已對獎次數。不設門檻，同中獎率時對獎次數多的排前面。',
-  latest: '最近的台灣大樂透選號，開獎後自動對獎。',
+  rate_us: 'Powerball 中獎率 = 中獎次數 ÷ 已對獎次數。不設門檻，同中獎率時對獎次數多的排前面。',
+  latest: '最近的台灣大樂透、Powerball 選號，開獎後自動對獎。',
 };
 
-let me = null, cats = [], latest = [], tab = 'prize', ccFilter = 'all', ready = false;
+let me = null, cats = [], latest = [], tab = 'prize', rateLot = 'tw', ccFilter = 'all', ready = false;
 // 登入狀態可能比資料先回來：資料讀完（ready）之前不畫列表
 onAuthStateChanged(auth, u => { me = u; window.LC && LC.setUser(u ? u.uid : null); if (ready) render(); });
 
@@ -192,7 +201,8 @@ async function load() {
     getDocs(query(collection(db, 'draws'), orderBy('createdAt', 'desc'), limit(100))),
   ]);
   cs.forEach(d => cats.push({ id: d.id, ...d.data() }));
-  ds.forEach(d => { const x = d.data(); if (x.lotType === 'tw' && x.tracked !== false) latest.push({ id: d.id, ...x }); });
+  ds.forEach(d => { const x = d.data();
+    if ((x.lotType === 'tw' && x.tracked !== false) || (x.lotType === 'us' && x.tracked === true && x.schema === 2)) latest.push({ id: d.id, ...x }); });
 }
 try { await load(); } catch (e) {
   console.error(e);
@@ -200,15 +210,19 @@ try { await load(); } catch (e) {
 }
 
 const S = c => c.stats || { twDraws: 0, checked: 0, wins: 0, prize: 0, bestLevel: 0, winRate: 0 };
-const twCats = cats.filter(c => S(c).twDraws > 0);
+const U = c => (c.stats && c.stats.us) || { draws: 0, checked: 0, wins: 0, prize: 0, bestLevel: 0, winRate: 0 };
+// 獎金與中獎次數：大樂透＋Powerball（台幣合計，後端算好放在 totalPrize / totalWins）
+const P = c => int(c.totalPrize != null ? c.totalPrize : S(c).prize);
+const W = c => int(c.totalWins != null ? c.totalWins : S(c).wins);
+const twCats = cats.filter(c => S(c).twDraws > 0 || U(c).draws > 0);
 
 // ── 上方統計 ────────────────────────────────────────────
 const money = n => '$' + int(n).toLocaleString();
 const short = n => n >= 1e8 ? (n / 1e8).toFixed(1) + '億' : n >= 1e4 ? (n / 1e4).toFixed(n >= 1e5 ? 0 : 1) + '萬' : int(n).toLocaleString();
 document.getElementById('s-cats').textContent = twCats.length.toLocaleString();
-document.getElementById('s-prize').textContent = '$' + short(twCats.reduce((s, c) => s + int(S(c).prize), 0));
+document.getElementById('s-prize').textContent = '$' + short(twCats.reduce((s, c) => s + P(c), 0));
 document.getElementById('s-countries').textContent = new Set(twCats.map(c => safeCC(c.countryCode)).filter(Boolean)).size;
-document.getElementById('s-wins').textContent = twCats.reduce((s, c) => s + int(S(c).wins), 0);
+document.getElementById('s-wins').textContent = twCats.reduce((s, c) => s + W(c), 0);
 
 // ── 地圖：每個國家的貓咪數、中獎次數 ────────────────────────
 function flagEmoji(cc) { return cc ? [...cc].map(c => String.fromCodePoint(127397 + c.charCodeAt())).join('') : ''; }
@@ -223,7 +237,7 @@ const byCC = {};
 twCats.forEach(c => {
   const cc = safeCC(c.countryCode); if (!cc) return;
   const g = byCC[cc] = byCC[cc] || { cats: 0, wins: 0, prize: 0, name: c.country || cc };
-  g.cats++; g.wins += int(S(c).wins); g.prize += int(S(c).prize);
+  g.cats++; g.wins += W(c); g.prize += P(c);
 });
 if (window.L) {
   const map = L.map('leafmap', { center: [20, 15], zoom: 2, minZoom: 1, maxZoom: 6, worldCopyJump: true });
@@ -264,7 +278,7 @@ function catRow(c, i, right) {
     <div class="rc-body">
       <div class="rc-name">${esc(c.catName)}${isMe ? '<span class="badge-me">我的</span>' : ''}</div>
       <div class="rc-meta">${flagEmoji(safeCC(c.countryCode))} ${esc(where(c))}</div>
-      <div class="rc-stats">大樂透 ${int(s.twDraws)} 筆 · 已對 ${int(s.checked)} · 中 ${int(s.wins)} 次${esc(best)}</div>
+      <div class="rc-stats">${s.twDraws ? `大樂透 ${int(s.twDraws)} 筆 · 已對 ${int(s.checked)} · 中 ${int(s.wins)} 次${esc(best)}` : ''}${s.twDraws && U(c).draws ? '<br>' : ''}${U(c).draws ? `Powerball ${int(U(c).draws)} 筆 · 已對 ${int(U(c).checked)} · 中 ${int(U(c).wins)} 次` : ''}</div>
     </div>
     <div class="rc-right">${right}</div>
   </div>`;
@@ -274,24 +288,25 @@ function drawRow(d, i) {
   const isMe = me && d.uid === me.uid;
   const win = new Set((d.winNumbers || []).map(Number)), ws = d.winSpecial != null ? Number(d.winSpecial) : null;
   // 舊紀錄由貓自選的特別號不顯示（大樂透只看 6 碼）
+  const us = d.lotType === 'us';
   const balls = (d.numbers || []).map(n => {
     n = int(n);
-    const cls = win.has(n) ? 'b hit' : ws === n ? 'b sp' : 'b';
+    const cls = win.has(n) ? 'b hit' : (!us && ws === n) ? 'b sp' : 'b';
     return `<div class="${cls}">${ball(n)}</div>`;
-  }).join('');
+  }).join('') + (us ? (d.special || []).map(n => `<div class="${ws === int(n) ? 'b hit' : 'b sp'}">${ball(n)}</div>`).join('') : '');
   const target = d.drawDate || d.targetDrawDate;
   const lab = window.Lottery.dateLabel(target);
   const WD = '日一二三四五六';
   const when = lab ? `${lab.md}（${WD[lab.wd]}）開獎` : esc(d.date || '');
   const lv = int(d.prizeLevel);
   const status = !d.checkedAt ? '<span class="tag" style="background:#FAEEDA;color:#633806">待開獎</span>'
-    : lv > 0 ? `<div style="font-size:13px;font-weight:600;color:#3B6D11">${money(d.prizeAmount)}</div><span class="tag" style="background:#EAF3DE;color:#27500A">${LV[lv]}</span>`
+    : lv > 0 ? `<div style="font-size:13px;font-weight:600;color:#3B6D11">${us && d.prizeAmountUsd != null ? 'US$' + int(d.prizeAmountUsd).toLocaleString() : money(d.prizeAmount)}</div><span class="tag" style="background:#EAF3DE;color:#27500A">${esc((us ? PB_LV : LV)[lv] || '')}</span>`
     : `<span class="tag" style="background:#FCEBEB;color:#791F1F">未中獎</span>`;
   return `<div class="rc ${isMe ? 'mine' : ''}">
     <div class="rc-photo">${photoHtml(d.photoThumb, d.catName)}</div>
     <div class="rc-body">
       <div class="rc-name">${esc(d.catName)}${isMe ? '<span class="badge-me">我的</span>' : ''}</div>
-      <div class="rc-meta">${flagEmoji(safeCC(d.countryCode))} ${esc(where(d))} · ${when}${d.drawPeriod ? ' · 第 ' + esc(d.drawPeriod) + ' 期' : ''}</div>
+      <div class="rc-meta">${flagEmoji(safeCC(d.countryCode))} ${esc(where(d))} · ${us ? 'Powerball · ' : ''}${when}${d.drawPeriod && !us ? ' · 第 ' + esc(d.drawPeriod) + ' 期' : ''}</div>
       <div class="balls">${balls}</div>
     </div>
     <div class="rc-right">${status}</div>
@@ -300,7 +315,8 @@ function drawRow(d, i) {
 
 function render() {
   const el = document.getElementById('rank-list');
-  document.getElementById('tab-note').textContent = NOTES[tab];
+  document.getElementById('tab-note').textContent = NOTES[tab === 'rate' && rateLot === 'us' ? 'rate_us' : tab];
+  document.getElementById('rate-lots').style.display = tab === 'rate' ? 'flex' : 'none';
   const inCC = x => ccFilter === 'all' || safeCC(x.countryCode) === ccFilter;
   let html = '';
   if (tab === 'latest') {
@@ -308,15 +324,16 @@ function render() {
     html = items.map(drawRow).join('');
   } else if (tab === 'prize') {
     const items = twCats.filter(inCC).sort((a, b) =>
-      int(S(b).prize) - int(S(a).prize) || int(S(b).wins) - int(S(a).wins) || int(S(b).checked) - int(S(a).checked));
+      P(b) - P(a) || W(b) - W(a) || int(S(b).checked) - int(S(a).checked));
     html = items.map((c, i) => catRow(c, i,
-      `<div class="rc-big" style="color:${S(c).prize ? '#BA7517' : '#B4B2A9'}">${money(S(c).prize)}</div>`)).join('');
+      `<div class="rc-big" style="color:${P(c) ? '#BA7517' : '#B4B2A9'}">${money(P(c))}</div>`)).join('');
   } else {
-    const items = twCats.filter(c => inCC(c) && int(S(c).checked) > 0).sort((a, b) =>
-      (S(b).winRate || 0) - (S(a).winRate || 0) || int(S(b).checked) - int(S(a).checked) || int(S(b).prize) - int(S(a).prize));
+    const R = rateLot === 'us' ? U : S;   // 中獎率各排各的
+    const items = twCats.filter(c => inCC(c) && int(R(c).checked) > 0).sort((a, b) =>
+      (R(b).winRate || 0) - (R(a).winRate || 0) || int(R(b).checked) - int(R(a).checked) || int(R(b).prize) - int(R(a).prize));
     html = items.map((c, i) => catRow(c, i,
-      `<div class="rc-big" style="color:${S(c).wins ? '#3B6D11' : '#B4B2A9'}">${Math.round((S(c).winRate || 0) * 1000) / 10}%</div>`
-      + `<div class="rc-sub">${int(S(c).wins)} / ${int(S(c).checked)}</div>`)).join('');
+      `<div class="rc-big" style="color:${R(c).wins ? '#3B6D11' : '#B4B2A9'}">${Math.round((R(c).winRate || 0) * 1000) / 10}%</div>`
+      + `<div class="rc-sub">${int(R(c).wins)} / ${int(R(c).checked)}</div>`)).join('');
   }
   el.innerHTML = html ? `<div class="rank-list">${html}</div>`
     : '<div class="empty"><div style="font-size:48px;margin-bottom:12px">🐱</div><p style="font-size:15px;font-weight:500;margin-bottom:5px">這裡還沒有貓咪</p><p style="font-size:13px">換個篩選或成為第一個！</p></div>';
@@ -326,6 +343,12 @@ window.setTab = function (t) {
   if (t !== tab) window.LC && LC.track('rank_tab', { tab: t });
   tab = t;
   ['prize', 'rate', 'latest'].forEach(k => document.getElementById('tab-' + k).classList.toggle('on', k === t));
+  render();
+};
+window.setRateLot = function (l) {
+  if (l !== rateLot) window.LC && LC.track('rank_rate_lottery', { lottery_type: l });
+  rateLot = l;
+  ['tw', 'us'].forEach(k => document.getElementById('rl-' + k).classList.toggle('on', k === l));
   render();
 };
 window.clearCC = function () {

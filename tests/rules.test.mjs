@@ -81,7 +81,9 @@ await t('大樂透號碼不能超過 49', () => assertFails(saveBatch(alice, new
 await t('號碼不能是文字', () => assertFails(saveBatch(alice, newDraw('alice', { numbers: ['1',2,3,4,5,6] }))));
 await t('大樂透一定要有開獎日', () => assertFails(saveBatch(alice, newDraw('alice', { targetDrawDate: null }))));
 await t('開獎日格式要對', () => assertFails(saveBatch(alice, newDraw('alice', { targetDrawDate: '<script>' }))));
-await t('Powerball 5+1 可存', () => assertSucceeds(saveBatch(alice, newDraw('alice', { lotType: 'us', numbers: [1,2,3,4,69], special: [26], tracked: false, targetDrawDate: null }))));
+await t('Powerball 5+1 可存（自動對獎）', () => assertSucceeds(saveBatch(alice, newDraw('alice', { lotType: 'us', numbers: [1,2,3,4,69], special: [26], tracked: true, targetDrawDate: '2026-11-11' }))));
+await t('Powerball 舊版不對獎格式也可存', () => assertSucceeds(saveBatch(alice, newDraw('alice', { lotType: 'us', numbers: [1,2,3,4,69], special: [26], tracked: false, targetDrawDate: null }))));
+await t('Powerball 要對獎就要有開獎日', () => assertFails(saveBatch(alice, newDraw('alice', { lotType: 'us', numbers: [1,2,3,4,69], special: [26], tracked: true, targetDrawDate: null }))));
 await t('Powerball 特別號不能超過 26', () => assertFails(saveBatch(alice, newDraw('alice', { lotType: 'us', numbers: [1,2,3,4,5], special: [27], tracked: false, targetDrawDate: null }))));
 await t('Loto6 6 碼可存', () => assertSucceeds(saveBatch(alice, newDraw('alice', { lotType: 'jp', numbers: [1,2,3,4,5,43], tracked: false, targetDrawDate: null }))));
 await t('美日不能標成要對獎', () => assertFails(saveBatch(alice, newDraw('alice', { lotType: 'jp', tracked: true, targetDrawDate: null }))));
@@ -117,8 +119,12 @@ await t('purchased 必須是 true/false', () => assertFails(updateDoc(doc(alice,
 await t('purchasedAt 必須是伺服器時間', () => assertFails(updateDoc(doc(alice, 'draws/future'), { purchased: true, purchasedAt: new Date('2099-01-01') })));
 await env.withSecurityRulesDisabled(c => setDoc(doc(c.firestore(), 'draws/checked'), { ...newDraw('alice', { targetDrawDate: '2099-12-31' }), createdAt: 1, checkedAt: 1 }));
 await t('已對獎、還沒過截止時間可以補登', () => assertSucceeds(updateDoc(doc(alice, 'draws/checked'), { purchased: true, purchasedAt: serverTimestamp() })));
+await setDoc(doc(alice, 'draws/usfuture'), newDraw('alice', { lotType: 'us', numbers: [1,2,3,4,5], special: [6], tracked: true, targetDrawDate: '2099-12-31' }));
+await setDoc(doc(alice, 'draws/uspast'), newDraw('alice', { lotType: 'us', numbers: [1,2,3,4,5], special: [6], tracked: true, targetDrawDate: '2020-01-04' }));
+await t('Powerball 開獎前可標記已買', () => assertSucceeds(updateDoc(doc(alice, 'draws/usfuture'), { purchased: true, purchasedAt: serverTimestamp() })));
+await t('Powerball 過截止時間不能改', () => assertFails(updateDoc(doc(alice, 'draws/uspast'), { purchased: true, purchasedAt: serverTimestamp() })));
 await setDoc(doc(alice, 'draws/jp'), newDraw('alice', { lotType: 'jp', tracked: false, targetDrawDate: null }));
-await t('不對獎的美日樂透不能標記', () => assertFails(updateDoc(doc(alice, 'draws/jp'), { purchased: true, purchasedAt: serverTimestamp() })));
+await t('不對獎的日本樂透不能標記', () => assertFails(updateDoc(doc(alice, 'draws/jp'), { purchased: true, purchasedAt: serverTimestamp() })));
 await env.withSecurityRulesDisabled(c => setDoc(doc(c.firestore(), 'draws/legacy'), { uid: 'alice', lotType: 'tw', numbers: [1,2,3,4,5,6], special: [7], createdAt: 1 }));
 await t('舊格式紀錄不能標記', () => assertFails(updateDoc(doc(alice, 'draws/legacy'), { purchased: true, purchasedAt: serverTimestamp() })));
 await t('不能刪選號', () => assertFails(deleteDoc(doc(alice, 'draws/fixed'))));
@@ -138,6 +144,8 @@ console.log('stats / draws_results / 其他');
 await t('前端不能再寫 stats', () => assertFails(setDoc(doc(alice, 'stats/global'), { totalDraws: 1 })));
 await t('任何人可讀 stats', () => assertSucceeds(getDoc(doc(guest, 'stats/global'))));
 await t('前端不能寫開獎結果', () => assertFails(setDoc(doc(alice, 'draws_results/tw_1'), { numbers: [1] })));
+await t('前端不能寫 Powerball 開獎結果', () => assertFails(setDoc(doc(alice, 'draws_results_us/us_1'), { numbers: [1] })));
+await t('任何人可讀 Powerball 開獎結果', () => assertSucceeds(getDoc(doc(guest, 'draws_results_us/us_1'))));
 await t('任何人可讀開獎結果', () => assertSucceeds(getDoc(doc(guest, 'draws_results/tw_1'))));
 await t('未定義的集合一律拒絕', () => assertFails(setDoc(doc(alice, 'hack/x'), { a: 1 })));
 
