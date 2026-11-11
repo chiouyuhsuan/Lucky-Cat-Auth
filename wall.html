@@ -90,7 +90,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 .cat-dupes{display:inline-block;margin-top:4px;font-size:10px;color:rgba(255,255,255,.85);background:rgba(0,0,0,.35);padding:2px 8px;border-radius:10px}
 </style>
 <link rel="stylesheet" href="css/mobile.css?v=20261102b"/>
-<link rel="stylesheet" href="css/app.css?v=20261109"/>
+<link rel="stylesheet" href="css/app.css?v=20261111"/>
 <style>/* 深色背景：帳號名字改淺色 */.topnav .nav-user-name{color:#E4E1FB}.topnav .nav-user-menu:hover{background:rgba(255,255,255,.08)}</style>
 <script src="js/analytics.js?v=20261102b"></script>
 </head>
@@ -115,21 +115,21 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
     <a class="nav-link" href="index.html">上傳</a>
     <a class="nav-link" href="rank.html">排行榜</a>
     <a class="nav-link active" href="wall.html">貓咪牆</a>
-    <a class="nav-link" href="about.html">關於</a>
+    <a class="nav-link" href="about.html" data-i18n="nav_about">關於</a>
   </div>
   <div id="nav-right"><a class="nav-cta" href="index.html">開始選號</a></div>
 </nav>
 
 <div class="filters">
-  <button class="filter-btn active" onclick="setFilter('all', this)">全部</button>
-  <button class="filter-btn" onclick="setFilter('won', this)">🏆 中獎貓</button>
-  <button class="filter-btn" onclick="setFilter('tw', this)">🇹🇼 台灣</button>
-  <button class="filter-btn" onclick="setFilter('recent', this)">🆕 最新上傳</button>
+  <button class="filter-btn active" onclick="setFilter('all', this)" data-i18n="f_all">全部</button>
+  <button class="filter-btn" onclick="setFilter('won', this)" data-i18n="f_won">🏆 中獎貓</button>
+  <button class="filter-btn" onclick="setFilter('tw', this)" data-i18n="f_tw">🇹🇼 台灣</button>
+  <button class="filter-btn" onclick="setFilter('recent', this)" data-i18n="f_recent">🆕 最新上傳</button>
 </div>
 
 <div id="cat-wall" class="cat-wall" data-ga-section="wall_grid">
   <div class="loading-wall" style="column-span:all">
-    <div>載入中...</div>
+    <div data-i18n="loading">載入中...</div>
     <div class="loading-dots"><div class="ld"></div><div class="ld"></div><div class="ld"></div></div>
   </div>
 </div>
@@ -148,14 +148,34 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 
 <script src="js/safe.js?v=20261102b"></script>
 <script src="js/dedupe.js?v=20261102b"></script>
+<script src="js/lang.js?v=20261111"></script>
 <script type="module">
 import { db } from "./js/firebase.js";
 import { collection, getDocs, query, orderBy, limit }
   from "https://www.gstatic.com/firebasejs/12.12.0/firebase-firestore.js";
 const { esc, img, int, cc: safeCC } = window.Safe;
-const LV = { 1: '頭獎', 2: '貳獎', 3: '參獎', 4: '肆獎', 5: '伍獎', 6: '陸獎', 7: '柒獎', 8: '普獎' };
+const DICT = {
+  zh: { nav_about: '關於', page_title: 'LuckyCat — 全球幸運貓牆', f_all: '全部', f_won: '🏆 中獎貓', f_tw: '🇹🇼 台灣', f_recent: '🆕 最新上傳', loading: '載入中...',
+        load_failed: '載入失敗，請重新整理', empty: '目前還沒有貓咪，成為第一個！', pending: '⏳ 待開獎', no_win: '未中獎', fun: '僅娛樂',
+        dupes: '同一張照片選號 {n} 次', cat: '貓咪',
+        lv: ['', '頭獎', '貳獎', '參獎', '肆獎', '伍獎', '陸獎', '柒獎', '普獎'],
+        pb: ['', '頭獎', '5 碼', '4 碼＋Powerball', '4 碼', '3 碼＋Powerball', '3 碼', '2 碼＋Powerball', '1 碼＋Powerball', 'Powerball'] },
+  en: { nav_about: 'About', page_title: 'LuckyCat — Cat Wall', f_all: 'All', f_won: '🏆 Winners', f_tw: '🇹🇼 Taiwan', f_recent: '🆕 Latest', loading: 'Loading...',
+        load_failed: 'Failed to load, please refresh', empty: 'No cats yet — be the first!', pending: '⏳ Pending', no_win: 'No win', fun: 'Just for fun',
+        dupes: 'Same photo picked {n} times', cat: 'Cat',
+        lv: ['', 'Jackpot', '2nd prize', '3rd prize', '4th prize', '5th prize', '6th prize', '7th prize', '8th prize'],
+        pb: ['', 'Jackpot', 'Match 5', 'Match 4 + PB', 'Match 4', 'Match 3 + PB', 'Match 3', 'Match 2 + PB', 'Match 1 + PB', 'Powerball'] },
+  ja: { nav_about: 'について', page_title: 'LuckyCat — 猫ウォール', f_all: 'すべて', f_won: '🏆 当選した猫', f_tw: '🇹🇼 台湾', f_recent: '🆕 新着', loading: '読み込み中...',
+        load_failed: '読み込みに失敗しました。再読み込みしてください', empty: 'まだ猫がいません。最初の1匹になろう！', pending: '⏳ 抽選待ち', no_win: '外れ', fun: 'お楽しみ用',
+        dupes: '同じ写真で {n} 回選んだ', cat: '猫',
+        lv: ['', '1等', '2等', '3等', '4等', '5等', '6等', '7等', '8等'],
+        pb: ['', '1等', '5 個一致', '4 個＋PB', '4 個一致', '3 個＋PB', '3 個一致', '2 個＋PB', '1 個＋PB', 'Powerball'] },
+};
+const T = k => window.LCLang.t(k);
+window.lcT = T;   // 給下方燈箱用
 
 let allDraws = [], filter = 'all', renderSeq = 0;
+window.LCLang.init(DICT, () => { if (allDraws.length) render(); });
 
 async function loadWall() {
   try {
@@ -164,21 +184,19 @@ async function loadWall() {
     render();
   } catch (e) {
     console.error(e);
-    document.getElementById('cat-wall').innerHTML = '<div class="loading-wall" style="column-span:all">載入失敗，請重新整理</div>';
+    document.getElementById('cat-wall').innerHTML = '<div class="loading-wall" style="column-span:all">' + esc(T('load_failed')) + '</div>';
   }
 }
 
 // 會自動對獎：大樂透、11/11 之後的 Powerball
 function tracked(d) { return (d.lotType === 'tw' && d.tracked !== false) || (d.lotType === 'us' && d.tracked === true && d.schema === 2); }
-function lvName(d, lv) {
-  return d.lotType === 'us' ? ({ 1: '頭獎', 2: '5 碼', 3: '4 碼＋Powerball', 4: '4 碼', 5: '3 碼＋Powerball', 6: '3 碼', 7: '2 碼＋Powerball', 8: '1 碼＋Powerball', 9: 'Powerball' })[lv] : LV[lv];
-}
+function lvName(d, lv) { return T(d.lotType === 'us' ? 'pb' : 'lv')[lv] || ''; }
 window.lcTracked = tracked; window.lcLvName = lvName;   // 給下方燈箱用
 function statusOf(d) {
   if (!tracked(d)) return '';
-  if (!d.checkedAt) return '<span class="cat-prize pending">⏳ 待開獎</span>';
+  if (!d.checkedAt) return '<span class="cat-prize pending">' + esc(T('pending')) + '</span>';
   const lv = int(d.prizeLevel);
-  return lv > 0 ? '<span class="cat-prize won">🏆 ' + lvName(d, lv) + '</span>' : '';
+  return lv > 0 ? '<span class="cat-prize won">🏆 ' + esc(lvName(d, lv)) + '</span>' : '';
 }
 
 async function render() {
@@ -192,16 +210,16 @@ async function render() {
   const shown = filter === 'recent' ? groups.slice(0, 50) : groups;
   const wall = document.getElementById('cat-wall');
   if (!shown.length) {
-    wall.innerHTML = '<div class="loading-wall" style="column-span:all">目前還沒有貓咪，成為第一個！</div>';
+    wall.innerHTML = '<div class="loading-wall" style="column-span:all">' + esc(T('empty')) + '</div>';
     return;
   }
   const cards = shown.map((g, idx) => {
     const d = g.item, loc = [d.city, d.country].filter(Boolean).join(', ');
-    const more = g.dupes.length ? '<span class="cat-dupes">同一張照片選號 ' + (g.dupes.length + 1) + ' 次</span>' : '';
+    const more = g.dupes.length ? '<span class="cat-dupes">' + esc(T('dupes').replace('{n}', g.dupes.length + 1)) + '</span>' : '';
     return '<div class="cat-card" style="animation-delay:' + ((idx % 20) * 0.05) + 's" data-idx="' + idx + '">'
       + '<img src="' + img(d.photoThumb) + '" alt="' + esc(d.catName) + '" loading="lazy" onerror="this.parentElement.style.display=\'none\'">'
       + '<div class="cat-overlay">'
-      + '<div class="cat-name">' + esc(d.catName || '貓咪') + '</div>'
+      + '<div class="cat-name">' + esc(d.catName || T('cat')) + '</div>'
       + '<div class="cat-loc">' + esc(loc) + '</div>'
       + statusOf(d) + more
       + '</div></div>';
@@ -227,15 +245,15 @@ loadWall();
 <script>
 function openLightbox(item, times) {
   if (!item) return;
-  var LV = { 1: '頭獎', 2: '貳獎', 3: '參獎', 4: '肆獎', 5: '伍獎', 6: '陸獎', 7: '柒獎', 8: '普獎' };
+  var T = window.lcT;
   document.getElementById('lightbox-img').src = Safe.img(item.photoThumb);
-  document.getElementById('lightbox-name').textContent = item.catName || '貓咪';
+  document.getElementById('lightbox-name').textContent = item.catName || T('cat');
   var loc = [item.city, item.country].filter(Boolean).join('・');
   var lv = Safe.int(item.prizeLevel);
   var isTracked = window.lcTracked(item);
-  var prize = !isTracked ? '  僅娛樂' : lv > 0 ? '  🏆 ' + window.lcLvName(item, lv) : item.checkedAt ? '  未中獎' : '  ⏳ 待開獎';
+  var prize = '  ' + (!isTracked ? T('fun') : lv > 0 ? '🏆 ' + window.lcLvName(item, lv) : item.checkedAt ? T('no_win') : T('pending'));
   document.getElementById('lightbox-meta').textContent = loc + '  ·  ' + (item.lotName || '') + '  ·  ' + (item.date || '') + prize
-    + (times > 1 ? '  ·  同一張照片選號 ' + times + ' 次' : '');
+    + (times > 1 ? '  ·  ' + T('dupes').replace('{n}', times) : '');
   document.getElementById('lightbox').classList.add('show');
   window._lbOpenAt = Date.now();
   window.LC && LC.track('wall_photo_open', { lottery_type: item.lotType || 'unknown', status: !isTracked ? 'untracked' : lv > 0 ? 'won' : item.checkedAt ? 'lost' : 'pending', same_photo_times: times || 1 });
