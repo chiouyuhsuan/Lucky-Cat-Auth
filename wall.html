@@ -45,7 +45,10 @@ body{font-family:'Noto Sans TC',sans-serif;background:#1a1a2e;color:#fff;min-hei
 .filter-btn:hover,.filter-btn.active{background:var(--purple);border-color:var(--purple);color:#fff}
 
 /* MASONRY WALL */
-.cat-wall{column-count:2;column-gap:8px;padding:0 10px 60px;max-width:1200px;margin:0 auto}
+/* 兩欄瀑布流：照片依新到舊左右輪流放（第 1 張左上、第 2 張右上⋯），最新的永遠在最上面 */
+.cat-wall{display:flex;gap:8px;align-items:flex-start;padding:0 10px 60px;max-width:1200px;margin:0 auto}
+.wall-col{flex:1;min-width:0}
+.cat-wall>.loading-wall{flex:1}
 /* 全站固定手機寬度（最寬 480px）：照片固定兩欄，電腦上也一樣大 */
 
 .cat-card{break-inside:avoid;margin-bottom:8px;border-radius:12px;overflow:hidden;position:relative;cursor:pointer;background:#2a2a3e}
@@ -186,7 +189,7 @@ async function render() {
     wall.innerHTML = '<div class="loading-wall" style="column-span:all">目前還沒有貓咪，成為第一個！</div>';
     return;
   }
-  wall.innerHTML = shown.map((g, idx) => {
+  const cards = shown.map((g, idx) => {
     const d = g.item, loc = [d.city, d.country].filter(Boolean).join(', ');
     const more = g.dupes.length ? '<span class="cat-dupes">同一張照片選號 ' + (g.dupes.length + 1) + ' 次</span>' : '';
     return '<div class="cat-card" style="animation-delay:' + ((idx % 20) * 0.05) + 's" data-idx="' + idx + '">'
@@ -196,7 +199,10 @@ async function render() {
       + '<div class="cat-loc">' + esc(loc) + '</div>'
       + statusOf(d) + more
       + '</div></div>';
-  }).join('');
+  });
+  // 用 CSS 多欄排版會先填滿左欄再換右欄，最新的照片會跑到左邊下方；改成左右輪流放
+  wall.innerHTML = '<div class="wall-col">' + cards.filter((_, i) => i % 2 === 0).join('') + '</div>'
+                 + '<div class="wall-col">' + cards.filter((_, i) => i % 2 === 1).join('') + '</div>';
   wall.querySelectorAll('.cat-card').forEach(card => card.addEventListener('click', () => {
     const g = shown[int(card.dataset.idx)];
     window.openLightbox(g.item, g.dupes.length + 1);
