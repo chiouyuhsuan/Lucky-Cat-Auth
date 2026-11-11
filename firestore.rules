@@ -181,6 +181,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Powerball 開獎結果（後端寫入，11/11 起）
+    match /draws_results_us/{resultId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // 其他集合一律拒絕
     match /{document=**} {
       allow read, write: if false;

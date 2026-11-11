@@ -144,6 +144,8 @@ console.log('stats / draws_results / 其他');
 await t('前端不能再寫 stats', () => assertFails(setDoc(doc(alice, 'stats/global'), { totalDraws: 1 })));
 await t('任何人可讀 stats', () => assertSucceeds(getDoc(doc(guest, 'stats/global'))));
 await t('前端不能寫開獎結果', () => assertFails(setDoc(doc(alice, 'draws_results/tw_1'), { numbers: [1] })));
+await t('前端不能寫 Powerball 開獎結果', () => assertFails(setDoc(doc(alice, 'draws_results_us/us_1'), { numbers: [1] })));
+await t('任何人可讀 Powerball 開獎結果', () => assertSucceeds(getDoc(doc(guest, 'draws_results_us/us_1'))));
 await t('任何人可讀開獎結果', () => assertSucceeds(getDoc(doc(guest, 'draws_results/tw_1'))));
 await t('未定義的集合一律拒絕', () => assertFails(setDoc(doc(alice, 'hack/x'), { a: 1 })));
 

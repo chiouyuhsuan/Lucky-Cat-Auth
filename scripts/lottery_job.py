@@ -235,6 +235,7 @@ def main():
                    + (f' ${amt:,}' if amt else ''))
 
     # 4p. 美國 Powerball：抓開獎 → 存開獎結果 → 對獎（獎金換算台幣存 prizeAmount，美元另存 prizeAmountUsd）
+    #     開獎結果存在另一個集合 draws_results_us，避免跟大樂透混在一起（首頁用期別排序取最新一期大樂透）
     pb_draws, pb_problems = fetch_powerball()
     out += ['', '### Powerball',
             f'- 抓取 {len(pb_draws)} 期' + (f'，最新：{pb_draws[-1]["date"]} {pb_draws[-1]["numbers"]} + {pb_draws[-1]["special"]}' if pb_draws else '')]
@@ -242,7 +243,7 @@ def main():
     if not dry and pb_draws:
         batch = db.batch()
         for d in pb_draws[-30:]:
-            batch.set(db.collection('draws_results').document(f'us_{d["date"]:%Y%m%d}'), {
+            batch.set(db.collection('draws_results_us').document(f'us_{d["date"]:%Y%m%d}'), {
                 'lotType': 'us', 'lotName': 'US Powerball', 'source': 'data.ny.gov',
                 'period': d['date'].strftime('%Y%m%d'), 'drawDate': d['date'].strftime('%Y/%m/%d'),
                 'numbers': d['numbers'], 'special': d['special'],
