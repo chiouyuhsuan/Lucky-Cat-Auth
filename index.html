@@ -132,7 +132,7 @@ input[type=file]{display:none}
 .card-btn{font-family:inherit;font-size:12px;padding:5px 10px;border-radius:8px;cursor:pointer;background:#fff;color:#BA7517;border:1px solid #F3B36E;margin-left:auto}
 </style>
 <link rel="stylesheet" href="css/mobile.css?v=20261102b"/>
-<link rel="stylesheet" href="css/app.css?v=20261109"/>
+<link rel="stylesheet" href="css/app.css?v=20261111"/>
 <link rel="stylesheet" href="css/app-home.css?v=20261109b"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Nunito:wght@800;900&display=swap"/>
@@ -659,8 +659,12 @@ async function loadHomeData() {
       const d = snap.docs[0].data();
       if ((d.numbers || []).length) {
         const iso = String(d.drawDate || '').replace(/\//g, '-');
-        document.getElementById('hm-last-title').textContent = window.t('lot_tw_name') + (d.period ? ' · ' + window.t('pf_period').replace('{p}', d.period) : '');
-        document.getElementById('hm-last-date').textContent = iso ? window.drawDateText(iso) : '';
+        // 切換語言時重畫（setLang 會呼叫）
+        window._paintLastDraw = function () {
+          document.getElementById('hm-last-title').textContent = window.t('lot_tw_name') + (d.period ? ' · ' + window.t('pf_period').replace('{p}', d.period) : '');
+          document.getElementById('hm-last-date').textContent = iso ? window.drawDateText(iso) : '';
+        };
+        window._paintLastDraw();
         document.getElementById('hm-last-balls').innerHTML = d.numbers.map(n => '<i>' + ball(n) + '</i>').join('')
           + (d.special != null ? '<i class="sp">' + ball(d.special) + '</i>' : '');
         document.getElementById('hm-last').hidden = false;
@@ -1205,6 +1209,8 @@ function setLang(lang) {
   });
   // 更新 LOTS 名稱
   updateLotsDisplay();
+  if (window._paintLastDraw) window._paintLastDraw();   // 首頁「上一期開獎」
+  if (typeof tickCountdown === 'function') tickCountdown();
   // 圖卡文字跟著語言：清掉快取，結果頁正在顯示就重畫
   if (typeof _cards !== 'undefined') {
     _cards = {};
