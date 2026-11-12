@@ -1619,9 +1619,8 @@ window._afterLogin = function () {
 function newRound() {
   var st = window._state;
   ga('new_round', { after_save: st.saved ? 'yes' : 'no', seconds_on_result: secOnResult() });
-  _nameStarted = false;
   st.currentNums = null; st.saved = null; _cards = {};
-  showPage('upload');
+  startUpload();   // 再選一組也從第 1 步重新開始（11/13 決定：不鼓勵同一張照片一直抽）
 }
 
 async function saveCurrent() {
@@ -1717,7 +1716,7 @@ function resizePhoto(img, maxSide, quality, maxChars) {
 }
 
 // 從首頁、下方「上傳」鈕、登入提示進來：一律從第 1 步重新開始（清掉上次的照片和名字），
-// 避免停在第 2 步不知道自己做到哪；結果頁按「再選一組」才保留同一張照片直接到第 2 步
+// 避免停在第 2 步不知道自己做到哪；結果頁「再選一組」也一樣
 function startUpload() {
   var st = window._state;
   _fileSeq++;   // 上一張照片還在辨識的話，結果不採用
