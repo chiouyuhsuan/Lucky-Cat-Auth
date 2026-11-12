@@ -89,6 +89,19 @@
     return new Date(Date.UTC(p[0], p[1] - 1, p[2] + (lotKey === 'us' ? 2 : 1), 24 - 8));
   }
 
+  // 開獎時間（實際時刻）：大樂透台灣 20:30；Powerball 美東 22:59（自動處理日光節約）
+  function drawTime(lotKey, iso) {
+    if (!iso || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+    if (lotKey !== 'us') return new Date(iso + 'T20:30:00+08:00');
+    var p = iso.split('-').map(Number);
+    for (var off = 4; off <= 5; off++) {   // 美東夏令 UTC-4、冬令 UTC-5，找出在美東剛好是 22:59 的那個
+      var c = new Date(Date.UTC(p[0], p[1] - 1, p[2], 22 + off, 59));
+      var z = zoneParts(c, LOTS.us.tz);
+      if (z.h === 22 && z.d === p[2]) return c;
+    }
+    return null;
+  }
+
   var TICKET_PRICE = 50;  // 大樂透每注 50 元
   var TICKET_TWD = { tw: 50, us: 2 * USD_TWD };   // 每注成本（台幣）：Powerball 2 美元
 
@@ -126,6 +139,6 @@
 
   window.Lottery = { LOTS: LOTS, pick: pick, targetDrawDate: targetDrawDate,
                      dateLabel: dateLabel, todayDot: todayDot, CUTOFF_HOUR: CUTOFF_HOUR,
-                     purchaseDeadline: purchaseDeadline, summarize: summarize, TICKET_PRICE: TICKET_PRICE,
+                     purchaseDeadline: purchaseDeadline, drawTime: drawTime, summarize: summarize, TICKET_PRICE: TICKET_PRICE,
                      TICKET_TWD: TICKET_TWD, USD_TWD: USD_TWD };
 })();

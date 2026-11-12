@@ -195,7 +195,7 @@ input[type=file]{display:none}
 <!-- HOME -->
 <div class="page active" id="page-home">
   <section class="hm-next" data-ga-section="home_stats">
-    <div class="hm-next-top"><span data-i18n="lot_tw_name">台灣大樂透</span><span id="hm-draw"></span></div>
+    <div class="hm-next-top"><span id="hm-lot">台灣大樂透</span><span id="hm-draw"></span></div>
     <div class="hm-count" id="hm-count">--:--:--</div>
     <div class="hm-stats">
       <div><span data-i18n="stat_cats_lbl">全球貓咪</span><b id="stat-cats">—</b></div>
@@ -400,7 +400,7 @@ input[type=file]{display:none}
 <div class="toast" id="toast"></div>
 
 <script src="js/safe.js?v=20261102b"></script>
-<script src="js/lottery.js?v=20261111"></script>
+<script src="js/lottery.js?v=20261112"></script>
 <script src="js/focus.js?v=20261102b"></script>
 <script src="js/card.js?v=20261102b"></script>
 <script type="module">
@@ -439,6 +439,10 @@ async function detectLocation() {
   if (el) el.textContent = '目前位置：' + loc.city + '，' + loc.country + ' — 貓咪地區將記錄為此位置';
   const el2 = document.getElementById('name-preview-loc');
   if (el2) el2.textContent = '📍 ' + loc.city + '，' + loc.country + '（自動偵測）';
+  // 人在美國：首頁倒數、上一期開獎、選號預設都改成 Powerball（網址加 ?country=US 可測試）
+  const force = (location.search.match(/[?&]country=([A-Za-z]{2})\b/) || [])[1];
+  const cc = (force || loc.countryCode || '').toUpperCase();
+  window.setHomeLot && window.setHomeLot(cc === 'US' ? 'us' : 'tw');
 }
 detectLocation();
 
@@ -652,27 +656,33 @@ async function loadHomeData() {
       document.getElementById('hm-mini-balls').innerHTML = (top.numbers || []).slice(0, 6).map(n => '<i>' + ball(n) + '</i>').join('');
     }
   } catch (e) { console.warn('home latest error:', e); }
-  // 上一期開獎號碼：讀對獎程式每小時存下的官方開獎結果（就算那期沒人選號也會有）
-  try {
-    const snap = await getDocs(query(collection(db,'draws_results'), orderBy('period','desc'), limit(1)));
-    if (!snap.empty) {
-      const d = snap.docs[0].data();
-      if ((d.numbers || []).length) {
-        const iso = String(d.drawDate || '').replace(/\//g, '-');
-        // 切換語言時重畫（setLang 會呼叫）
-        window._paintLastDraw = function () {
-          document.getElementById('hm-last-title').textContent = window.t('lot_tw_name') + (d.period ? ' · ' + window.t('pf_period').replace('{p}', d.period) : '');
-          document.getElementById('hm-last-date').textContent = iso ? window.drawDateText(iso) : '';
-        };
-        window._paintLastDraw();
-        document.getElementById('hm-last-balls').innerHTML = d.numbers.map(n => '<i>' + ball(n) + '</i>').join('')
-          + (d.special != null ? '<i class="sp">' + ball(d.special) + '</i>' : '');
-        document.getElementById('hm-last').hidden = false;
-      }
-    }
-  } catch (e) { console.warn('home last draw error:', e); }
 }
 loadHomeData();
+
+// 首頁「上一期開獎」：讀對獎程式每小時存下的官方開獎結果（就算那期沒人選號也會有）
+// lot：'tw' 讀 draws_results；'us'（人在美國）讀 draws_results_us
+window._loadLastDraw = async function (lot) {
+  try {
+    const col = lot === 'us' ? 'draws_results_us' : 'draws_results';
+    const snap = await getDocs(query(collection(db, col), orderBy('period','desc'), limit(1)));
+    if (snap.empty) return;
+    const d = snap.docs[0].data();
+    if (!(d.numbers || []).length) return;
+    const iso = String(d.drawDate || '').replace(/\//g, '-');
+    // 切換語言時重畫（setLang 會呼叫）
+    window._paintLastDraw = function () {
+      document.getElementById('hm-last-title').textContent = lot === 'us' ? window.t('lot_us_name')
+        : window.t('lot_tw_name') + (d.period ? ' · ' + window.t('pf_period').replace('{p}', d.period) : '');
+      document.getElementById('hm-last-date').textContent = iso ? window.drawDateText(iso) : '';
+    };
+    window._paintLastDraw();
+    document.getElementById('hm-last-balls').innerHTML = d.numbers.map(n => '<i>' + ball(n) + '</i>').join('')
+      + (d.special != null ? '<i class="sp">' + ball(d.special) + '</i>' : '');
+    document.getElementById('hm-last').hidden = false;
+  } catch (e) { console.warn('home last draw error:', e); }
+};
+// 偵測位置太慢或失敗（例如擋廣告）：3 秒後先顯示台灣大樂透
+setTimeout(() => { if (!window._homeLotSet) window.setHomeLot('tw'); }, 3000);
 
 // ── 個人頁：我的貓咪紀錄 ───────────────────────────────────
 // 只讀自己的資料（uid 條件），不受全站筆數影響
@@ -1300,17 +1310,35 @@ function loadLoadingCat() {
 }
 
 // ── 首頁：下一期大樂透倒數（台灣時間 20:30 開獎）──────────
+var _homeLot = 'tw';   // 首頁顯示哪種樂透：人在美國是 Powerball，其他是台灣大樂透
 function tickCountdown() {
-  var iso = Lottery.targetDrawDate('tw', new Date());
+  var iso = Lottery.targetDrawDate(_homeLot, new Date());
   var el = document.getElementById('hm-count');
   if (!iso || !el) return;
-  document.getElementById('hm-draw').textContent = drawDateText(iso) + ' 20:30';
-  var left = Math.max(0, Math.floor((Date.parse(iso + 'T20:30:00+08:00') - Date.now()) / 1000));
+  document.getElementById('hm-lot').textContent = t('lot_' + _homeLot + '_name');
+  document.getElementById('hm-draw').textContent = drawDateText(iso) + (_homeLot === 'us' ? ' 22:59 ET' : ' 20:30');
+  var left = Math.max(0, Math.floor((Lottery.drawTime(_homeLot, iso).getTime() - Date.now()) / 1000));
   var pad = function (n) { return String(n).padStart(2, '0'); };
   var d = Math.floor(left / 86400), h = Math.floor(left % 86400 / 3600), m = Math.floor(left % 3600 / 60), sec = left % 60;
   el.innerHTML = (d ? d + '<small>' + Safe.esc(t('cd_day')) + '</small> ' : '') + pad(h) + ':' + pad(m) + ':' + pad(sec);
 }
 setInterval(tickCountdown, 1000);
+
+// 決定首頁與選號預設的樂透（detectLocation 偵測完呼叫一次）
+var _lotTouched = false;   // 使用者自己點過樂透選項，就不再自動改
+window.setHomeLot = function (lot) {
+  window._homeLotSet = true;
+  _homeLot = lot;
+  tickCountdown();
+  if (window._loadLastDraw) window._loadLastDraw(lot);
+  // 選號頁：預設的樂透放上面，另一種收進「其他國家樂透」
+  var main = document.getElementById(lot === 'us' ? 'lot-us' : 'lot-tw');
+  var other = document.getElementById(lot === 'us' ? 'lot-tw' : 'lot-us');
+  var btn = document.getElementById('other-lots-btn'), box = document.getElementById('other-lots');
+  if (main && btn && box) { btn.parentNode.insertBefore(main, btn); box.insertBefore(other, box.firstChild); }
+  if (!_lotTouched) selectLot(lot, true);
+  if (lot === 'us') ga('region_default_lottery', { lottery_type: lot });
+};
 document.addEventListener('DOMContentLoaded', tickCountdown);
 
 // ── 選號流程：第 1 步照片、第 2 步取名與樂透 ─────────────
@@ -1615,7 +1643,8 @@ async function saveCurrent() {
   renderResultAction();
 }
 
-function selectLot(key) {
+function selectLot(key, auto) {
+  if (!auto) _lotTouched = true;
   ['tw','us','jp'].forEach(k => {
     document.getElementById('lot-' + k).classList.toggle('sel', k === key);
     const r = document.getElementById('r-' + k);
@@ -1623,7 +1652,7 @@ function selectLot(key) {
     r.innerHTML = k === key ? '<div style="width:8px;height:8px;border-radius:50%;background:#fff"></div>' : '';
   });
   if (window._state) window._state.curLot = key;
-  ga('select_lottery', { lottery_type: key });
+  if (!auto) ga('select_lottery', { lottery_type: key });
 }
 
 function setVerifyBar(state, msg) {
