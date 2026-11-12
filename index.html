@@ -188,7 +188,7 @@ input[type=file]{display:none}
       Email 註冊 / 登入
     </button>
     <div class="modal-divider"><div class="modal-divider-line"></div><span style="font-size:12px;color:#888780">或</span><div class="modal-divider-line"></div></div>
-    <div class="modal-skip" onclick="ga('login_prompt_choice',{choice:'skip'}); closeModal('login-prompt-modal'); showPage('upload')">不用，直接抽號 →</div>
+    <div class="modal-skip" onclick="ga('login_prompt_choice',{choice:'skip'}); closeModal('login-prompt-modal'); startUpload()">不用，直接抽號 →</div>
   </div>
 </div>
 
@@ -253,7 +253,7 @@ input[type=file]{display:none}
     <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.716v2.259h2.908c1.702-1.566 2.684-3.874 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 013.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 000 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 00.957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
     以 Google 繼續
   </button>
-  <button class="btn-outline" onclick="showPage('upload')" style="margin-top:8px">不用，直接抽號</button>
+  <button class="btn-outline" onclick="startUpload()" style="margin-top:8px">不用，直接抽號</button>
 </div>
 
 <!-- 忘記密碼 Modal -->
@@ -1393,7 +1393,7 @@ function handleUploadClick() {
 }
 handleUploadClick.go = function () {
   if (window._state && window._state.user) {
-    showPage('upload');
+    startUpload();
   } else {
     document.getElementById('login-prompt-modal').classList.remove('hidden');
     ga('login_prompt_show');
@@ -1619,9 +1619,8 @@ window._afterLogin = function () {
 function newRound() {
   var st = window._state;
   ga('new_round', { after_save: st.saved ? 'yes' : 'no', seconds_on_result: secOnResult() });
-  _nameStarted = false;
   st.currentNums = null; st.saved = null; _cards = {};
-  showPage('upload');
+  startUpload();   // 再選一組也從第 1 步重新開始（11/13 決定：不鼓勵同一張照片一直抽）
 }
 
 async function saveCurrent() {
@@ -1658,11 +1657,12 @@ function selectLot(key, auto) {
 function setVerifyBar(state, msg) {
   const bar = document.getElementById('verify-bar');
   bar.className = 'verify-bar ' + state;
+  bar.style.display = '';   // 顯示與否交給 class（沒有狀態時 .verify-bar 預設隱藏）
   var m = Safe.esc(msg);
   if (state === 'checking') bar.innerHTML = '<div class="verify-spin"></div><span>' + m + '</span>';
   else if (state === 'pass') bar.innerHTML = '<span>✅</span><span>' + m + '</span>';
   else if (state === 'fail') bar.innerHTML = '<span>❌</span><span>' + m + '</span>';
-  else bar.style.display = 'none';
+  else bar.innerHTML = '';
 }
 
 // ── 寵物辨識（自動對焦找不到動物時的備援，可辨識兔子、倉鼠等）──
@@ -1713,6 +1713,24 @@ function resizePhoto(img, maxSide, quality, maxChars) {
   var q = quality, out = canvas.toDataURL('image/jpeg', q);
   while (out.length > maxChars && q > 0.4) { q -= 0.1; out = canvas.toDataURL('image/jpeg', q); }
   return out;
+}
+
+// 從首頁、下方「上傳」鈕、登入提示進來：一律從第 1 步重新開始（清掉上次的照片和名字），
+// 避免停在第 2 步不知道自己做到哪；結果頁「再選一組」也一樣
+function startUpload() {
+  var st = window._state;
+  _fileSeq++;   // 上一張照片還在辨識的話，結果不採用
+  st.hasPhoto = false; st.focus = null; st.photoCard = null; st.photoThumb = null; st.cardPhotoImg = null;
+  var fi = document.getElementById('file-in'); if (fi) fi.value = '';
+  document.getElementById('preview-img').removeAttribute('src');
+  document.getElementById('preview-frame').style.display = 'none';
+  document.getElementById('upload-placeholder').style.display = '';
+  setVerifyBar('', '');
+  document.getElementById('cat-name-input').value = '';
+  document.getElementById('same-cat-block').style.display = 'none';
+  _sameCatData = null; _useExistingCat = false; _nameStarted = false;
+  updateGenBtn();
+  showPage('upload');
 }
 
 // 產生按鈕：要有通過辨識的照片＋貓名
