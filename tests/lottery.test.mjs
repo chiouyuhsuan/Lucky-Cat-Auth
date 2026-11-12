@@ -39,6 +39,13 @@ test('我買了截止時間 = 開獎隔天台灣時間 24:00', () => {
   assert.equal(L.purchaseDeadline('<x>'), null);
 });
 
+test('開獎時刻：大樂透台灣 20:30、Powerball 美東 22:59（含日光節約）', () => {
+  assert.equal(L.drawTime('tw', '2026-11-13').toISOString(), '2026-11-13T12:30:00.000Z');
+  assert.equal(L.drawTime('us', '2026-11-11').toISOString(), '2026-11-12T03:59:00.000Z');   // 冬令 UTC-5
+  assert.equal(L.drawTime('us', '2026-07-01').toISOString(), '2026-07-02T02:59:00.000Z');   // 夏令 UTC-4
+  assert.equal(L.drawTime('us', null), null);
+});
+
 test('選號：數量、範圍、不重複', () => {
   for (let i = 0; i < 5000; i++) {
     const t = L.pick('tw'); assert.equal(new Set(t.main).size, 6); assert.equal(t.special.length, 0);
