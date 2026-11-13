@@ -399,6 +399,7 @@ input[type=file]{display:none}
 
 <div class="toast" id="toast"></div>
 
+<script src="js/dedupe.js?v=20261102b"></script>
 <script src="js/safe.js?v=20261102b"></script>
 <script src="js/lottery.js?v=20261112"></script>
 <script src="js/focus.js?v=20261102b"></script>
@@ -636,10 +637,24 @@ async function loadHomeData() {
     document.getElementById('stat-draws').textContent = draws.data().count.toLocaleString();
   } catch(e) { console.warn('loadHomeData error:', e); }
   try {
-    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(4));
+    // 多讀幾筆再去重：同一隻貓（同一個 catId）、或照片幾乎一樣的，只留最新一筆，取前 4 隻
+    const q = query(collection(db,'draws'), orderBy('createdAt','desc'), limit(24));
     const snap = await getDocs(q);
-    const items = [];
-    snap.forEach(d => items.push({id:d.id,...d.data()}));
+    const all = [], seenCat = new Set();
+    snap.forEach(d => {
+      const x = { id: d.id, ...d.data() };
+      const key = x.catId || ((x.uid || '') + '|' + (x.catName || ''));
+      if (seenCat.has(key)) return;
+      seenCat.add(key); all.push(x);
+    });
+    let items = all;
+    if (window.Dedupe) {
+      try {
+        const groups = await window.Dedupe.dedupe(all, x => img(x.photoThumb) || '', () => 'all');
+        items = groups.map(g => g.item);
+      } catch (e) {}
+    }
+    items = items.slice(0, 4);
     const el = document.getElementById('home-rank-list');
     if (!items.length) {
       el.innerHTML = '<div class="hm-empty">' + esc(window.t('pf_empty')) + '</div>';
