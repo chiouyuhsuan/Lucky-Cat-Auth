@@ -1,0 +1,36 @@
+name: GA4 報表
+
+# 每週一早上 9:13（台灣時間）產生最近 7 天的報表；也可以手動執行、選天數
+# 結果在這次執行的「Summary」，並保存成 ga_report.md（Artifacts）
+on:
+  schedule:
+    - cron: '13 1 * * 1'
+  workflow_dispatch:
+    inputs:
+      days:
+        description: '最近幾天'
+        type: number
+        default: 7
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install google-analytics-data google-auth
+      - name: 產生報表
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GA4_PROPERTY_ID: ${{ vars.GA4_PROPERTY_ID }}
+        run: python scripts/ga_report.py --days ${{ inputs.days || 7 }} --out ga_report.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ga_report
+          path: ga_report.md
+          retention-days: 90

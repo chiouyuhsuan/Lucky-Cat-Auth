@@ -120,3 +120,11 @@
 | `video_made` | 影片錄好：`source`（result／records）；`aspect`；`video_format`（mp4／webm）；`file_size_kb`；`make_ms`；`lottery_type` |
 | `video_error` | 錄製失敗：`source`；`error_message` |
 | `share`（`content_type` = video） | 分享或下載影片：`method`；`aspect`；`source`；`card_color`；`video_format` |
+
+
+## GA4 報表（給 Claude 讀）
+- `.github/workflows/ga_report.yml`：每週一 09:13（台灣）產生最近 7 天報表，也可以在 Actions 手動執行並選天數
+- 程式：`scripts/ga_report.py`（GA4 Data API），結果在該次執行的 Summary 與 Artifacts（ga_report.md）
+- 內容：總覽（本期 vs 前期）、每日、選號漏斗事件、流量來源、裝置／瀏覽器／作業系統／國家、頁面、網域
+- 設定：GitHub repo 變數 `GA4_PROPERTY_ID`（GA4 資源 ID，數字）；服務帳戶 firebase-adminsdk-fbsvc@pangfu-pangji.iam.gserviceaccount.com 在 GA4 為「檢視者」；Google Cloud 專案 pangfu-pangji 啟用 Google Analytics Data API
+- 事件參數（例如 in_app_browser 的 app）要先在 GA4 建立自訂維度，報表才拆得開
